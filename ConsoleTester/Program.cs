@@ -43,7 +43,7 @@ namespace ConsoleTester
                 };
 
                 var client = new SlackClient(slackConfig);
-                var result = client.PostQuestionaire(questionaire).Result;
+                var result = client.PostQuestionaire("test-channel", questionaire).Result;
                 logger.LogInformation(result.StatusCode.ToString());
             }
         }

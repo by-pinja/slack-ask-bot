@@ -1,0 +1,389 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "logicAppName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the logic app to create."
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "googleSheetConnectionName": {
+            "type": "string",
+            "defaultValue": "google",
+            "metadata": {
+                "description": "Name of the google connection that is sued or created"
+            }
+        },
+        "googleSheetId": {
+            "type": "string",
+            "metadata": {
+                "description": "Google Sheet ID"
+            }
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Web/Connections",
+            "apiVersion": "2015-08-01-preview",
+            "name": "[parameters('googleSheetConnectionName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "api": {
+                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/', 'googlesheet')]"
+                },
+                "displayName": "[parameters('googleSheetConnectionName')]",
+                "parameterValues": {}
+            }
+        },
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2016-06-01",
+            "name": "[parameters('logicAppName')]",
+            "location": "[parameters('location')]",
+            "tags": {
+                "displayName": "LogicApp"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/Connections', parameters('googleSheetConnectionName'))]"
+            ],
+            "properties": {
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "actions": {
+                        "For_each": {
+                            "actions": {
+                                "Condition": {
+                                    "actions": {
+                                        "Insert_row": {
+                                            "inputs": {
+                                                "body": {
+                                                    "Answer": "@body('Parse_JSON')?['actions'][0]?['text']?['text']",
+                                                    "Answerer": "@body('Parse_JSON')?['user']?['username']",
+                                                    "Question": "@body('Parse_JSON')?['message']['blocks'][0]['text']['text']"
+                                                },
+                                                "host": {
+                                                    "connection": {
+                                                        "name": "@parameters('$connections')['googlesheet_connection']['connectionId']"
+                                                    }
+                                                },
+                                                "method": "post",
+                                                "path": "/datasets/@{encodeURIComponent(encodeURIComponent(parameters('googleSheetId')))}/tables/@{encodeURIComponent(encodeURIComponent('0'))}/items"
+                                            },
+                                            "metadata": {
+                                                "@{parameters('googleSheetId')}": "/Questionaire"
+                                            },
+                                            "runAfter": {
+                                                "Parse_JSON": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "type": "ApiConnection"
+                                        },
+                                        "Parse_JSON": {
+                                            "inputs": {
+                                                "content": "@replace(items('For_each')?['value'], '\\', '')",
+                                                "schema": {
+                                                    "properties": {
+                                                        "actions": {
+                                                            "items": {
+                                                                "properties": {
+                                                                    "action_id": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "action_ts": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "block_id": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "text": {
+                                                                        "properties": {
+                                                                            "emoji": {
+                                                                                "type": "boolean"
+                                                                            },
+                                                                            "text": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "type": {
+                                                                                "type": "string"
+                                                                            }
+                                                                        },
+                                                                        "type": "object"
+                                                                    },
+                                                                    "type": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "action_id",
+                                                                    "block_id",
+                                                                    "text",
+                                                                    "type",
+                                                                    "action_ts"
+                                                                ],
+                                                                "type": "object"
+                                                            },
+                                                            "type": "array"
+                                                        },
+                                                        "api_app_id": {
+                                                            "type": "string"
+                                                        },
+                                                        "channel": {
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "string"
+                                                                },
+                                                                "name": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "container": {
+                                                            "properties": {
+                                                                "channel_id": {
+                                                                    "type": "string"
+                                                                },
+                                                                "is_ephemeral": {
+                                                                    "type": "boolean"
+                                                                },
+                                                                "message_ts": {
+                                                                    "type": "string"
+                                                                },
+                                                                "type": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "message": {
+                                                            "properties": {
+                                                                "blocks": {
+                                                                    "items": {
+                                                                        "properties": {
+                                                                            "block_id": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "elements": {
+                                                                                "items": {
+                                                                                    "properties": {
+                                                                                        "action_id": {
+                                                                                            "type": "string"
+                                                                                        },
+                                                                                        "text": {
+                                                                                            "properties": {
+                                                                                                "emoji": {
+                                                                                                    "type": "boolean"
+                                                                                                },
+                                                                                                "text": {
+                                                                                                    "type": "string"
+                                                                                                },
+                                                                                                "type": {
+                                                                                                    "type": "string"
+                                                                                                }
+                                                                                            },
+                                                                                            "type": "object"
+                                                                                        },
+                                                                                        "type": {
+                                                                                            "type": "string"
+                                                                                        }
+                                                                                    },
+                                                                                    "required": [
+                                                                                        "type",
+                                                                                        "action_id",
+                                                                                        "text"
+                                                                                    ],
+                                                                                    "type": "object"
+                                                                                },
+                                                                                "type": "array"
+                                                                            },
+                                                                            "text": {
+                                                                                "properties": {
+                                                                                    "text": {
+                                                                                        "type": "string"
+                                                                                    },
+                                                                                    "type": {
+                                                                                        "type": "string"
+                                                                                    },
+                                                                                    "verbatim": {
+                                                                                        "type": "boolean"
+                                                                                    }
+                                                                                },
+                                                                                "type": "object"
+                                                                            },
+                                                                            "type": {
+                                                                                "type": "string"
+                                                                            }
+                                                                        },
+                                                                        "required": [
+                                                                            "type",
+                                                                            "block_id"
+                                                                        ],
+                                                                        "type": "object"
+                                                                    },
+                                                                    "type": "array"
+                                                                },
+                                                                "bot_id": {
+                                                                    "type": "string"
+                                                                },
+                                                                "subtype": {
+                                                                    "type": "string"
+                                                                },
+                                                                "text": {
+                                                                    "type": "string"
+                                                                },
+                                                                "ts": {
+                                                                    "type": "string"
+                                                                },
+                                                                "type": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "response_url": {
+                                                            "type": "string"
+                                                        },
+                                                        "team": {
+                                                            "properties": {
+                                                                "domain": {
+                                                                    "type": "string"
+                                                                },
+                                                                "id": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        },
+                                                        "token": {
+                                                            "type": "string"
+                                                        },
+                                                        "trigger_id": {
+                                                            "type": "string"
+                                                        },
+                                                        "type": {
+                                                            "type": "string"
+                                                        },
+                                                        "user": {
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "string"
+                                                                },
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
+                                                                "team_id": {
+                                                                    "type": "string"
+                                                                },
+                                                                "username": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "runAfter": {},
+                                            "type": "ParseJson"
+                                        }
+                                    },
+                                    "expression": {
+                                        "and": [
+                                            {
+                                                "equals": [
+                                                    "@items('For_each')?['key']",
+                                                    "payload"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "runAfter": {},
+                                    "type": "If"
+                                }
+                            },
+                            "foreach": "@triggerBody()?['$formdata']",
+                            "runAfter": {},
+                            "type": "Foreach"
+                        }
+                    },
+                    "contentVersion": "1.0.0.0",
+                    "outputs": {},
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        },
+                        "googleSheetId": {
+                            "type": "string",
+                            "defaultValue": "[parameters('googleSheetId')]"
+                        }
+                    },
+                    "triggers": {
+                        "manual": {
+                            "inputs": {
+                                "schema": {
+                                    "properties": {
+                                        "$content": {
+                                            "type": "string"
+                                        },
+                                        "$content-type": {
+                                            "type": "string"
+                                        },
+                                        "$formdata": {
+                                            "items": {
+                                                "properties": {
+                                                    "key": {
+                                                        "type": "string"
+                                                    },
+                                                    "value": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "key",
+                                                    "value"
+                                                ],
+                                                "type": "object"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            },
+                            "kind": "Http",
+                            "type": "Request"
+                        }
+                    }
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "googlesheet_connection": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('googleSheetConnectionName'))]",
+                                "connectionName": "google",
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/googlesheet')]"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "triggerURI": {
+            "type": "string",
+            "value": "[listCallbackURL(concat(resourceId('Microsoft.Logic/workflows/', parameters('logicAppName')), '/triggers/manual'), '2016-06-01').value]"
+          }
+    }
+}

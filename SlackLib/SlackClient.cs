@@ -29,10 +29,11 @@ namespace SlackLib
             _webhookUrl = new Uri(_config.WebHookUrl);
         }
     
-        public async Task<HttpResponseMessage> PostQuestionaire(Questionaire questionaire)
+        public async Task<HttpResponseMessage> PostQuestionaire(string channel, Questionaire questionaire)
         {
             var payload = new
             {
+                channel = channel,
                 blocks = new []
                 {
                     Section(questionaire),
