@@ -68,13 +68,13 @@ namespace SlackLib
                 type = "actions",
                 elements = options.Select(option => new
                 {
-                        type = "button",
-                        text = new
-                        {
-                            type = "plain_text",
-                            text = option,
-                            emoji = true
-                        }
+                    type = "button",
+                    text = new
+                    {
+                        type = "plain_text",
+                        text = option,
+                        emoji = true
+                    }
                 }).ToArray()
             };
         }
