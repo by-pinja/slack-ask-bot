@@ -11,7 +11,7 @@ This is still a very much a work in progress so this shouldn't probably be used 
    This is the identifying part of the URL. For example, in https://docs.google.com/spreadsheets/d/mock-id/edit#gid=0
    the ID is mock-id
 3. Create the environment
-   For example `New-AzResourceGroupDeployment -Name "my-deploy-name" -TemplateFile Deployment/azuredeploy.json -ResourceGroupName "my-resource-group" -appName "my-logic-app-nname" -googleSheetId "mock-id"`
+   For example `New-AzResourceGroupDeployment -Name "my-deploy-name" -TemplateFile Deployment/azuredeploy.json -ResourceGroupName "my-resource-group" -logicAppName "my-logic-app-nname" -googleSheetId "mock-id"`
    Save the script output URL. It is needed later.
 4. Authorize Google connection in Azure. Navigate to your resource group in Azure Portal and find the created google connection and authorize it. This must be done after every time the environent build script has been executed. This should be fixed at some point.
 5. Change logic apps web hook uri at https://api.slack.com/apps "Interactive Components"
