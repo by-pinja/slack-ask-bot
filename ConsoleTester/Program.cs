@@ -28,20 +28,34 @@ namespace ConsoleTester
                         var result = storage.GetQuestionnaires();
                         foreach (var questionaire in result)
                         {
-                            logger.LogInformation("- {0} {1}", questionaire.QuestionaireId, questionaire.Created);
+                            logger.LogInformation("- {0} {1} {2}", questionaire.QuestionaireId, questionaire.Question, questionaire.Created);
                         }
                     })
                     .WithParsed<CreateQuestionnaireOption>(opts => {
                         logger.LogTrace("Creating questionnaire");
                         var storage = di.GetService<Storage>();
-                        var questionnaire = new QuestionnaireEntity("QuestionId!", "hjni-testi")
+                        var slackConfig = di.GetService<SlackConfiguration>();
+
+                        var questionnaire = new Questionnaire
                         {
-                            QuestionaireId = "QuestionId!",
+                            Question = "Mitenkäs hurisee?",
+                            AnswerOptions = new string []
+                            {
+                                "Hyvin menee",
+                                "Ei se mene",
+                                ":feelsbadman:"
+                            }
+                        };
+
+                        var questionnaireDto = new QuestionnaireEntity(questionnaire.QuestionId, "hjni-testi")
+                        {
+                            QuestionaireId = questionnaire.QuestionId,
                             Channel = "hjni-testi",
                             Created = DateTime.UtcNow,
+                            Question = questionnaire.Question
                         };
-                        storage.InsertOrMerge(questionnaire);
-                        //CreateQuestionaire(config, logger);
+                        storage.InsertOrMerge(questionnaireDto);
+                        CreateQuestionaire(slackConfig, logger, questionnaire);
                     })
                     .WithParsed<AnswersOption>(opts => {
                         logger.LogTrace("Getting all answers");
@@ -70,20 +84,8 @@ namespace ConsoleTester
             return questionaireTable;
         }
 
-        private static void CreateQuestionaire(SlackConfiguration config, ILogger<Program> logger)
+        private static void CreateQuestionaire(SlackConfiguration config, ILogger<Program> logger, Questionnaire questionnaire)
         {
-            var questionnaire = new Questionnaire
-            {
-                QuestionId = "QuestionId!",
-                Question = "Mitenkäs hurisee?",
-                Answers = new string []
-                {
-                    "Hyvin menee",
-                    "Ei se mene",
-                    ":feelsbadman:"
-                }
-            };
-
             var client = new SlackClient(config);
             var result = client.PostQuestionaire("test-channel", questionnaire).Result;
             logger.LogInformation(result.StatusCode.ToString());
