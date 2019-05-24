@@ -39,17 +39,18 @@ namespace ConsoleTester
                         }
                     })
                     .WithParsed<CreateQuestionaireOption>(opts => {
+                        logger.LogTrace("Creating questionaire");
                         var questionaire = new QuestionaireEntity("QuestionId!", "hjni-testi")
                         {
                             QuestionaireId = "QuestionId!",
                             Channel = "hjni-testi",
-                            GoogleSheetId = "1rVxfBxrx1Ssy3ZjfPspLl4tc-sOZ7AV3F0APlCeHd-I",
+                            GoogleSheetId = "19zPGQw8iOpeEqUOGc-RFABq74cWz6Qpny3qs9lW9eNQ",
                         };
                         var insertOperation = TableOperation.InsertOrMerge(questionaire);
                         var result = questionaireTable.Execute(insertOperation);
 
                         logger.LogInformation("Ja laskua tuli: {0}", result.RequestCharge);
-                        //CreateQuestionaire(config, logger);
+                        CreateQuestionaire(config, logger);
                     })
                     .WithNotParsed(errs => {
                         Console.WriteLine("I'm error");
