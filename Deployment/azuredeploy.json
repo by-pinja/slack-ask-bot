@@ -324,7 +324,7 @@
                                                 "body": {
                                                     "PartitionKey": "@body('Parse_JSON')?['channel']?['name']",
                                                     "RowKey": "@body('Parse_JSON')?['trigger_id']",
-                                                    "QuestionaireId": "@body('Parse_JSON')?['message']['blocks'][0]?['block_id']",
+                                                    "QuestionnaireId": "@body('Parse_JSON')?['message']['blocks'][0]?['block_id']",
                                                     "Channel": "@body('Parse_JSON')?['channel']?['name']",
                                                     "Answer": "@body('Parse_JSON')?['actions'][0]?['text']?['text']",
                                                     "Answerer": "@body('Parse_JSON')?['user']?['username']"

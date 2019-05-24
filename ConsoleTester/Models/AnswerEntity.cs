@@ -9,15 +9,16 @@ namespace ConsoleTester.Models
         public string Question { get; set; }
         public string Channel { get; set; }
         public string Answer { get; set; }
+        public string Answerer { get; set; }
 
         public AnswerEntity()
         {
 
         }
 
-        public AnswerEntity(string questionaireId, string channel)
+        public AnswerEntity(string triggerId, string channel)
         {
-            RowKey = questionaireId;
+            RowKey = triggerId;
             PartitionKey = channel;
         }
     }

@@ -47,9 +47,9 @@ namespace ConsoleTester
                         logger.LogTrace("Getting all answers");
                         var storage = di.GetService<Storage>();
                         var result = storage.GetAnswers();
-                        foreach (var questionaire in result)
+                        foreach (var answer in result)
                         {
-                            logger.LogInformation("- {0} {1}", questionaire.QuestionnaireId, questionaire.Answer);
+                            logger.LogInformation("- {0} {1} {2} {3}", answer.QuestionnaireId, answer.Answer, answer.Timestamp, answer.Answerer);
                         }
                     })
                     .WithNotParsed(errs => {
