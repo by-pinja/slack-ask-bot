@@ -3,6 +3,12 @@ A bot to perform small questionaries in Slack
 
 This is still a very much a work in progress so this shouldn't probably be used by anyone.
 
+## Roadmap
+ 1. Loading questionnaire from file / console / etc
+ 1. Deployment from CI
+ 1. Answer reporting to proper place
+ 1. Table storage cleanup
+
 ## (Bad) Setup steps
 
 ### Creating application
@@ -25,7 +31,7 @@ Example
 }
 ```
 
-## USage
+## Usage
 For help
 
 ```
