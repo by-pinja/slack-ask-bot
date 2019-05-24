@@ -29,15 +29,15 @@ namespace SlackLib
             _webhookUrl = new Uri(_config.WebHookUrl);
         }
     
-        public async Task<HttpResponseMessage> PostQuestionaire(string channel, Questionaire questionaire)
+        public async Task<HttpResponseMessage> PostQuestionaire(string channel, Questionnaire questionnaire)
         {
             var payload = new
             {
                 channel = channel,
                 blocks = new []
                 {
-                    Section(questionaire),
-                    AnswerOptions(questionaire.Answers)
+                    Section(questionnaire),
+                    AnswerOptions(questionnaire.AnswerOptions)
                 }
             };
             var serializedPayload = JsonConvert.SerializeObject(payload);
@@ -47,16 +47,16 @@ namespace SlackLib
             return response;
         }
 
-        private dynamic Section(Questionaire questionaire)
+        private dynamic Section(Questionnaire questionnaire)
         {
             return new 
             {
                 type = "section",
-                block_id = questionaire.QuestionId,
+                block_id = questionnaire.QuestionId,
                 text = new
                 {
                     type = "mrkdwn",
-                    text = questionaire.Question
+                    text = questionnaire.Question
                 }
             };
         }
