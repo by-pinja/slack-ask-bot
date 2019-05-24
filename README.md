@@ -13,7 +13,10 @@ This is still a very much a work in progress so this shouldn't probably be used 
 
 ### Creating application
 1. Create the environment
-   For example `New-AzResourceGroupDeployment -Name "my-deploy-name" -TemplateFile Deployment/azuredeploy.json -ResourceGroupName "my-resource-group" -logicAppName "my-logic-app-nname"
+   For example 
+   ```
+   New-AzResourceGroupDeployment -Name "my-deploy-name" -TemplateFile Deployment/azuredeploy.json -ResourceGroupName "my-resource-group" -logicAppName "my-logic-app-nname"
+   ```
    Save the script output URL. It is needed later.
 2. Change logic apps web hook uri at https://api.slack.com/apps "Interactive Components"
 
