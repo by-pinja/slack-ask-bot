@@ -16,41 +16,41 @@ namespace ConsoleTester
 
         public static void Main(string[] args)
         {
-            IConfiguration config = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-                .AddJsonFile("appsettings.Development.json", optional: true)
-                .Build();
-            using (var di = BuildDependencyInjection(config))
+            using (var di = BuildDependencyInjection())
             {
                 var logger = di.GetService<ILogger<Program>>();
                 logger.LogTrace("Logger created, starting test run.");
 
-                var tableStorageSettings = config.GetSection("TableStorage").Get<TableStorageSettings>();
-                var questionaireTable = PrepareTableForUse(logger, tableStorageSettings);
-
-                Parser.Default.ParseArguments<QuestionairesOption, CreateQuestionaireOption>(args)
-                    .WithParsed<QuestionairesOption>(opts => {
+                Parser.Default.ParseArguments<QuestionnairesOption, CreateQuestionnaireOption, AnswersOption>(args)
+                    .WithParsed<QuestionnairesOption>(opts => {
                         logger.LogTrace("Getting all questionaires");
-                        TableQuery<QuestionaireEntity> query = new TableQuery<QuestionaireEntity>();
-                        var result = questionaireTable.ExecuteQuery(query);
-                        foreach (var x in result)
+                        var storage = di.GetService<Storage>();
+                        var result = storage.GetQuestionnaires();
+                        foreach (var questionaire in result)
                         {
-                            logger.LogInformation("- {0} {1}", x.QuestionaireId, x.GoogleSheetId);
+                            logger.LogInformation("- {0} {1}", questionaire.QuestionaireId, questionaire.Created);
                         }
                     })
-                    .WithParsed<CreateQuestionaireOption>(opts => {
-                        logger.LogTrace("Creating questionaire");
-                        var questionaire = new QuestionaireEntity("QuestionId!", "hjni-testi")
+                    .WithParsed<CreateQuestionnaireOption>(opts => {
+                        logger.LogTrace("Creating questionnaire");
+                        var storage = di.GetService<Storage>();
+                        var questionnaire = new QuestionnaireEntity("QuestionId!", "hjni-testi")
                         {
                             QuestionaireId = "QuestionId!",
                             Channel = "hjni-testi",
-                            GoogleSheetId = "19zPGQw8iOpeEqUOGc-RFABq74cWz6Qpny3qs9lW9eNQ",
+                            Created = DateTime.UtcNow,
                         };
-                        var insertOperation = TableOperation.InsertOrMerge(questionaire);
-                        var result = questionaireTable.Execute(insertOperation);
-
-                        logger.LogInformation("Ja laskua tuli: {0}", result.RequestCharge);
-                        CreateQuestionaire(config, logger);
+                        storage.InsertOrMerge(questionnaire);
+                        //CreateQuestionaire(config, logger);
+                    })
+                    .WithParsed<AnswersOption>(opts => {
+                        logger.LogTrace("Getting all answers");
+                        var storage = di.GetService<Storage>();
+                        var result = storage.GetAnswers();
+                        foreach (var questionaire in result)
+                        {
+                            logger.LogInformation("- {0} {1}", questionaire.QuestionnaireId, questionaire.Answer);
+                        }
                     })
                     .WithNotParsed(errs => {
                         Console.WriteLine("I'm error");
@@ -58,33 +58,21 @@ namespace ConsoleTester
             }
         }
 
-        private static CloudTable PrepareTableForUse(ILogger<Program> logger, TableStorageSettings tableStorageSettings)
+        private static CloudTable PrepareQuestionaireTableForUse(ILogger<Program> logger, TableStorageSettings tableStorageSettings)
         {
             var storageAccount = CloudStorageAccount.Parse(tableStorageSettings.ConnectionString);
             var client = storageAccount.CreateCloudTableClient();
-            
-            var questionaireTable = client.GetTableReference(tableStorageSettings.Table);
-            
+            var questionaireTable = client.GetTableReference(tableStorageSettings.QuestionTable);
             if (questionaireTable.CreateIfNotExists())
             {
-                logger.LogTrace("Table {0} doesn't exist, creating.", tableStorageSettings.Table);
-                questionaireTable.CreateIfNotExists();
+                logger.LogTrace("Table {0} doesn't exist, created.", tableStorageSettings.QuestionTable);
             }
             return questionaireTable;
         }
 
-        private static void CreateQuestionaire(IConfiguration config, ILogger<Program> logger)
+        private static void CreateQuestionaire(SlackConfiguration config, ILogger<Program> logger)
         {
-            var slackSection = config.GetSection("Slack");
-            if (!slackSection.Exists())
-            {
-                logger.LogError("No Slack configuration found");
-                return;
-            }
-            var slackConfig = new SlackConfiguration();
-            slackSection.Bind(slackConfig);
-
-            var questionaire = new Questionaire
+            var questionnaire = new Questionnaire
             {
                 QuestionId = "QuestionId!",
                 Question = "Mitenkäs hurisee?",
@@ -96,19 +84,30 @@ namespace ConsoleTester
                 }
             };
 
-            var client = new SlackClient(slackConfig);
-            var result = client.PostQuestionaire("test-channel", questionaire).Result;
+            var client = new SlackClient(config);
+            var result = client.PostQuestionaire("test-channel", questionnaire).Result;
             logger.LogInformation(result.StatusCode.ToString());
         }
 
-        private static ServiceProvider BuildDependencyInjection(IConfiguration config)
+        private static ServiceProvider BuildDependencyInjection()
         {
+            IConfiguration config = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+                .AddJsonFile("appsettings.Development.json", optional: true)
+                .Build();
+
+            var tableStorageSettings = config.GetSection("TableStorage").Get<TableStorageSettings>();
+            var slackConfiguration = config.GetSection("Slack").Get<SlackConfiguration>();
             return new ServiceCollection()
                 .AddLogging(loggingBuilder =>
                 {
                     loggingBuilder.AddConfiguration(config.GetSection("Logging"));
                     loggingBuilder.AddConsole();
-                }).BuildServiceProvider();
+                })
+                .AddSingleton<TableStorageSettings>(tableStorageSettings)
+                .AddSingleton<SlackConfiguration>(slackConfiguration)
+                .AddSingleton<Storage>()
+                .BuildServiceProvider();
         }
     }
 }

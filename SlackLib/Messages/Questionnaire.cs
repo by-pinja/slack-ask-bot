@@ -1,6 +1,6 @@
 namespace SlackLib.Messages
 {
-    public class Questionaire
+    public class Questionnaire
     {
         public string QuestionId { get; set; }
         public string Question { get; set; }

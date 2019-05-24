@@ -3,18 +3,19 @@ using Microsoft.Azure.Cosmos.Table;
 
 namespace ConsoleTester.Models
 {
-    public class QuestionaireEntity : TableEntity
+    public class QuestionnaireEntity : TableEntity
     {
         public string QuestionaireId { get; set; }
         public string Channel { get; set; }
-        public string GoogleSheetId { get; set; }
+        public DateTime Created { get; set; }
+        public string Question { get; set; }
 
-        public QuestionaireEntity()
+        public QuestionnaireEntity()
         {
 
         }
 
-        public QuestionaireEntity(string questionaireId, string channel)
+        public QuestionnaireEntity(string questionaireId, string channel)
         {
             RowKey = questionaireId;
             PartitionKey = channel;

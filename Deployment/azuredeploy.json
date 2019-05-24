@@ -14,13 +14,6 @@
             "metadata": {
                 "description": "Location for all resources."
             }
-        },
-        "googleSheetConnectionName": {
-            "type": "string",
-            "defaultValue": "google",
-            "metadata": {
-                "description": "Name of the google connection that is used or created"
-            }
         }
     },
     "variables": {
@@ -28,20 +21,6 @@
         "tableStorageName": "table-storage"
     },
     "resources": [
-        {
-            "comments": "Updating Google Sheets",
-            "type": "Microsoft.Web/connections",
-            "apiVersion": "2016-06-01",
-            "name": "[parameters('googleSheetConnectionName')]",
-            "location": "[resourceGroup().location]",
-            "properties": {
-                "api": {
-                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/googlesheet')]"
-                },
-                "displayName": "[parameters('googleSheetConnectionName')]",
-                "parameterValues": {}
-            }
-        },
         {
             "type": "Microsoft.Web/connections",
             "apiVersion": "2016-06-01",
@@ -104,7 +83,6 @@
                 "displayName": "LogicApp"
             },
             "dependsOn": [
-                "[resourceId('Microsoft.Web/Connections', parameters('googleSheetConnectionName'))]",
                 "[resourceId('Microsoft.Web/Connections', variables('tableStorageName'))]"
             ],
             "properties": {
@@ -341,20 +319,23 @@
                                             },
                                             "type": "ApiConnection"
                                         },
-                                        "Insert_row": {
+                                        "Insert_Entity": {
                                             "inputs": {
                                                 "body": {
+                                                    "PartitionKey": "@body('Parse_JSON')?['channel']?['name']",
+                                                    "RowKey": "@body('Parse_JSON')?['trigger_id']",
+                                                    "QuestionaireId": "@body('Parse_JSON')?['message']['blocks'][0]?['block_id']",
+                                                    "Channel": "@body('Parse_JSON')?['channel']?['name']",
                                                     "Answer": "@body('Parse_JSON')?['actions'][0]?['text']?['text']",
-                                                    "Answerer": "@body('Parse_JSON')?['user']?['username']",
-                                                    "Question": "@body('Parse_JSON')?['message']['blocks'][0]['text']['text']"
+                                                    "Answerer": "@body('Parse_JSON')?['user']?['username']"
                                                 },
                                                 "host": {
                                                     "connection": {
-                                                        "name": "@parameters('$connections')['googlesheet_connection']['connectionId']"
+                                                        "name": "@parameters('$connections')['azuretables']['connectionId']"
                                                     }
                                                 },
                                                 "method": "post",
-                                                "path": "/datasets/@{encodeURIComponent(encodeURIComponent('1rVxfBxrx1Ssy3ZjfPspLl4tc-sOZ7AV3F0APlCeHd-I'))}/tables/@{encodeURIComponent(encodeURIComponent('Answers'))}/items"
+                                                "path": "/Tables/@{encodeURIComponent('answers')}/entities"
                                             },
                                             "runAfter": {
                                                 "Get_entity": [
@@ -432,11 +413,6 @@
                 "parameters": {
                     "$connections": {
                         "value": {
-                            "googlesheet_connection": {
-                                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('googleSheetConnectionName'))]",
-                                "connectionName": "google",
-                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/googlesheet')]"
-                            },
                             "azuretables": {
                                 "connectionId": "[resourceId('Microsoft.Web/connections', variables('tableStorageName'))]",
                                 "connectionName": "table-storage",
