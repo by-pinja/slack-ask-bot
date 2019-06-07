@@ -1,8 +1,10 @@
 using System;
+using System.IO;
 using ConsoleTester.Models;
 using ConsoleTester.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using SlackLib;
 using SlackLib.Messages;
 
@@ -34,20 +36,13 @@ namespace ConsoleTester
 
         public void HandleCreateQuestionnaires(CreateQuestionnaireOption option)
         {
-            _logger.LogTrace("Creating questionnaire");
+            _logger.LogTrace("Creating questionnaire from file {0}", option.QuestionnaireFile);
             var storage = _serviceProvider.GetService<Storage>();
             var slackConfig = _serviceProvider.GetService<SlackConfiguration>();
 
-            var questionnaire = new Questionnaire
-            {
-                Question = "Mitenkäs hurisee?",
-                AnswerOptions = new string []
-                {
-                    "Hyvin menee",
-                    "Ei se mene",
-                    ":feelsbadman:"
-                }
-            };
+            var json = File.ReadAllText(option.QuestionnaireFile);
+            var questionnaire = JsonConvert.DeserializeObject<Questionnaire>(json);
+            _logger.LogDebug("Questionnaire deserialized, question {0}", questionnaire.Question);
 
             var questionnaireDto = new QuestionnaireEntity(questionnaire.QuestionId, "hjni-testi")
             {
@@ -76,6 +71,25 @@ namespace ConsoleTester
             _logger.LogTrace("Deleting all questionnaires and answers");
             var storage = _serviceProvider.GetService<Storage>();
             storage.DeleteAll();
+        }
+
+        public void HandleGenerateTemplate(GenerateQuestionnaireTemplateOption option)
+        {
+            _logger.LogTrace("Generating a questionnaire template");
+
+            var example = new Questionnaire
+            {
+                Question = "Mitenkäs hurisee?",
+                AnswerOptions = new string []
+                {
+                    "Hyvin menee",
+                    "Ei se mene",
+                    ":feelsbadman:"
+                }
+            };
+            string json = JsonConvert.SerializeObject(example, Formatting.Indented);
+            File.WriteAllText(option.FileName, json);
+            _logger.LogInformation("Questionnaire template file '{0}' created.", option.FileName);
         }
 
         private void CreateQuestionaire(Questionnaire questionnaire)
