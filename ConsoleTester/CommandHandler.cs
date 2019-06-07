@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using ConsoleTester.Models;
 using ConsoleTester.Options;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,18 +24,18 @@ namespace ConsoleTester
             _serviceProvider = serviceProvider;
         }
 
-        public void HandleGetQuestionnaires(QuestionnairesOption option)
+        public async Task HandleGetQuestionnaires(QuestionnairesOption option)
         {
             _logger.LogTrace("Getting all questionaires");
             var storage = _serviceProvider.GetService<Storage>();
-            var result = storage.GetQuestionnaires();
+            var result = await storage.GetQuestionnaires();
             foreach (var questionaire in result)
             {
                 _logger.LogInformation("- {0} {1} {2}", questionaire.QuestionaireId, questionaire.Question, questionaire.Created);
             }
         }
 
-        public void HandleCreateQuestionnaires(CreateQuestionnaireOption option)
+        public async Task HandleCreateQuestionnaires(CreateQuestionnaireOption option)
         {
             try 
             {
@@ -53,10 +54,10 @@ namespace ConsoleTester
                     Created = DateTime.UtcNow,
                     Question = questionnaire.Question
                 };
-                storage.InsertOrMerge(questionnaireDto);
+                await storage.InsertOrMerge(questionnaireDto);
                 
                 var client = _serviceProvider.GetService<SlackClient>();
-                client.PostQuestionaire("test-channel", questionnaire).Wait();
+                await client.PostQuestionaire("test-channel", questionnaire);
                 _logger.LogInformation("Questionnaire created from file {0}.", option.QuestionnaireFile);
             }
             catch (SlackLibException exception)
@@ -76,25 +77,25 @@ namespace ConsoleTester
             }
         }
 
-        public void HandleGetAnswers(AnswersOption option)
+        public async Task HandleGetAnswers(AnswersOption option)
         {
             _logger.LogTrace("Getting all answers");
             var storage = _serviceProvider.GetService<Storage>();
-            var result = storage.GetAnswers();
+            var result = await storage.GetAnswers();
             foreach (var answer in result)
             {
                 _logger.LogInformation("- {0} {1} {2} {3}", answer.QuestionnaireId, answer.Answer, answer.Timestamp, answer.Answerer);
             }
         }
 
-        public void HandleDelete(DeleteOption option)
+        public async Task HandleDelete(DeleteOption option)
         {
             _logger.LogTrace("Deleting all questionnaires and answers");
             var storage = _serviceProvider.GetService<Storage>();
-            storage.DeleteAll();
+            await storage.DeleteAll();
         }
 
-        public void HandleGenerateTemplate(GenerateQuestionnaireTemplateOption option)
+        public async Task HandleGenerateTemplate(GenerateQuestionnaireTemplateOption option)
         {
             _logger.LogTrace("Generating a questionnaire template");
 
@@ -111,6 +112,7 @@ namespace ConsoleTester
             string json = JsonConvert.SerializeObject(example, Formatting.Indented);
             File.WriteAllText(option.FileName, json);
             _logger.LogInformation("Questionnaire template file '{0}' created.", option.FileName);
+            await Task.FromResult(0);
         }
     }
 }
