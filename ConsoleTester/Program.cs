@@ -24,11 +24,12 @@ namespace ConsoleTester
 
                 var commandHandler = new CommandHandler(di);
 
-                Parser.Default.ParseArguments<QuestionnairesOption, CreateQuestionnaireOption, AnswersOption, DeleteOption>(args)
+                Parser.Default.ParseArguments<QuestionnairesOption, CreateQuestionnaireOption, AnswersOption, DeleteOption, GenerateQuestionnaireTemplateOption>(args)
                     .WithParsed<QuestionnairesOption>(commandHandler.HandleGetQuestionnaires)
                     .WithParsed<CreateQuestionnaireOption>(commandHandler.HandleCreateQuestionnaires)
                     .WithParsed<AnswersOption>(commandHandler.HandleGetAnswers)
                     .WithParsed<DeleteOption>(commandHandler.HandleDelete)
+                    .WithParsed<GenerateQuestionnaireTemplateOption>(commandHandler.HandleGenerateTemplate)
                     .WithNotParsed(errors => {
                         if (errors.Count() == 1 && 
                             (errors.First().Tag == ErrorType.HelpRequestedError || 

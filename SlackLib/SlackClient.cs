@@ -5,17 +5,23 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SlackLib.Messages;
+using Microsoft.Extensions.Logging;
 
 namespace SlackLib
 {
+    /// <summary>
+    /// Wrapper for Slack API
+    /// </summary>
     public class SlackClient
     {
+        private readonly ILogger<SlackClient> _logger;
         private readonly Uri _webhookUrl;
         private readonly HttpClient _httpClient = new HttpClient();
         private readonly SlackConfiguration _config;
 
-        public SlackClient(SlackConfiguration config)
+        public SlackClient(ILogger<SlackClient> logger, SlackConfiguration config)
         {
+            _logger = logger;
             if (config == null)
             {
                 throw new ArgumentNullException(nameof(config), "config is missing");
@@ -29,7 +35,7 @@ namespace SlackLib
             _webhookUrl = new Uri(_config.WebHookUrl);
         }
     
-        public async Task<HttpResponseMessage> PostQuestionaire(string channel, Questionnaire questionnaire)
+        public async Task PostQuestionaire(string channel, Questionnaire questionnaire)
         {
             var payload = new
             {
@@ -43,8 +49,14 @@ namespace SlackLib
             var serializedPayload = JsonConvert.SerializeObject(payload);
             var response = await _httpClient.PostAsync(_webhookUrl,
                 new StringContent(serializedPayload, Encoding.UTF8, "application/json"));
-    
-            return response;
+
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.StatusCode != System.Net.HttpStatusCode.OK && content != "ok")
+            {
+                _logger.LogTrace("Status code: {0}", response.StatusCode);
+                _logger.LogTrace("Content: {0}", content);
+                throw new SlackLibException($"Something went wrong while creating questionnaire. Code was {response.StatusCode}");
+            }
         }
 
         private dynamic Section(Questionnaire questionnaire)
