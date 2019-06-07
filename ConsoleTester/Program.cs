@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using CloudLib;
 using CommandLine;
-using ConsoleTester.Models;
 using ConsoleTester.Options;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Configuration;

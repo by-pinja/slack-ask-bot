@@ -1,4 +1,4 @@
-namespace ConsoleTester
+namespace CloudLib
 {
     public class TableStorageSettings
     {

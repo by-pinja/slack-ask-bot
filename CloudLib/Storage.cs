@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ConsoleTester.Models;
+using CloudLib.Models;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
 
-namespace ConsoleTester
+namespace CloudLib
 {
     public class Storage
     {
