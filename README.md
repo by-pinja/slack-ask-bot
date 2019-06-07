@@ -35,10 +35,35 @@ Example
 ```
 
 ## Usage
-For help
+Console interface of this software uses [CommandLineParser](https://github.com/commandlineparser/commandline).
+
+Using command line parameters differs a little bit depending on where you run this software.
+
+Examples in this section assume that commands are run from `ConsoleTester`-folder.
+
+For up to date help
 
 ```
-dotnet run --project .\ConsoleTester\ -- help 
+dotnet run -- help 
 ```
 
-Questionnaire is hard coded for now.
+### Creating new questionnaires
+Questionnaires are created by reading JSON file.
+
+NOTE: Currently questionnaires are only posted to `#hjni-test`
+
+1. Generate questionnaire template `dotnet run -- generateTemplate -o 'example-questionnaire.json'` 
+2. Change question, add/change/remove answers
+3. Add questionnaire `dotnet run -- create -f 'example-questionnaire.json'`
+
+Example questionnaire JSON
+```
+{
+  "Question": "How are our code monkeys doing today?",
+  "AnswerOptions": [
+    "Yes",
+    "Very much no.",
+    ":feelsbadman:"
+  ]
+}
+```
