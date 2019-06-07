@@ -54,7 +54,15 @@ namespace ConsoleTester
                     Question = questionnaire.Question
                 };
                 storage.InsertOrMerge(questionnaireDto);
-                CreateQuestionaire(questionnaire);
+                
+                var client = _serviceProvider.GetService<SlackClient>();
+                client.PostQuestionaire("test-channel", questionnaire).Wait();
+                _logger.LogInformation("Questionnaire created from file {0}.", option.QuestionnaireFile);
+            }
+            catch (SlackLibException exception)
+            {
+                _logger.LogDebug(exception, "SlackLibException encountered while trying to create questionnaire from file {0}", option.QuestionnaireFile);
+                _logger.LogCritical("Unable to send message to Slack. Make sure that Slack WebHook configuration is correct.");
             }
             catch (IOException exception)
             {
@@ -103,13 +111,6 @@ namespace ConsoleTester
             string json = JsonConvert.SerializeObject(example, Formatting.Indented);
             File.WriteAllText(option.FileName, json);
             _logger.LogInformation("Questionnaire template file '{0}' created.", option.FileName);
-        }
-
-        private void CreateQuestionaire(Questionnaire questionnaire)
-        {
-            var client = _serviceProvider.GetService<SlackClient>();
-            var result = client.PostQuestionaire("test-channel", questionnaire).Result;
-            _logger.LogInformation(result.StatusCode.ToString());
         }
     }
 }
