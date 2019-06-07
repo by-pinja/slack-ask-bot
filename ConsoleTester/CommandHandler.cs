@@ -43,7 +43,7 @@ namespace ConsoleTester
                 var storage = _serviceProvider.GetService<Storage>();
                 var slackConfig = _serviceProvider.GetService<SlackConfiguration>();
 
-                var json = File.ReadAllText(option.QuestionnaireFile);
+                var json = await File.ReadAllTextAsync(option.QuestionnaireFile);
                 var questionnaire = JsonConvert.DeserializeObject<Questionnaire>(json);
                 _logger.LogDebug("Questionnaire deserialized, question {0}", questionnaire.Question);
 
@@ -110,9 +110,8 @@ namespace ConsoleTester
                 }
             };
             string json = JsonConvert.SerializeObject(example, Formatting.Indented);
-            File.WriteAllText(option.FileName, json);
+            await File.WriteAllTextAsync(option.FileName, json);
             _logger.LogInformation("Questionnaire template file '{0}' created.", option.FileName);
-            await Task.FromResult(0);
         }
     }
 }
