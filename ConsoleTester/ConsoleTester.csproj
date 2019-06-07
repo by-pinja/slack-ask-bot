@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SlackLib\SlackLib.csproj" />
+    <ProjectReference Include="..\CloudLib\CloudLib.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -11,7 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.5.0" />
-    <PackageReference Include="Microsoft.Azure.Cosmos.Table" Version="1.0.1" />
+    <PackageReference Include="CsvHelper" Version="12.1.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />

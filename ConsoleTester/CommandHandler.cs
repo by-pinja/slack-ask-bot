@@ -1,8 +1,11 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using ConsoleTester.Models;
+using CloudLib;
+using CloudLib.Models;
 using ConsoleTester.Options;
+using CsvHelper;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -79,13 +82,25 @@ namespace ConsoleTester
 
         public async Task HandleGetAnswers(AnswersOption option)
         {
-            _logger.LogTrace("Getting all answers");
+            _logger.LogTrace("Getting {0} answers", string.IsNullOrWhiteSpace(option.QuestionnaireId) ? "all" : option.QuestionnaireId);
             var storage = _serviceProvider.GetService<Storage>();
-            var result = await storage.GetAnswers();
+            var result = await storage.GetAnswers(option.QuestionnaireId);
+            _logger.LogDebug("Found {0} answers", result.Count());
             foreach (var answer in result)
             {
                 _logger.LogInformation("- {0} {1} {2} {3}", answer.QuestionnaireId, answer.Answer, answer.Timestamp, answer.Answerer);
             }
+
+            if (!string.IsNullOrWhiteSpace(option.OutputCsvFile))
+            {
+                using (var writer = new StreamWriter(option.OutputCsvFile))
+                using (var csv = new CsvWriter(writer))
+                {    
+                    csv.WriteRecords(result);
+                }
+            }
+
+            _logger.LogInformation("Answers retrieved.");
         }
 
         public async Task HandleDelete(DeleteOption option)
@@ -93,6 +108,7 @@ namespace ConsoleTester
             _logger.LogTrace("Deleting all questionnaires and answers");
             var storage = _serviceProvider.GetService<Storage>();
             await storage.DeleteAll();
+            _logger.LogInformation("All items deleted.");
         }
 
         public async Task HandleGenerateTemplate(GenerateQuestionnaireTemplateOption option)

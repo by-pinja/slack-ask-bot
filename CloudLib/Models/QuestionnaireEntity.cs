@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Azure.Cosmos.Table;
 
-namespace ConsoleTester.Models
+namespace CloudLib.Models
 {
     public class QuestionnaireEntity : TableEntity
     {

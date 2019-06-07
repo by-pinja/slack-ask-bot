@@ -67,3 +67,26 @@ Example questionnaire JSON
   ]
 }
 ```
+
+### Fetching answers
+
+Fetching questionnaire ID:s
+```
+dotnet run -- questionnaires
+```
+
+
+Fetching answers for all questionnaires
+```
+dotnet run -- answers
+```
+
+Fetching answers for single questionnaire
+```
+dotnet run -- answers -q e746a0db-6984-4fc4-8d6d-b5fad5baaa90
+```
+
+Writing answers to CSV-file
+```
+dotnet run -- answers -q e746a0db-6984-4fc4-8d6d-b5fad5baaa90 -o test.csv
+```
