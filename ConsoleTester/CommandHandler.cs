@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using ConsoleTester.Models;
 using ConsoleTester.Options;
@@ -79,13 +80,15 @@ namespace ConsoleTester
 
         public async Task HandleGetAnswers(AnswersOption option)
         {
-            _logger.LogTrace("Getting all answers");
+            _logger.LogTrace("Getting {0} answers", string.IsNullOrWhiteSpace(option.QuestionnaireId) ? "all" : option.QuestionnaireId);
             var storage = _serviceProvider.GetService<Storage>();
             var result = await storage.GetAnswers(option.QuestionnaireId);
+            _logger.LogDebug("Found {0} answers", result.Count());
             foreach (var answer in result)
             {
                 _logger.LogInformation("- {0} {1} {2} {3}", answer.QuestionnaireId, answer.Answer, answer.Timestamp, answer.Answerer);
             }
+            _logger.LogInformation("Answers retrieved.");
         }
 
         public async Task HandleDelete(DeleteOption option)
@@ -93,6 +96,7 @@ namespace ConsoleTester
             _logger.LogTrace("Deleting all questionnaires and answers");
             var storage = _serviceProvider.GetService<Storage>();
             await storage.DeleteAll();
+            _logger.LogInformation("All items deleted.");
         }
 
         public async Task HandleGenerateTemplate(GenerateQuestionnaireTemplateOption option)
