@@ -1,6 +1,6 @@
 using CommandLine;
 
-namespace ConsoleTester
+namespace ConsoleTester.Options
 {
     [Verb("get", HelpText = "Returns list of created questionnaires")]
     public class QuestionnairesOption

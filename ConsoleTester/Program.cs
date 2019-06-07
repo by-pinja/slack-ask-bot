@@ -2,6 +2,7 @@
 using System.Linq;
 using CommandLine;
 using ConsoleTester.Models;
+using ConsoleTester.Options;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
