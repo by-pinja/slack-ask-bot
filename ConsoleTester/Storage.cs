@@ -40,9 +40,13 @@ namespace ConsoleTester
             return await _questionaires.ExecuteQueryAsync(query);
         }
 
-        public async Task<IEnumerable<AnswerEntity>> GetAnswers()
+        public async Task<IEnumerable<AnswerEntity>> GetAnswers(string questionnaireId)
         {
             TableQuery<AnswerEntity> query = new TableQuery<AnswerEntity>();
+            if (!string.IsNullOrWhiteSpace(questionnaireId))
+            {
+                query.Where(TableQuery.GenerateFilterCondition(nameof(AnswerEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
+            }
             return await _answers.ExecuteQueryAsync(query);
         }
 
@@ -55,7 +59,7 @@ namespace ConsoleTester
         public async Task DeleteAll()
         {
             _logger.LogTrace("Clearing table {0}", _answers.Name);
-            var answers = await GetAnswers();
+            var answers = await GetAnswers(null);
             _logger.LogDebug("Found {0} items to delete.", answers.Count());
             var answerBatch = new TableBatchOperation();
             foreach (var answer in answers)

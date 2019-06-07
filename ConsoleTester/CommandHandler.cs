@@ -81,7 +81,7 @@ namespace ConsoleTester
         {
             _logger.LogTrace("Getting all answers");
             var storage = _serviceProvider.GetService<Storage>();
-            var result = await storage.GetAnswers();
+            var result = await storage.GetAnswers(option.QuestionnaireId);
             foreach (var answer in result)
             {
                 _logger.LogInformation("- {0} {1} {2} {3}", answer.QuestionnaireId, answer.Answer, answer.Timestamp, answer.Answerer);
