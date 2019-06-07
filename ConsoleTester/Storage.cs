@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using ConsoleTester.Models;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
@@ -48,6 +49,29 @@ namespace ConsoleTester
         {
             var insertOperation = TableOperation.InsertOrMerge(entity);
             _questionaires.Execute(insertOperation);
+        }
+
+        public void DeleteAll()
+        {
+            _logger.LogTrace("Clearing table {0}", _answers.Name);
+            var answers = GetAnswers();
+            _logger.LogDebug("Found {0} items to delete.", answers.Count());
+            var answerBatch = new TableBatchOperation();
+            foreach (var answer in answers)
+            {
+                answerBatch.Add(TableOperation.Delete(answer));
+            }
+            _answers.ExecuteBatch(answerBatch);
+
+            _logger.LogTrace("Clearing table {0}", _questionaires.Name);
+            var questionnaires = GetQuestionnaires();
+            _logger.LogDebug("Found {0} items to delete.", questionnaires.Count());
+            var questionnaireBatch = new TableBatchOperation();
+            foreach (var quoestionnaire in questionnaires)
+            {
+                questionnaireBatch.Add(TableOperation.Delete(quoestionnaire));
+            }
+            _questionaires.ExecuteBatch(questionnaireBatch);
         }
     }
 }
