@@ -36,23 +36,36 @@ namespace ConsoleTester
 
         public void HandleCreateQuestionnaires(CreateQuestionnaireOption option)
         {
-            _logger.LogTrace("Creating questionnaire from file {0}", option.QuestionnaireFile);
-            var storage = _serviceProvider.GetService<Storage>();
-            var slackConfig = _serviceProvider.GetService<SlackConfiguration>();
-
-            var json = File.ReadAllText(option.QuestionnaireFile);
-            var questionnaire = JsonConvert.DeserializeObject<Questionnaire>(json);
-            _logger.LogDebug("Questionnaire deserialized, question {0}", questionnaire.Question);
-
-            var questionnaireDto = new QuestionnaireEntity(questionnaire.QuestionId, "hjni-testi")
+            try 
             {
-                QuestionaireId = questionnaire.QuestionId,
-                Channel = "hjni-testi",
-                Created = DateTime.UtcNow,
-                Question = questionnaire.Question
-            };
-            storage.InsertOrMerge(questionnaireDto);
-            CreateQuestionaire(questionnaire);
+                _logger.LogTrace("Creating questionnaire from file {0}", option.QuestionnaireFile);
+                var storage = _serviceProvider.GetService<Storage>();
+                var slackConfig = _serviceProvider.GetService<SlackConfiguration>();
+
+                var json = File.ReadAllText(option.QuestionnaireFile);
+                var questionnaire = JsonConvert.DeserializeObject<Questionnaire>(json);
+                _logger.LogDebug("Questionnaire deserialized, question {0}", questionnaire.Question);
+
+                var questionnaireDto = new QuestionnaireEntity(questionnaire.QuestionId, "hjni-testi")
+                {
+                    QuestionaireId = questionnaire.QuestionId,
+                    Channel = "hjni-testi",
+                    Created = DateTime.UtcNow,
+                    Question = questionnaire.Question
+                };
+                storage.InsertOrMerge(questionnaireDto);
+                CreateQuestionaire(questionnaire);
+            }
+            catch (IOException exception)
+            {
+                _logger.LogDebug(exception, "IOException encountered while trying to create questionnaire from file {0}", option.QuestionnaireFile);
+                _logger.LogCritical("Unable to read file {0}. Possible reasons: File doesn't exists, file name is in invalid format, required permissions ar missing.  Unable to create questionnaire. Abortting...", option.QuestionnaireFile);
+            }
+            catch (JsonReaderException exception)
+            {
+                _logger.LogDebug(exception, "JsonReaderException encountered while trying to create questionnaire from file {0}", option.QuestionnaireFile);
+                _logger.LogCritical("Unable to parse questionnaire from file {0}. Unable to create questionnaire. Abortting...", option.QuestionnaireFile);
+            }
         }
 
         public void HandleGetAnswers(AnswersOption option)
