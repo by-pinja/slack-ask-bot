@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using CommandLine;
 using ConsoleTester.Models;
 using ConsoleTester.Options;
@@ -24,24 +25,31 @@ namespace ConsoleTester
 
                 var commandHandler = new CommandHandler(di);
 
-                Parser.Default.ParseArguments<QuestionnairesOption, CreateQuestionnaireOption, AnswersOption, DeleteOption, GenerateQuestionnaireTemplateOption>(args)
-                    .WithParsed<QuestionnairesOption>(commandHandler.HandleGetQuestionnaires)
-                    .WithParsed<CreateQuestionnaireOption>(commandHandler.HandleCreateQuestionnaires)
-                    .WithParsed<AnswersOption>(commandHandler.HandleGetAnswers)
-                    .WithParsed<DeleteOption>(commandHandler.HandleDelete)
-                    .WithParsed<GenerateQuestionnaireTemplateOption>(commandHandler.HandleGenerateTemplate)
-                    .WithNotParsed(errors => {
+                Run(args, commandHandler, logger).Wait();
+            }
+        }
+
+        private static async Task Run(string[] args, CommandHandler commandHandler, ILogger<Program> logger)
+        {
+            await Parser.Default.ParseArguments<QuestionnairesOption, CreateQuestionnaireOption, AnswersOption, DeleteOption, GenerateQuestionnaireTemplateOption>(args)
+                .MapResult(
+                    async (QuestionnairesOption option) => { await commandHandler.HandleGetQuestionnaires(option); },
+                    async (CreateQuestionnaireOption option) => { await commandHandler.HandleCreateQuestionnaires(option);},
+                    async (AnswersOption option) => { await commandHandler.HandleGetAnswers(option); },
+                    async (DeleteOption option) => { await commandHandler.HandleDelete(option); },
+                    async (GenerateQuestionnaireTemplateOption option) => { await commandHandler.HandleGenerateTemplate(option); },
+                    errors => {
                         if (errors.Count() == 1 && 
                             (errors.First().Tag == ErrorType.HelpRequestedError || 
-                             errors.First().Tag == ErrorType.HelpVerbRequestedError ||
-                             errors.First().Tag == ErrorType.VersionRequestedError))
+                            errors.First().Tag == ErrorType.HelpVerbRequestedError ||
+                            errors.First().Tag == ErrorType.VersionRequestedError))
                         {
-                            return;
+                            Task.FromResult(0);
                         }
 
                         logger.LogWarning("Something went wrong while parsing command(s)");
+                        return Task.FromResult(0);
                     });
-            }
         }
 
         private static ServiceProvider BuildDependencyInjection()

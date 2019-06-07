@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using ConsoleTester.Models;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Logging;
@@ -33,28 +34,28 @@ namespace ConsoleTester
             }
         }
 
-        public IEnumerable<QuestionnaireEntity> GetQuestionnaires()
+        public async Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires()
         {
             TableQuery<QuestionnaireEntity> query = new TableQuery<QuestionnaireEntity>();
-            return _questionaires.ExecuteQuery(query);
+            return await _questionaires.ExecuteQueryAsync(query);
         }
 
-        public IEnumerable<AnswerEntity> GetAnswers()
+        public async Task<IEnumerable<AnswerEntity>> GetAnswers()
         {
             TableQuery<AnswerEntity> query = new TableQuery<AnswerEntity>();
-            return _answers.ExecuteQuery(query);
+            return await _answers.ExecuteQueryAsync(query);
         }
 
-        public void InsertOrMerge(QuestionnaireEntity entity)
+        public async Task InsertOrMerge(QuestionnaireEntity entity)
         {
             var insertOperation = TableOperation.InsertOrMerge(entity);
-            _questionaires.Execute(insertOperation);
+            await _questionaires.ExecuteAsync(insertOperation);
         }
 
-        public void DeleteAll()
+        public async Task DeleteAll()
         {
             _logger.LogTrace("Clearing table {0}", _answers.Name);
-            var answers = GetAnswers();
+            var answers = await GetAnswers();
             _logger.LogDebug("Found {0} items to delete.", answers.Count());
             var answerBatch = new TableBatchOperation();
             foreach (var answer in answers)
@@ -64,7 +65,7 @@ namespace ConsoleTester
             _answers.ExecuteBatch(answerBatch);
 
             _logger.LogTrace("Clearing table {0}", _questionaires.Name);
-            var questionnaires = GetQuestionnaires();
+            var questionnaires = await GetQuestionnaires();
             _logger.LogDebug("Found {0} items to delete.", questionnaires.Count());
             var questionnaireBatch = new TableBatchOperation();
             foreach (var quoestionnaire in questionnaires)
