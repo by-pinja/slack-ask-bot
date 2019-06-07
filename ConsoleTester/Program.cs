@@ -29,8 +29,16 @@ namespace ConsoleTester
                     .WithParsed<CreateQuestionnaireOption>(commandHandler.HandleCreateQuestionnaires)
                     .WithParsed<AnswersOption>(commandHandler.HandleGetAnswers)
                     .WithParsed<DeleteOption>(commandHandler.HandleDelete)
-                    .WithNotParsed(errs => {
-                        Console.WriteLine("I'm error");
+                    .WithNotParsed(errors => {
+                        if (errors.Count() == 1 && 
+                            (errors.First().Tag == ErrorType.HelpRequestedError || 
+                             errors.First().Tag == ErrorType.HelpVerbRequestedError ||
+                             errors.First().Tag == ErrorType.VersionRequestedError))
+                        {
+                            return;
+                        }
+
+                        logger.LogWarning("Something went wrong while parsing command(s)");
                     });
             }
         }
