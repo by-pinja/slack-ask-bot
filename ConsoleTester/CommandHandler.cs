@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ConsoleTester.Models;
 using ConsoleTester.Options;
+using CsvHelper;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -88,6 +89,16 @@ namespace ConsoleTester
             {
                 _logger.LogInformation("- {0} {1} {2} {3}", answer.QuestionnaireId, answer.Answer, answer.Timestamp, answer.Answerer);
             }
+
+            if (!string.IsNullOrWhiteSpace(option.OutputCsvFile))
+            {
+                using (var writer = new StreamWriter(option.OutputCsvFile))
+                using (var csv = new CsvWriter(writer))
+                {    
+                    csv.WriteRecords(result);
+                }
+            }
+
             _logger.LogInformation("Answers retrieved.");
         }
 
