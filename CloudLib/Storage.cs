@@ -14,6 +14,7 @@ namespace CloudLib
 
         private readonly CloudTable _questionaires;
         private readonly CloudTable _answers;
+        private readonly CloudTable _channelWebHooks;
 
         public Storage(ILogger<Storage> logger, TableStorageSettings settings) 
         {
@@ -32,6 +33,11 @@ namespace CloudLib
             {
                 _logger.LogTrace("Table {0} doesn't exist, created.", _settings.AnswerTable);
             }
+            _channelWebHooks = client.GetTableReference(_settings.WebHooksTable);
+            if (_channelWebHooks.CreateIfNotExists())
+            {
+                _logger.LogTrace("Table {0} doesn't exist, created.", _settings.WebHooksTable);
+            }
         }
 
         public async Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires()
@@ -48,6 +54,14 @@ namespace CloudLib
                 query.Where(TableQuery.GenerateFilterCondition(nameof(AnswerEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
             }
             return await _answers.ExecuteQueryAsync(query);
+        }
+
+        public async Task<ChannelWebhookEntity> GetChannelWebHook(string channel)
+        {
+            TableQuery<ChannelWebhookEntity> query = new TableQuery<ChannelWebhookEntity>()
+                .Where(TableQuery.GenerateFilterCondition(nameof(ChannelWebhookEntity.Channel), QueryComparisons.Equal, channel));
+
+            return (await _channelWebHooks.ExecuteQueryAsync(query)).FirstOrDefault();
         }
 
         public async Task InsertOrMerge(QuestionnaireEntity entity)
@@ -77,6 +91,13 @@ namespace CloudLib
                 questionnaireBatch.Add(TableOperation.Delete(quoestionnaire));
             }
             _questionaires.ExecuteBatch(questionnaireBatch);
+        }
+
+        public async Task InsertOrMerge(string channel, string webHook)
+        {
+            var entity = new ChannelWebhookEntity(channel, webHook);
+            var insertOperation = TableOperation.InsertOrMerge(entity);
+            await _channelWebHooks.ExecuteAsync(insertOperation);
         }
     }
 }

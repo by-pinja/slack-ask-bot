@@ -31,13 +31,14 @@ namespace ConsoleTester
 
         private static async Task Run(string[] args, CommandHandler commandHandler, ILogger<Program> logger)
         {
-            await Parser.Default.ParseArguments<QuestionnairesOption, CreateQuestionnaireOption, AnswersOption, DeleteOption, GenerateQuestionnaireTemplateOption>(args)
+            await Parser.Default.ParseArguments<QuestionnairesOption, CreateQuestionnaireOption, AnswersOption, DeleteOption, GenerateQuestionnaireTemplateOption, AddWebhookOption>(args)
                 .MapResult(
                     async (QuestionnairesOption option) => { await commandHandler.HandleGetQuestionnaires(option); },
                     async (CreateQuestionnaireOption option) => { await commandHandler.HandleCreateQuestionnaires(option);},
                     async (AnswersOption option) => { await commandHandler.HandleGetAnswers(option); },
                     async (DeleteOption option) => { await commandHandler.HandleDelete(option); },
                     async (GenerateQuestionnaireTemplateOption option) => { await commandHandler.HandleGenerateTemplate(option); },
+                    async (AddWebhookOption option) => { await commandHandler.HandleWebhookAdd(option); },
                     errors => {
                         if (errors.Count() == 1 && 
                             (errors.First().Tag == ErrorType.HelpRequestedError || 
@@ -60,7 +61,6 @@ namespace ConsoleTester
                 .Build();
 
             var tableStorageSettings = config.GetSection("TableStorage").Get<TableStorageSettings>();
-            var slackConfiguration = config.GetSection("Slack").Get<SlackConfiguration>();
             return new ServiceCollection()
                 .AddLogging(loggingBuilder =>
                 {
@@ -68,7 +68,7 @@ namespace ConsoleTester
                     loggingBuilder.AddConsole();
                 })
                 .AddSingleton<TableStorageSettings>(tableStorageSettings)
-                .AddSingleton<SlackConfiguration>(slackConfiguration)
+                .AddTransient<SlackWrapper>()
                 .AddTransient<SlackClient>()
                 .AddSingleton<Storage>()
                 .BuildServiceProvider();

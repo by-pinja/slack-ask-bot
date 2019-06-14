@@ -20,19 +20,10 @@ This is still a very much a work in progress so this shouldn't probably be used 
    Save the script output URL. It is needed later.
 2. Change logic apps web hook uri at https://api.slack.com/apps "Interactive Components"
 
-### Configuring Slack Incoming Webhook
-This is the target address for our questionaires. This should be available in https://api.slack.com/apps "Incoming Webhooks"
+### Configuring Slack Incoming Webhooks
+These are the target addresses for our questionaires. These should be available in https://api.slack.com/apps "Incoming Webhooks"
 
-Create a `appsettings.Development.json` file to `ConsoleTester` directory and change te WebHookUrl to correct url. 
-
-Example
-```
-{
-    "Slack": {
-        "WebHookUrl": "https://hooks.slack.com/services/SECRET_WEBHOOK_URL"
-    }
-}
-```
+Use `upsertChannel` to add or update these
 
 ## Usage
 Console interface of this software uses [CommandLineParser](https://github.com/commandlineparser/commandline).
@@ -50,11 +41,9 @@ dotnet run -- help
 ### Creating new questionnaires
 Questionnaires are created by reading JSON file.
 
-NOTE: Currently questionnaires are only posted to `#hjni-test`
-
 1. Generate questionnaire template `dotnet run -- generateTemplate -o 'example-questionnaire.json'` 
 2. Change question, add/change/remove answers
-3. Add questionnaire `dotnet run -- create -f 'example-questionnaire.json'`
+3. Add questionnaire `dotnet run -- create -f 'example-questionnaire.json' -c test-channel`
 
 Example questionnaire JSON
 ```
@@ -74,7 +63,6 @@ Fetching questionnaire ID:s
 ```
 dotnet run -- questionnaires
 ```
-
 
 Fetching answers for all questionnaires
 ```

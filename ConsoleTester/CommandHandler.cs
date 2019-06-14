@@ -34,7 +34,7 @@ namespace ConsoleTester
             var result = await storage.GetQuestionnaires();
             foreach (var questionaire in result)
             {
-                _logger.LogInformation("- {0} {1} {2}", questionaire.QuestionaireId, questionaire.Question, questionaire.Created);
+                _logger.LogInformation("- {0} {1} {2} {3}", questionaire.Channel,  questionaire.QuestionaireId, questionaire.Question, questionaire.Created);
             }
         }
 
@@ -44,24 +44,27 @@ namespace ConsoleTester
             {
                 _logger.LogTrace("Creating questionnaire from file {0}", option.QuestionnaireFile);
                 var storage = _serviceProvider.GetService<Storage>();
-                var slackConfig = _serviceProvider.GetService<SlackConfiguration>();
+                var slackWrapper = _serviceProvider.GetService<SlackWrapper>();
 
                 var json = await File.ReadAllTextAsync(option.QuestionnaireFile);
                 var questionnaire = JsonConvert.DeserializeObject<Questionnaire>(json);
                 _logger.LogDebug("Questionnaire deserialized, question {0}", questionnaire.Question);
 
-                var questionnaireDto = new QuestionnaireEntity(questionnaire.QuestionId, "hjni-testi")
+                var questionnaireDto = new QuestionnaireEntity(questionnaire.QuestionId, option.Channel)
                 {
                     QuestionaireId = questionnaire.QuestionId,
-                    Channel = "hjni-testi",
+                    Channel = option.Channel,
                     Created = DateTime.UtcNow,
                     Question = questionnaire.Question
                 };
                 await storage.InsertOrMerge(questionnaireDto);
                 
-                var client = _serviceProvider.GetService<SlackClient>();
-                await client.PostQuestionaire("test-channel", questionnaire);
+                //await slackWrapper.SendQuestionaire(option.Channel, questionnaire);
                 _logger.LogInformation("Questionnaire created from file {0}.", option.QuestionnaireFile);
+            }
+            catch (ChannelWebHookMissingException)
+            {
+                _logger.LogError("No webhook configured for {0}. Please add channel webhook before posting to channel", option.Channel);
             }
             catch (SlackLibException exception)
             {
@@ -128,6 +131,14 @@ namespace ConsoleTester
             string json = JsonConvert.SerializeObject(example, Formatting.Indented);
             await File.WriteAllTextAsync(option.FileName, json);
             _logger.LogInformation("Questionnaire template file '{0}' created.", option.FileName);
+        }
+
+        public async Task HandleWebhookAdd(AddWebhookOption option)
+        {
+            _logger.LogTrace("Adding or updating webhook for channel {0}", option.Channel);
+
+            var storage = _serviceProvider.GetService<Storage>();
+            await storage.InsertOrMerge(option.Channel, option.WebHookUrl);
         }
     }
 }
