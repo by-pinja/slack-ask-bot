@@ -15,7 +15,7 @@ namespace ConsoleTester
     {
         private readonly ILogger<SlackWrapper> _logger;
         private readonly SlackClient _client;
-        private readonly Storage _storage;
+        private readonly IStorage _storage;
 
         public SlackWrapper(ILogger<SlackWrapper> logger, SlackClient slackClient, Storage storage)
         {
