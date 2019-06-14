@@ -1,15 +1,12 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using CloudLib;
 using CommandLine;
 using ConsoleTester.Options;
-using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SlackLib;
-using SlackLib.Messages;
 
 namespace ConsoleTester
 {
@@ -43,9 +40,10 @@ namespace ConsoleTester
                         if (errors.Count() == 1 && 
                             (errors.First().Tag == ErrorType.HelpRequestedError || 
                             errors.First().Tag == ErrorType.HelpVerbRequestedError ||
+                            errors.First().Tag == ErrorType.NoVerbSelectedError ||
                             errors.First().Tag == ErrorType.VersionRequestedError))
                         {
-                            Task.FromResult(0);
+                            return Task.FromResult(0);
                         }
 
                         logger.LogWarning("Something went wrong while parsing command(s)");
@@ -70,7 +68,7 @@ namespace ConsoleTester
                 .AddSingleton<TableStorageSettings>(tableStorageSettings)
                 .AddTransient<SlackWrapper>()
                 .AddTransient<SlackClient>()
-                .AddSingleton<Storage>()
+                .AddSingleton<IStorage, Storage>()
                 .BuildServiceProvider();
         }
     }

@@ -2,10 +2,10 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "logicAppName": {
+        "appName": {
             "type": "string",
             "metadata": {
-                "description": "The name of the logic app to create."
+                "description": "The name of the app to create."
             }
         },
         "location": {
@@ -14,30 +14,28 @@
             "metadata": {
                 "description": "Location for all resources."
             }
+        },
+        "environment": {
+            "type": "string",
+            "metadata": {
+                "description": "Environment type (Development, Production)"
+            },
+            "allowedValues": [
+                "Development",
+                "Production"
+            ]
         }
     },
     "variables": {
-        "storageAccountName": "[replace(parameters('logicAppName'), '-', '')]",
-        "tableStorageName": "table-storage"
+        "functionAppName": "[parameters('appName')]",
+        "hostingPlanName": "[parameters('appName')]",
+        "applicationInsightsName": "[parameters('appName')]",
+        "storageAccountName": "[replace(parameters('appName'), '-', '')]",        
+        "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
+        "tableStorageName": "[concat(replace(parameters('appName'), '-', ''), 'table')]",
+        "tableStorageId": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('tableStorageName'))]"
     },
     "resources": [
-        {
-            "type": "Microsoft.Web/connections",
-            "apiVersion": "2016-06-01",
-            "name": "[variables('tableStorageName')]",
-            "location": "[resourceGroup().location]",
-            "properties": {
-                "displayName": "Table storage connection",
-                "customParameterValues": {},
-                "parameterValues": {
-                    "storageaccount": "[variables('storageAccountName')]",
-                    "sharedkey": "[listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2018-07-01').keys[0].value]"
-                },
-                "api": {
-                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuretables')]"
-                }
-            }
-        },
         {
             "comments": "Table storage for metadata",
             "type": "Microsoft.Storage/storageAccounts",
@@ -75,360 +73,119 @@
             }
         },
         {
-            "type": "Microsoft.Logic/workflows",
-            "apiVersion": "2016-06-01",
-            "name": "[parameters('logicAppName')]",
+            "comments": "Storage for function app",
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('tableStorageName')]",
+            "apiVersion": "2018-07-01",
+            "location": "[parameters('location')]",
+            "kind": "Storage",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "tags": {
+                "displayName": "Storage for function app",
+                "environment": "[parameters('environment')]"
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2015-04-01",
+            "name": "[variables('hostingPlanName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "name": "[variables('hostingPlanName')]",
+                "computeMode": "Dynamic",
+                "sku": "Dynamic"
+            },
+            "tags": {
+                "displayName": "Server for function app",
+                "environment": "[parameters('environment')]"
+            }
+        },
+        {
+            "apiVersion": "2018-02-01",
+            "type": "Microsoft.Web/sites",
+            "kind": "functionapp",
+            "name": "[variables('functionAppName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ],
+            "tags": {
+                "displayName": "Function app",
+                "environment": "[parameters('environment')]"
+            },
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                "siteConfig": {
+                    "defaultDocuments": [],
+                    "phpVersion": "",
+                    "use32BitWorkerProcess": false,
+                    "appSettings": [
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTSHARE",
+                            "value": "[toLower(variables('functionAppName'))]"
+                        },
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~2"
+                        },
+                        {
+                            "name": "WEBSITE_NODE_DEFAULT_VERSION",
+                            "value": "6.5.0"
+                        },
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(resourceId('microsoft.insights/components/', variables('applicationInsightsName')), '2015-05-01').InstrumentationKey]"
+                        },
+                        {
+                            "name": "TableStorage:ConnectionString",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('tableStorageName'), ';AccountKey=', listKeys(variables('tableStorageId'),'2015-05-01-preview').key1)]"
+                        },
+                        {
+                            "name": "TableStorage:QuestionTable",
+                            "value": "questionaires"
+                        },
+                        {
+                            "name": "TableStorage:AnswerTable",
+                            "value": "answers"
+                        },
+                        {
+                            "name": "TableStorage:WebHooksTable",
+                            "value": "webHooks"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "comments": "Application insights",
+            "apiVersion": "2015-05-01",
+            "name": "[variables('applicationInsightsName')]",
+            "type": "Microsoft.Insights/components",
             "location": "[parameters('location')]",
             "tags": {
-                "displayName": "LogicApp"
+                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', variables('applicationInsightsName'))]": "Resource",
+                "displayName": "Application insights",
+                "environment": "[parameters('environment')]"
             },
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/Connections', variables('tableStorageName'))]"
-            ],
             "properties": {
-                "definition": {
-                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
-                    "actions": {
-                        "For_each": {
-                            "actions": {
-                                "Condition": {
-                                    "actions": {
-                                        "Parse_JSON": {
-                                            "inputs": {
-                                                "content": "@replace(items('For_each')?['value'], '\\', '')",
-                                                "schema": {
-                                                    "properties": {
-                                                        "actions": {
-                                                            "items": {
-                                                                "properties": {
-                                                                    "action_id": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "action_ts": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "block_id": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "text": {
-                                                                        "properties": {
-                                                                            "emoji": {
-                                                                                "type": "boolean"
-                                                                            },
-                                                                            "text": {
-                                                                                "type": "string"
-                                                                            },
-                                                                            "type": {
-                                                                                "type": "string"
-                                                                            }
-                                                                        },
-                                                                        "type": "object"
-                                                                    },
-                                                                    "type": {
-                                                                        "type": "string"
-                                                                    }
-                                                                },
-                                                                "required": [
-                                                                    "action_id",
-                                                                    "block_id",
-                                                                    "text",
-                                                                    "type",
-                                                                    "action_ts"
-                                                                ],
-                                                                "type": "object"
-                                                            },
-                                                            "type": "array"
-                                                        },
-                                                        "api_app_id": {
-                                                            "type": "string"
-                                                        },
-                                                        "channel": {
-                                                            "properties": {
-                                                                "id": {
-                                                                    "type": "string"
-                                                                },
-                                                                "name": {
-                                                                    "type": "string"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        },
-                                                        "container": {
-                                                            "properties": {
-                                                                "channel_id": {
-                                                                    "type": "string"
-                                                                },
-                                                                "is_ephemeral": {
-                                                                    "type": "boolean"
-                                                                },
-                                                                "message_ts": {
-                                                                    "type": "string"
-                                                                },
-                                                                "type": {
-                                                                    "type": "string"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        },
-                                                        "message": {
-                                                            "properties": {
-                                                                "blocks": {
-                                                                    "items": {
-                                                                        "properties": {
-                                                                            "block_id": {
-                                                                                "type": "string"
-                                                                            },
-                                                                            "elements": {
-                                                                                "items": {
-                                                                                    "properties": {
-                                                                                        "action_id": {
-                                                                                            "type": "string"
-                                                                                        },
-                                                                                        "text": {
-                                                                                            "properties": {
-                                                                                                "emoji": {
-                                                                                                    "type": "boolean"
-                                                                                                },
-                                                                                                "text": {
-                                                                                                    "type": "string"
-                                                                                                },
-                                                                                                "type": {
-                                                                                                    "type": "string"
-                                                                                                }
-                                                                                            },
-                                                                                            "type": "object"
-                                                                                        },
-                                                                                        "type": {
-                                                                                            "type": "string"
-                                                                                        }
-                                                                                    },
-                                                                                    "required": [
-                                                                                        "type",
-                                                                                        "action_id",
-                                                                                        "text"
-                                                                                    ],
-                                                                                    "type": "object"
-                                                                                },
-                                                                                "type": "array"
-                                                                            },
-                                                                            "text": {
-                                                                                "properties": {
-                                                                                    "text": {
-                                                                                        "type": "string"
-                                                                                    },
-                                                                                    "type": {
-                                                                                        "type": "string"
-                                                                                    },
-                                                                                    "verbatim": {
-                                                                                        "type": "boolean"
-                                                                                    }
-                                                                                },
-                                                                                "type": "object"
-                                                                            },
-                                                                            "type": {
-                                                                                "type": "string"
-                                                                            }
-                                                                        },
-                                                                        "required": [
-                                                                            "type",
-                                                                            "block_id"
-                                                                        ],
-                                                                        "type": "object"
-                                                                    },
-                                                                    "type": "array"
-                                                                },
-                                                                "bot_id": {
-                                                                    "type": "string"
-                                                                },
-                                                                "subtype": {
-                                                                    "type": "string"
-                                                                },
-                                                                "text": {
-                                                                    "type": "string"
-                                                                },
-                                                                "ts": {
-                                                                    "type": "string"
-                                                                },
-                                                                "type": {
-                                                                    "type": "string"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        },
-                                                        "response_url": {
-                                                            "type": "string"
-                                                        },
-                                                        "team": {
-                                                            "properties": {
-                                                                "domain": {
-                                                                    "type": "string"
-                                                                },
-                                                                "id": {
-                                                                    "type": "string"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        },
-                                                        "token": {
-                                                            "type": "string"
-                                                        },
-                                                        "trigger_id": {
-                                                            "type": "string"
-                                                        },
-                                                        "type": {
-                                                            "type": "string"
-                                                        },
-                                                        "user": {
-                                                            "properties": {
-                                                                "id": {
-                                                                    "type": "string"
-                                                                },
-                                                                "name": {
-                                                                    "type": "string"
-                                                                },
-                                                                "team_id": {
-                                                                    "type": "string"
-                                                                },
-                                                                "username": {
-                                                                    "type": "string"
-                                                                }
-                                                            },
-                                                            "type": "object"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                }
-                                            },
-                                            "runAfter": {},
-                                            "type": "ParseJson"
-                                        },
-                                        "Get_entity": {
-                                            "inputs": {
-                                                "host": {
-                                                    "connection": {
-                                                        "name": "@parameters('$connections')['azuretables']['connectionId']"
-                                                    }
-                                                },
-                                                "method": "get",
-                                                "path": "/Tables/@{encodeURIComponent('questionaires')}/entities(PartitionKey='@{encodeURIComponent(body('Parse_JSON')?['channel']?['name'])}',RowKey='@{encodeURIComponent(body('Parse_JSON')?['message']['blocks'][0]?['block_id'])}')"
-                                            },
-                                            "runAfter": {
-                                                "Parse_JSON": [
-                                                    "Succeeded"
-                                                ]
-                                            },
-                                            "type": "ApiConnection"
-                                        },
-                                        "Insert_Entity": {
-                                            "inputs": {
-                                                "body": {
-                                                    "PartitionKey": "@body('Parse_JSON')?['channel']?['name']",
-                                                    "RowKey": "@body('Parse_JSON')?['trigger_id']",
-                                                    "QuestionnaireId": "@body('Parse_JSON')?['message']['blocks'][0]?['block_id']",
-                                                    "Channel": "@body('Parse_JSON')?['channel']?['name']",
-                                                    "Answer": "@body('Parse_JSON')?['actions'][0]?['text']?['text']",
-                                                    "Answerer": "@body('Parse_JSON')?['user']?['username']"
-                                                },
-                                                "host": {
-                                                    "connection": {
-                                                        "name": "@parameters('$connections')['azuretables']['connectionId']"
-                                                    }
-                                                },
-                                                "method": "post",
-                                                "path": "/Tables/@{encodeURIComponent('answers')}/entities"
-                                            },
-                                            "runAfter": {
-                                                "Get_entity": [
-                                                    "Succeeded"
-                                                ]
-                                            },
-                                            "type": "ApiConnection"
-                                        }
-                                    },
-                                    "expression": {
-                                        "and": [
-                                            {
-                                                "equals": [
-                                                    "@items('For_each')?['key']",
-                                                    "payload"
-                                                ]
-                                            }
-                                        ]
-                                    },
-                                    "runAfter": {},
-                                    "type": "If"
-                                }
-                            },
-                            "foreach": "@triggerBody()?['$formdata']",
-                            "runAfter": {},
-                            "type": "Foreach"
-                        }
-                    },
-                    "contentVersion": "1.0.0.0",
-                    "outputs": {},
-                    "parameters": {
-                        "$connections": {
-                            "defaultValue": {},
-                            "type": "Object"
-                        }
-                    },
-                    "triggers": {
-                        "manual": {
-                            "inputs": {
-                                "schema": {
-                                    "properties": {
-                                        "$content": {
-                                            "type": "string"
-                                        },
-                                        "$content-type": {
-                                            "type": "string"
-                                        },
-                                        "$formdata": {
-                                            "items": {
-                                                "properties": {
-                                                    "key": {
-                                                        "type": "string"
-                                                    },
-                                                    "value": {
-                                                        "type": "string"
-                                                    }
-                                                },
-                                                "required": [
-                                                    "key",
-                                                    "value"
-                                                ],
-                                                "type": "object"
-                                            },
-                                            "type": "array"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            },
-                            "kind": "Http",
-                            "type": "Request"
-                        }
-                    }
-                },
-                "parameters": {
-                    "$connections": {
-                        "value": {
-                            "azuretables": {
-                                "connectionId": "[resourceId('Microsoft.Web/connections', variables('tableStorageName'))]",
-                                "connectionName": "table-storage",
-                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuretables')]"
-                            }
-                        }
-                    }
-                }
+                "ApplicationId": "[variables('applicationInsightsName')]",
+                "Request_Source": "IbizaWebAppExtensionCreate",
+                "Application_Type": "web"
             }
         }
     ],
     "outputs": {
-        "triggerURI": {
-            "type": "string",
-            "value": "[listCallbackURL(concat(resourceId('Microsoft.Logic/workflows/', parameters('logicAppName')), '/triggers/manual'), '2016-06-01').value]"
-        },
         "storageConnectionString": {
             "type": "string",
             "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2018-07-01').keys[0].value,';')]"

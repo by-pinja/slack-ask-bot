@@ -30,7 +30,7 @@ namespace ConsoleTester
         public async Task HandleGetQuestionnaires(QuestionnairesOption option)
         {
             _logger.LogTrace("Getting all questionaires");
-            var storage = _serviceProvider.GetService<Storage>();
+            var storage = _serviceProvider.GetService<IStorage>();
             var result = await storage.GetQuestionnaires();
             foreach (var questionaire in result)
             {
@@ -43,7 +43,7 @@ namespace ConsoleTester
             try 
             {
                 _logger.LogTrace("Creating questionnaire from file {0}", option.QuestionnaireFile);
-                var storage = _serviceProvider.GetService<Storage>();
+                var storage = _serviceProvider.GetService<IStorage>();
                 var slackWrapper = _serviceProvider.GetService<SlackWrapper>();
 
                 var json = await File.ReadAllTextAsync(option.QuestionnaireFile);
@@ -59,7 +59,7 @@ namespace ConsoleTester
                 };
                 await storage.InsertOrMerge(questionnaireDto);
                 
-                //await slackWrapper.SendQuestionaire(option.Channel, questionnaire);
+                await slackWrapper.SendQuestionaire(option.Channel, questionnaire);
                 _logger.LogInformation("Questionnaire created from file {0}.", option.QuestionnaireFile);
             }
             catch (ChannelWebHookMissingException)
@@ -86,7 +86,7 @@ namespace ConsoleTester
         public async Task HandleGetAnswers(AnswersOption option)
         {
             _logger.LogTrace("Getting {0} answers", string.IsNullOrWhiteSpace(option.QuestionnaireId) ? "all" : option.QuestionnaireId);
-            var storage = _serviceProvider.GetService<Storage>();
+            var storage = _serviceProvider.GetService<IStorage>();
             var result = await storage.GetAnswers(option.QuestionnaireId);
             _logger.LogDebug("Found {0} answers", result.Count());
             foreach (var answer in result)
@@ -137,7 +137,7 @@ namespace ConsoleTester
         {
             _logger.LogTrace("Adding or updating webhook for channel {0}", option.Channel);
 
-            var storage = _serviceProvider.GetService<Storage>();
+            var storage = _serviceProvider.GetService<IStorage>();
             await storage.InsertOrMerge(option.Channel, option.WebHookUrl);
         }
     }
