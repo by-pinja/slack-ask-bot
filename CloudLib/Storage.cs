@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace CloudLib
 {
-    public class Storage
+    public class Storage : IStorage
     {
         private readonly ILogger<Storage> _logger;
         private readonly TableStorageSettings _settings;
@@ -46,6 +46,13 @@ namespace CloudLib
             return await _questionaires.ExecuteQueryAsync(query);
         }
 
+        public async Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires(string questionnaireId)
+        {
+            TableQuery<QuestionnaireEntity> query = new TableQuery<QuestionnaireEntity>()
+                .Where(TableQuery.GenerateFilterCondition(nameof(QuestionnaireEntity.QuestionaireId), QueryComparisons.Equal, questionnaireId));
+            return await _questionaires.ExecuteQueryAsync(query);
+        }
+
         public async Task<IEnumerable<AnswerEntity>> GetAnswers(string questionnaireId)
         {
             TableQuery<AnswerEntity> query = new TableQuery<AnswerEntity>();
@@ -68,6 +75,12 @@ namespace CloudLib
         {
             var insertOperation = TableOperation.InsertOrMerge(entity);
             await _questionaires.ExecuteAsync(insertOperation);
+        }
+
+        public async Task InsertOrMerge(AnswerEntity entity)
+        {
+            var insertOperation = TableOperation.InsertOrMerge(entity);
+            await _answers.ExecuteAsync(insertOperation);
         }
 
         public async Task DeleteAll()
