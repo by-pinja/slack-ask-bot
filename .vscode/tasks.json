@@ -31,6 +31,58 @@
                 "${workspaceFolder}/ConsoleTester/ConsoleTester.csproj"
             ],
             "problemMatcher": "$tsc"
+        },
+        {
+            "label": "clean",
+            "command": "dotnet clean",
+            "type": "shell",
+            "problemMatcher": "$msCompile",
+            "options": {
+                "cwd": "${workspaceFolder}/AzureFunctions"
+            }
+        },
+        {
+            "label": "build",
+            "command": "dotnet build",
+            "type": "shell",
+            "dependsOn": "clean",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$msCompile",
+            "options": {
+                "cwd": "${workspaceFolder}/AzureFunctions"
+            }
+        },
+        {
+            "label": "clean release",
+            "command": "dotnet clean --configuration Release",
+            "type": "shell",
+            "problemMatcher": "$msCompile",
+            "options": {
+                "cwd": "${workspaceFolder}/AzureFunctions"
+            }
+        },
+        {
+            "label": "publish",
+            "command": "dotnet publish --configuration Release",
+            "type": "shell",
+            "dependsOn": "clean release",
+            "problemMatcher": "$msCompile",
+            "options": {
+                "cwd": "${workspaceFolder}/AzureFunctions"
+            }
+        },
+        {
+            "type": "func",
+            "dependsOn": "build",
+            "options": {
+                "cwd": "${workspaceFolder}/AzureFunctions/bin/Debug/netcoreapp2.0"
+            },
+            "command": "host start",
+            "isBackground": true,
+            "problemMatcher": "$func-watch"
         }
     ]
 }
