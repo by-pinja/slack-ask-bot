@@ -1,8 +1,8 @@
-library 'jenkins-ptcs-library@0.5.0'
+library 'jenkins-ptcs-library@0.6.0'
 
 podTemplate(label: pod.label,
   containers: pod.templates + [
-    containerTemplate(name: 'dotnet', image: 'microsoft/dotnet:3.0.100-preview6-disco', ttyEnabled: true, command: '/bin/sh -c', args: 'cat')
+    containerTemplate(name: 'dotnet', image: 'mcr.microsoft.com/dotnet/core/sdk:2.2', ttyEnabled: true, command: '/bin/sh -c', args: 'cat')
   ]
 ) {
 
