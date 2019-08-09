@@ -4,9 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Description>Cloud communcation library for Slack Ask Bot (Azure Table Storage)</Description>
 
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>
