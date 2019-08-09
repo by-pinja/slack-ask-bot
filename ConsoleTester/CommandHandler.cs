@@ -20,18 +20,19 @@ namespace ConsoleTester
     public class CommandHandler 
     {
         private readonly ILogger<CommandHandler> _logger;
-        private readonly IServiceProvider _serviceProvider;
-        public CommandHandler(IServiceProvider serviceProvider)
+        private readonly IStorage _storage;
+        private readonly SlackWrapper _slackWrapper;
+        public CommandHandler(ILogger<CommandHandler> logger, IStorage storage, SlackWrapper slackWrapper)
         {
-            _logger = serviceProvider.GetService<ILogger<CommandHandler>>();
-            _serviceProvider = serviceProvider;
+            _logger = logger;
+            _storage = storage;
+            _slackWrapper = slackWrapper;
         }
 
         public async Task HandleGetQuestionnaires(QuestionnairesOption option)
         {
             _logger.LogTrace("Getting all questionaires");
-            var storage = _serviceProvider.GetService<IStorage>();
-            var result = await storage.GetQuestionnaires();
+            var result = await _storage.GetQuestionnaires();
             foreach (var questionaire in result)
             {
                 _logger.LogInformation("- {0} {1} {2} {3}", questionaire.Channel,  questionaire.QuestionaireId, questionaire.Question, questionaire.Created);
@@ -43,8 +44,6 @@ namespace ConsoleTester
             try 
             {
                 _logger.LogTrace("Creating questionnaire from file {0}", option.QuestionnaireFile);
-                var storage = _serviceProvider.GetService<IStorage>();
-                var slackWrapper = _serviceProvider.GetService<SlackWrapper>();
 
                 var json = await File.ReadAllTextAsync(option.QuestionnaireFile);
                 var questionnaire = JsonConvert.DeserializeObject<Questionnaire>(json);
@@ -57,9 +56,9 @@ namespace ConsoleTester
                     Created = DateTime.UtcNow,
                     Question = questionnaire.Question
                 };
-                await storage.InsertOrMerge(questionnaireDto);
+                await _storage.InsertOrMerge(questionnaireDto);
                 
-                await slackWrapper.SendQuestionaire(option.Channel, questionnaire);
+                await _slackWrapper.SendQuestionaire(option.Channel, questionnaire);
                 _logger.LogInformation("Questionnaire created from file {0}.", option.QuestionnaireFile);
             }
             catch (ChannelWebHookMissingException)
@@ -86,8 +85,7 @@ namespace ConsoleTester
         public async Task HandleGetAnswers(AnswersOption option)
         {
             _logger.LogTrace("Getting {0} answers", string.IsNullOrWhiteSpace(option.QuestionnaireId) ? "all" : option.QuestionnaireId);
-            var storage = _serviceProvider.GetService<IStorage>();
-            var result = await storage.GetAnswers(option.QuestionnaireId);
+            var result = await _storage.GetAnswers(option.QuestionnaireId);
             _logger.LogDebug("Found {0} answers", result.Count());
             foreach (var answer in result)
             {
@@ -109,8 +107,7 @@ namespace ConsoleTester
         public async Task HandleDelete(DeleteOption option)
         {
             _logger.LogTrace("Deleting all questionnaires and answers");
-            var storage = _serviceProvider.GetService<Storage>();
-            await storage.DeleteAll();
+            await _storage.DeleteAll();
             _logger.LogInformation("All items deleted.");
         }
 
@@ -137,8 +134,7 @@ namespace ConsoleTester
         {
             _logger.LogTrace("Adding or updating webhook for channel {0}", option.Channel);
 
-            var storage = _serviceProvider.GetService<IStorage>();
-            await storage.InsertOrMerge(option.Channel, option.WebHookUrl);
+            await _storage.InsertOrMerge(option.Channel, option.WebHookUrl);
         }
     }
 }
