@@ -7,7 +7,7 @@ namespace AzureFunctions
 {
     public static class JsonExtensions
     {
-        public static T? Get<T>(this JObject json, Func<dynamic, dynamic> selector, [CallerFilePath] string callerFile = "", [CallerLineNumber] int callerLine = 0) where T : class
+        private static string? Get(this JObject json, Func<dynamic, dynamic> selector, [CallerFilePath] string callerFile = "", [CallerLineNumber] int callerLine = 0)
         {
             try
             {
@@ -19,9 +19,9 @@ namespace AzureFunctions
                 switch(result)
                 {
                     case JObject o:
-                        return o.Value<T>();
+                        return o.Value<string>();
                     case JToken o:
-                        return o.Value<T>();
+                        return o.Value<string>();
                     default:
                         throw new InvalidOperationException($"No defined conversion for JSON object {result?.GetType()}");
                 }
@@ -32,14 +32,14 @@ namespace AzureFunctions
             }
         }
 
-        public static string? Get(this JObject json, Func<dynamic, dynamic> selector, [CallerFilePath] string callerFile = "", [CallerLineNumber] int callerLine = 0)
+        public static string? GetString(this JObject json, Func<dynamic, dynamic> selector, [CallerFilePath] string callerFile = "", [CallerLineNumber] int callerLine = 0)
         {
-            return Get<string>(json, selector, callerFile, callerLine);
+            return Get(json, selector, callerFile, callerLine);
         }
 
-        public static string Require(this JObject json, Func<dynamic, dynamic> selector, [CallerFilePath] string callerFile = "", [CallerLineNumber] int callerLine = 0)
+        public static string RequireString(this JObject json, Func<dynamic, dynamic> selector, [CallerFilePath] string callerFile = "", [CallerLineNumber] int callerLine = 0)
         {
-            return Get<string>(json, selector, callerFile, callerLine) ?? throw new InvalidOperationException($"Invalid last select from JSON {callerFile}:{callerLine}");
+            return Get(json, selector, callerFile, callerLine) ?? throw new InvalidOperationException($"Invalid last select from JSON {callerFile}:{callerLine}");
         }
     }
 }

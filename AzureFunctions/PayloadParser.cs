@@ -7,11 +7,6 @@ namespace AzureFunctions
 {
     public class PayloadParser
     {
-        public PayloadParser()
-        {
-
-        }
-
         public AnswerContext Parse(string content)
         {
             var escaped = HttpUtility.ParseQueryString(content);
@@ -24,11 +19,11 @@ namespace AzureFunctions
             JObject json = JsonConvert.DeserializeObject<JObject>(payload);
             
             return new AnswerContext(
-                json.Require(x => x.trigger_id),
-                json.Require(x => x.message.blocks[0].block_id),
-                json.Require(x => x.channel.name),
-                json.Require(x => x.user.username),
-                json.Require(x => x.actions[0].text.text));
+                json.RequireString(x => x.trigger_id),
+                json.RequireString(x => x.message.blocks[0].block_id),
+                json.RequireString(x => x.channel.name),
+                json.RequireString(x => x.user.username),
+                json.RequireString(x => x.actions[0].text.text));
         }
     }
 }
