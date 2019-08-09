@@ -186,9 +186,9 @@
         }
     ],
     "outputs": {
-        "storageConnectionString": {
+        "tableStorageConnection": {
             "type": "string",
-            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2018-07-01').keys[0].value,';')]"
+            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('tableStorageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('tableStorageName')), '2018-07-01').keys[0].value,';')]"
         }
     }
 }

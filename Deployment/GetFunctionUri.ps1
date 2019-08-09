@@ -4,7 +4,7 @@
  #
  # This assumes that user has already logged in with az login.
  #
- # NOTE: Invoke-REstMethod may fail if wrong SecurityProtocol is used.
+ # NOTE: Invoke-RestMethod may fail if wrong SecurityProtocol is used.
  # Tls12 should work
  #
  #.PARAMETER ResourceGroup
