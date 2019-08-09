@@ -24,7 +24,7 @@ namespace AzureFunctions
             var contentString = await req.Content.ReadAsStringAsync();
             var parsed = new PayloadParser().Parse(contentString);
             
-            log.LogInformation("Answer receivd from channel {0} by {1}. Answer: {2}", parsed.Channel, parsed.Answerer, parsed.Answer);
+            log.LogInformation("Answer receivd from channel {channel} by {answerer}. Answer: {answer}", parsed.Channel, parsed.Answerer, parsed.Answer);
 
             var questionnaire = (await _storage.GetQuestionnaires(parsed.QuestionnaireId)).FirstOrDefault();
             var answer = new AnswerEntity(parsed.Id, parsed.Channel)
