@@ -12,15 +12,13 @@ namespace ConsoleTester
 {
     public class Program
     {
-
         public static void Main(string[] args)
         {
             using (var di = BuildDependencyInjection())
             {
                 var logger = di.GetService<ILogger<Program>>();
                 logger.LogTrace("Logger created, starting test run.");
-
-                var commandHandler = new CommandHandler(di);
+                var commandHandler = di.GetService<CommandHandler>();
 
                 Run(args, commandHandler, logger).Wait();
             }
@@ -69,6 +67,7 @@ namespace ConsoleTester
                 .AddTransient<SlackWrapper>()
                 .AddTransient<SlackClient>()
                 .AddSingleton<IStorage, Storage>()
+                .AddTransient<CommandHandler>()
                 .BuildServiceProvider();
         }
     }

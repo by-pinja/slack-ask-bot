@@ -6,7 +6,6 @@ using CloudLib;
 using CloudLib.Models;
 using ConsoleTester.Options;
 using CsvHelper;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SlackLib;
@@ -20,21 +19,22 @@ namespace ConsoleTester
     public class CommandHandler 
     {
         private readonly ILogger<CommandHandler> _logger;
-        private readonly IServiceProvider _serviceProvider;
-        public CommandHandler(IServiceProvider serviceProvider)
+        private readonly IStorage _storage;
+        private readonly SlackWrapper _slackWrapper;
+        public CommandHandler(ILogger<CommandHandler> logger, IStorage storage, SlackWrapper slackWrapper)
         {
-            _logger = serviceProvider.GetService<ILogger<CommandHandler>>();
-            _serviceProvider = serviceProvider;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+            _slackWrapper = slackWrapper ?? throw new ArgumentNullException(nameof(slackWrapper));
         }
 
         public async Task HandleGetQuestionnaires(QuestionnairesOption option)
         {
             _logger.LogTrace("Getting all questionaires");
-            var storage = _serviceProvider.GetService<IStorage>();
-            var result = await storage.GetQuestionnaires();
+            var result = await _storage.GetQuestionnaires();
             foreach (var questionaire in result)
             {
-                _logger.LogInformation("- {0} {1} {2} {3}", questionaire.Channel,  questionaire.QuestionaireId, questionaire.Question, questionaire.Created);
+                _logger.LogInformation("- {channel} {questionnaireId} {question} {created}", questionaire.Channel,  questionaire.QuestionaireId, questionaire.Question, questionaire.Created);
             }
         }
 
@@ -42,9 +42,7 @@ namespace ConsoleTester
         {
             try 
             {
-                _logger.LogTrace("Creating questionnaire from file {0}", option.QuestionnaireFile);
-                var storage = _serviceProvider.GetService<IStorage>();
-                var slackWrapper = _serviceProvider.GetService<SlackWrapper>();
+                _logger.LogTrace("Creating questionnaire from file {file}", option.QuestionnaireFile);
 
                 var json = await File.ReadAllTextAsync(option.QuestionnaireFile);
                 var questionnaire = JsonConvert.DeserializeObject<Questionnaire>(json);
@@ -57,41 +55,40 @@ namespace ConsoleTester
                     Created = DateTime.UtcNow,
                     Question = questionnaire.Question
                 };
-                await storage.InsertOrMerge(questionnaireDto);
+                await _storage.InsertOrMerge(questionnaireDto);
                 
-                await slackWrapper.SendQuestionaire(option.Channel, questionnaire);
+                await _slackWrapper.SendQuestionaire(option.Channel, questionnaire);
                 _logger.LogInformation("Questionnaire created from file {0}.", option.QuestionnaireFile);
             }
             catch (ChannelWebHookMissingException)
             {
-                _logger.LogError("No webhook configured for {0}. Please add channel webhook before posting to channel", option.Channel);
+                _logger.LogError("No webhook configured for {channel}. Please add channel webhook before posting to channel", option.Channel);
             }
             catch (SlackLibException exception)
             {
-                _logger.LogDebug(exception, "SlackLibException encountered while trying to create questionnaire from file {0}", option.QuestionnaireFile);
+                _logger.LogDebug(exception, "SlackLibException encountered while trying to create questionnaire from file {file}", option.QuestionnaireFile);
                 _logger.LogCritical("Unable to send message to Slack. Make sure that Slack WebHook configuration is correct.");
             }
             catch (IOException exception)
             {
-                _logger.LogDebug(exception, "IOException encountered while trying to create questionnaire from file {0}", option.QuestionnaireFile);
-                _logger.LogCritical("Unable to read file {0}. Possible reasons: File doesn't exists, file name is in invalid format, required permissions ar missing.  Unable to create questionnaire. Abortting...", option.QuestionnaireFile);
+                _logger.LogDebug(exception, "IOException encountered while trying to create questionnaire from file {file}", option.QuestionnaireFile);
+                _logger.LogCritical("Unable to read file {0}. Possible reasons: File doesn't exists, file name is in invalid format, required permissions ar missing.  Unable to create questionnaire. Aborting...", option.QuestionnaireFile);
             }
             catch (JsonReaderException exception)
             {
-                _logger.LogDebug(exception, "JsonReaderException encountered while trying to create questionnaire from file {0}", option.QuestionnaireFile);
-                _logger.LogCritical("Unable to parse questionnaire from file {0}. Please make sure that file contains correct JSON. To be sure that file can be parsed, use the template generated by this program. Unable to create questionnaire. Abortting...", option.QuestionnaireFile);
+                _logger.LogDebug(exception, "JsonReaderException encountered while trying to create questionnaire from file {file}", option.QuestionnaireFile);
+                _logger.LogCritical("Unable to parse questionnaire from file {file}. Please make sure that file contains correct JSON. To be sure that file can be parsed, use the template generated by this program. Unable to create questionnaire. Abortting...", option.QuestionnaireFile);
             }
         }
 
         public async Task HandleGetAnswers(AnswersOption option)
         {
-            _logger.LogTrace("Getting {0} answers", string.IsNullOrWhiteSpace(option.QuestionnaireId) ? "all" : option.QuestionnaireId);
-            var storage = _serviceProvider.GetService<IStorage>();
-            var result = await storage.GetAnswers(option.QuestionnaireId);
-            _logger.LogDebug("Found {0} answers", result.Count());
+            _logger.LogTrace("Getting {questionnaireId} answers", string.IsNullOrWhiteSpace(option.QuestionnaireId) ? "all" : option.QuestionnaireId);
+            var result = await _storage.GetAnswers(option.QuestionnaireId);
+            _logger.LogDebug("Found {count} answers", result.Count());
             foreach (var answer in result)
             {
-                _logger.LogInformation("- {0} {1} {2} {3}", answer.QuestionnaireId, answer.Answer, answer.Timestamp, answer.Answerer);
+                _logger.LogInformation("- {questionnaireId} {answer} {time} {answerer}", answer.QuestionnaireId, answer.Answer, answer.Timestamp, answer.Answerer);
             }
 
             if (!string.IsNullOrWhiteSpace(option.OutputCsvFile))
@@ -109,8 +106,7 @@ namespace ConsoleTester
         public async Task HandleDelete(DeleteOption option)
         {
             _logger.LogTrace("Deleting all questionnaires and answers");
-            var storage = _serviceProvider.GetService<Storage>();
-            await storage.DeleteAll();
+            await _storage.DeleteAll();
             _logger.LogInformation("All items deleted.");
         }
 
@@ -120,25 +116,25 @@ namespace ConsoleTester
 
             var example = new Questionnaire
             {
-                Question = "Mitenkäs hurisee?",
+                Question = "I said hey, what's going on?",
                 AnswerOptions = new string []
                 {
-                    "Hyvin menee",
-                    "Ei se mene",
-                    ":feelsbadman:"
+                    "I try all the time",
+                    "in this institution",
+                    "hey yeah yeah",
+                    ":partyparrot:"
                 }
             };
             string json = JsonConvert.SerializeObject(example, Formatting.Indented);
             await File.WriteAllTextAsync(option.FileName, json);
-            _logger.LogInformation("Questionnaire template file '{0}' created.", option.FileName);
+            _logger.LogInformation("Questionnaire template file '{file}' created.", option.FileName);
         }
 
         public async Task HandleWebhookAdd(AddWebhookOption option)
         {
-            _logger.LogTrace("Adding or updating webhook for channel {0}", option.Channel);
+            _logger.LogTrace("Adding or updating webhook for channel {channel}", option.Channel);
 
-            var storage = _serviceProvider.GetService<IStorage>();
-            await storage.InsertOrMerge(option.Channel, option.WebHookUrl);
+            await _storage.InsertOrMerge(option.Channel, option.WebHookUrl);
         }
     }
 }

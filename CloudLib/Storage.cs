@@ -26,17 +26,17 @@ namespace CloudLib
             _questionaires = client.GetTableReference(_settings.QuestionTable);
             if (_questionaires.CreateIfNotExists())
             {
-                _logger.LogTrace("Table {0} doesn't exist, created.", _settings.QuestionTable);
+                _logger.LogTrace("Table {table} doesn't exist, created.", _settings.QuestionTable);
             }
             _answers = client.GetTableReference(_settings.AnswerTable);
             if (_answers.CreateIfNotExists())
             {
-                _logger.LogTrace("Table {0} doesn't exist, created.", _settings.AnswerTable);
+                _logger.LogTrace("Table {table} doesn't exist, created.", _settings.AnswerTable);
             }
             _channelWebHooks = client.GetTableReference(_settings.WebHooksTable);
             if (_channelWebHooks.CreateIfNotExists())
             {
-                _logger.LogTrace("Table {0} doesn't exist, created.", _settings.WebHooksTable);
+                _logger.LogTrace("Table {table} doesn't exist, created.", _settings.WebHooksTable);
             }
         }
 
@@ -85,9 +85,9 @@ namespace CloudLib
 
         public async Task DeleteAll()
         {
-            _logger.LogTrace("Clearing table {0}", _answers.Name);
+            _logger.LogTrace("Clearing table {table}", _answers.Name);
             var answers = await GetAnswers(null);
-            _logger.LogDebug("Found {0} items to delete.", answers.Count());
+            _logger.LogDebug("Found {count} items to delete.", answers.Count());
             var answerBatch = new TableBatchOperation();
             foreach (var answer in answers)
             {
@@ -95,9 +95,9 @@ namespace CloudLib
             }
             _answers.ExecuteBatch(answerBatch);
 
-            _logger.LogTrace("Clearing table {0}", _questionaires.Name);
+            _logger.LogTrace("Clearing table {table}", _questionaires.Name);
             var questionnaires = await GetQuestionnaires();
-            _logger.LogDebug("Found {0} items to delete.", questionnaires.Count());
+            _logger.LogDebug("Found {count} items to delete.", questionnaires.Count());
             var questionnaireBatch = new TableBatchOperation();
             foreach (var quoestionnaire in questionnaires)
             {
