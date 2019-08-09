@@ -24,9 +24,9 @@ namespace ConsoleTester
         private readonly SlackWrapper _slackWrapper;
         public CommandHandler(ILogger<CommandHandler> logger, IStorage storage, SlackWrapper slackWrapper)
         {
-            _logger = logger;
-            _storage = storage;
-            _slackWrapper = slackWrapper;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+            _slackWrapper = slackWrapper ?? throw new ArgumentNullException(nameof(slackWrapper));
         }
 
         public async Task HandleGetQuestionnaires(QuestionnairesOption option)
@@ -35,7 +35,7 @@ namespace ConsoleTester
             var result = await _storage.GetQuestionnaires();
             foreach (var questionaire in result)
             {
-                _logger.LogInformation("- {0} {1} {2} {3}", questionaire.Channel,  questionaire.QuestionaireId, questionaire.Question, questionaire.Created);
+                _logger.LogInformation("- {channel} {questionnaireId} {question} {created}", questionaire.Channel,  questionaire.QuestionaireId, questionaire.Question, questionaire.Created);
             }
         }
 
