@@ -31,7 +31,7 @@ namespace SlackLib
                 blocks = new []
                 {
                     Section(questionnaire),
-                    AnswerOptions(questionnaire.AnswerOptions)
+                    AnswerOptions(new string[]{"Vastaa"})
                 }
             };
             var serializedPayload = JsonConvert.SerializeObject(payload);
