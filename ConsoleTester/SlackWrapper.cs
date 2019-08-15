@@ -29,7 +29,7 @@ namespace ConsoleTester
             var webHook = await _storage.GetChannelWebHook(channel);
             if (webHook == null)
             {
-                throw new ChannelWebHookMissingException($"No beb hook found for channel {channel}. Unable to send message to channel.");
+                throw new ChannelWebHookMissingException($"No web hook found for channel {channel}. Unable to send message to channel.");
             }
 
             await _client.PostQuestionaire(webHook.Webhook, channel, questionnaire);

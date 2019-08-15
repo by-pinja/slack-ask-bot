@@ -20,8 +20,9 @@ namespace SlackLib
         public SlackClient(ILogger<SlackClient> logger)
         {
             _logger = logger;
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer xoxp-7257967057-10473521619-554554081012-365eeca937f6e027b5960b29ea2f36c3");
         }
-    
+
         public async Task PostQuestionaire(string webHookUrl, string channel, Questionnaire questionnaire)
         {
             var payload = new
@@ -30,7 +31,7 @@ namespace SlackLib
                 blocks = new []
                 {
                     Section(questionnaire),
-                    AnswerOptions(questionnaire.AnswerOptions)
+                    AnswerOptions(new string[]{"Vastaa"})
                 }
             };
             var serializedPayload = JsonConvert.SerializeObject(payload);
@@ -76,6 +77,46 @@ namespace SlackLib
                     }
                 }).ToArray()
             };
+        }
+
+        public async Task OpenAnswerDialog(string triggerId, Questionnaire questionnaire)
+        {
+            _logger.LogInformation("Opening dialog");
+            var payload = new
+            {
+                dialog = new {
+                    callback_id = questionnaire.QuestionId,
+                    title = questionnaire.Question,
+                    elements = new []
+                    {
+                        new 
+                        {
+                            label = questionnaire.Question,
+                            type = "select",
+                            name = "answer",
+                            options = questionnaire.AnswerOptions.Select(option => {
+                                return new 
+                                {
+                                    label = option,
+                                    value = option
+                                };
+                            })
+                        }
+                    }
+                },
+                trigger_id = triggerId
+            };
+            var serializedPayload = JsonConvert.SerializeObject(payload);
+            var requestContent = new StringContent(serializedPayload, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync(new Uri("https://slack.com/api/dialog.open"), requestContent);
+
+            var content = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation("Status code: {0}", response.StatusCode);
+            _logger.LogInformation("Content: {0}", content);
+            if (response.StatusCode != System.Net.HttpStatusCode.OK && content != "ok")
+            {
+                throw new SlackLibException($"Something went wrong while responding to answer. Code was {response.StatusCode}");
+            }
         }
     }
 }

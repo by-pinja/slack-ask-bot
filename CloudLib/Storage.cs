@@ -16,7 +16,7 @@ namespace CloudLib
         private readonly CloudTable _answers;
         private readonly CloudTable _channelWebHooks;
 
-        public Storage(ILogger<Storage> logger, TableStorageSettings settings) 
+        public Storage(ILogger<Storage> logger, TableStorageSettings settings)
         {
             _logger = logger;
             _settings = settings;
@@ -88,22 +88,37 @@ namespace CloudLib
             _logger.LogTrace("Clearing table {table}", _answers.Name);
             var answers = await GetAnswers(null);
             _logger.LogDebug("Found {count} items to delete.", answers.Count());
-            var answerBatch = new TableBatchOperation();
-            foreach (var answer in answers)
+            var asnwerBatchGroups = GroupedDeletes(answers);
+
+            _logger.LogDebug("Executing batches");
+            foreach (var batch in asnwerBatchGroups)
             {
-                answerBatch.Add(TableOperation.Delete(answer));
+                _answers.ExecuteBatch(batch);
             }
-            _answers.ExecuteBatch(answerBatch);
 
             _logger.LogTrace("Clearing table {table}", _questionaires.Name);
             var questionnaires = await GetQuestionnaires();
             _logger.LogDebug("Found {count} items to delete.", questionnaires.Count());
-            var questionnaireBatch = new TableBatchOperation();
-            foreach (var quoestionnaire in questionnaires)
+            var questionnaireBatchGroups = GroupedDeletes(questionnaires);
+
+            _logger.LogDebug("Executing batch");
+            foreach (var batch in questionnaireBatchGroups)
             {
-                questionnaireBatch.Add(TableOperation.Delete(quoestionnaire));
+                _questionaires.ExecuteBatch(batch);
             }
-            _questionaires.ExecuteBatch(questionnaireBatch);
+        }
+
+        private IEnumerable<TableBatchOperation> GroupedDeletes(IEnumerable<TableEntity> entities)
+        {
+            return entities.GroupBy(entity => entity.PartitionKey).Select(group =>
+            {
+                var batch = new TableBatchOperation();
+                foreach (var answer in group)
+                {
+                    batch.Add(TableOperation.Delete(answer));
+                }
+                return batch;
+            });
         }
 
         public async Task InsertOrMerge(string channel, string webHook)
