@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using AzureFunctions;
 using Microsoft.Extensions.Configuration;
 using CloudLib;
+using SlackLib;
 
 [assembly: WebJobsStartup(typeof(Startup))]
 namespace AzureFunctions
@@ -42,6 +43,7 @@ namespace AzureFunctions
             builder.Services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
             builder.Services.AddSingleton<TableStorageSettings>(tableStorageSettings);
             builder.Services.AddSingleton<IStorage, Storage>();
+            builder.Services.AddTransient<SlackClient>();
         }
     }
 }

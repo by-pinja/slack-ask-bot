@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using AzureFunctions;
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace Tests
 {
@@ -11,11 +12,11 @@ namespace Tests
         [SetUp]
         public void Setup()
         {
-            _parser = new PayloadParser();
+            _parser = new PayloadParser(new MockLogger());
         }
 
         [Test]
-        public void Parse_ExampleContent()
+        public void Parse_ExampleContentBlockActionsParsing()
         {
             const string realLifeExample = 
                 "payload=%7B%22type%22%3A%22block_actions%22%2C%22team%22%3A%7B%22id%22%3A%22" + 
@@ -48,13 +49,14 @@ namespace Tests
                 "%22%2C%22emoji%22%3Atrue%7D%2C%22type%22%3A%22button%22%2C%22action_ts%22%3A" + 
                 "%221560504835.208925%22%7D%5D%7D";
             
-            var result = _parser.Parse(realLifeExample);
+            var result = _parser.Parse(realLifeExample) as DialogOpenRequest;
             Assert.NotNull(result);
             Assert.AreEqual("664748916452.7257967057.8577a04c0c2536f3d6adf006ce280d05", result.Id);
             Assert.AreEqual("cf3fd7ba-1223-47f1-93c7-a9701ef5567b", result.QuestionnaireId);
             Assert.AreEqual("hjni-testi", result.Channel);
             Assert.AreEqual("heikki-jussi.niemi", result.Answerer);
             Assert.AreEqual("Joo", result.Answer);
+            Assert.AreEqual("https://hooks.slack.com/actions/T077KUF1P/665229938293/DFmg8d8ErDdMvRj7PU40JC6z", result.ResponseUrl);
         }
 
         [Test]
@@ -63,6 +65,49 @@ namespace Tests
             const string noPayload = "load=onon";
             var exception = Assert.Throws<ArgumentException>(() => _parser.Parse(noPayload));
             Assert.AreEqual("No payload-element found in content", exception.Message);
+        }
+
+        [Test]
+        public void Parse_ExampleContent()
+        {
+            const string realLifeExample = 
+                "payload=%7B%22type%22%3A%22dialog_submission%22%2C%22submission%22%3A%7B%22answer%22%3" +
+                "A%22Sigourney%20Dreamweaver%22%2C%22email%22%3A%22sigdre%40example.com%22%2C%22phone" + 
+                "%22%3A%22%2B1%20800-555-1212%22%2C%22meal%22%3A%22burrito%22%2C%22comment%22%3A%22No" + 
+                "%20sour%20cream%20please%22%2C%22team_channel%22%3A%22C0LFFBKPB%22%2C%22who_should_s" + 
+                "ing%22%3A%22U0MJRG1AL%22%7D%2C%22callback_id%22%3A%22employee_offsite_1138b%22%2C%22" + 
+                "state%22%3A%22vegetarian%22%2C%22team%22%3A%7B%22id%22%3A%22T1ABCD2E12%22%2C%22domai" +
+                "n%22%3A%22coverbands%22%7D%2C%22user%22%3A%7B%22id%22%3A%22W12A3BCDEF%22%2C%22name%2" +
+                "2%3A%22dreamweaver%22%7D%2C%22channel%22%3A%7B%22id%22%3A%22C1AB2C3DE%22%2C%22name%2" + 
+                "2%3A%22coverthon-1999%22%7D%2C%22action_ts%22%3A%22936893340.702759%22%2C%22token%22" +
+                "%3A%22M1AqUUw3FqayAbqNtsGMch72%22%2C%22response_url%22%3A%22https%3A%2F%2Fhooks.slac" + 
+                "k.com%2Fapp%2FT012AB0A1%2F123456789%2FJpmK0yzoZDeRiqfeduTBYXWQ%22%7D";
+            
+            var result = _parser.Parse(realLifeExample) as AnswerContext;
+            Assert.NotNull(result);
+            Assert.AreEqual("936893340.702759", result.Id);
+            Assert.AreEqual("employee_offsite_1138b", result.QuestionnaireId);
+            Assert.AreEqual("coverthon-1999", result.Channel);
+            Assert.AreEqual("dreamweaver", result.Answerer);
+            Assert.AreEqual("Sigourney Dreamweaver", result.Answer);
+            Assert.AreEqual("https://hooks.slack.com/app/T012AB0A1/123456789/JpmK0yzoZDeRiqfeduTBYXWQ", result.ResponseUrl);
+        }
+
+        private class MockLogger : ILogger
+        {
+            public IDisposable BeginScope<TState>(TState state)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsEnabled(LogLevel logLevel)
+            {
+                return true;
+            }
+
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+            {
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using CloudLib;
@@ -6,15 +7,18 @@ using CloudLib.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using SlackLib;
 
 namespace AzureFunctions
 {
     public class AnswerHandler
     {
         private readonly IStorage _storage;
-        public AnswerHandler(IStorage storage)
+        private readonly SlackClient _slackClient;
+        public AnswerHandler(IStorage storage, SlackClient slackClient)
         {
-            _storage = storage;
+            _storage = storage ?? throw new System.ArgumentNullException(nameof(storage));
+            _slackClient = slackClient ?? throw new System.ArgumentNullException(nameof(slackClient));
         }
 
         [FunctionName("AnswerHandler")]
@@ -22,20 +26,42 @@ namespace AzureFunctions
         {
             log.LogDebug("AnswerHandler hook launched");
             var contentString = await req.Content.ReadAsStringAsync();
-            var parsed = new PayloadParser().Parse(contentString);
-            
-            log.LogInformation("Answer receivd from channel {channel} by {answerer}. Answer: {answer}", parsed.Channel, parsed.Answerer, parsed.Answer);
+            var parsed = new PayloadParser(log).Parse(contentString);
 
-            var questionnaire = (await _storage.GetQuestionnaires(parsed.QuestionnaireId)).FirstOrDefault();
-            var answer = new AnswerEntity(parsed.Id, parsed.Channel)
+            switch (parsed)
             {
-                Answer = parsed.Answer,
-                Answerer = parsed.Answerer,
-                Channel = parsed.Channel,
+                case AnswerContext answerContext:
+                    await HandleAnswerRequest(log, answerContext);
+                    break;
+                case DialogOpenRequest dialogRequest:
+                    await HandleDialogOpenRequest(log, dialogRequest);
+                    break;
+                default:
+                    throw new NotImplementedException("Unkown object type.");
+            }
+        }
+
+        private async Task HandleAnswerRequest(ILogger log, AnswerContext answerContext)
+        {
+            log.LogInformation("Answer received from channel {channel} by {answerer}. Answer: {answer}", answerContext.Channel, answerContext.Answerer, answerContext.Answer);
+
+            var questionnaire = (await _storage.GetQuestionnaires(answerContext.QuestionnaireId)).FirstOrDefault();
+            var answer = new AnswerEntity(answerContext.Id, answerContext.Channel)
+            {
+                Answer = answerContext.Answer,
+                Answerer = answerContext.Answerer,
+                Channel = answerContext.Channel,
                 Question = questionnaire.Question,
                 QuestionnaireId = questionnaire.QuestionaireId
             };
             await _storage.InsertOrMerge(answer);
+        }
+
+        private async Task HandleDialogOpenRequest(ILogger log, DialogOpenRequest dialogRequest)
+        {
+            log.LogInformation("Dialog open request received from  {channel} by {answerer}. Answer: {answer}", dialogRequest.Channel, dialogRequest.Answerer, dialogRequest.Answer);
+            var questionnaire = (await _storage.GetQuestionnaires(dialogRequest.QuestionnaireId)).FirstOrDefault();
+            await _slackClient.OpenAnswerDialog(dialogRequest.Id, questionnaire.Question, questionnaire.QuestionaireId);
         }
     }
 }
