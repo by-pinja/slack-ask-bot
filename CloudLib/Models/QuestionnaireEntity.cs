@@ -10,6 +10,11 @@ namespace CloudLib.Models
         public DateTime Created { get; set; }
         public string Question { get; set; }
 
+        /// <summary>
+        /// ';' separated answer options
+        /// </summary>
+        public string AnswerOptions { get; set; }
+
         public QuestionnaireEntity()
         {
 

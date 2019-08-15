@@ -34,7 +34,7 @@ namespace ConsoleTester
             var result = await _storage.GetQuestionnaires();
             foreach (var questionaire in result)
             {
-                _logger.LogInformation("- {channel} {questionnaireId} {question} {created}", questionaire.Channel,  questionaire.QuestionaireId, questionaire.Question, questionaire.Created);
+                _logger.LogInformation("- {created} {channel} {questionnaireId} {question} {answers}", questionaire.Created, questionaire.Channel, questionaire.QuestionaireId, questionaire.Question, questionaire.AnswerOptions);
             }
         }
 
@@ -53,7 +53,8 @@ namespace ConsoleTester
                     QuestionaireId = questionnaire.QuestionId,
                     Channel = option.Channel,
                     Created = DateTime.UtcNow,
-                    Question = questionnaire.Question
+                    Question = questionnaire.Question,
+                    AnswerOptions = string.Join(';', questionnaire.AnswerOptions)
                 };
                 await _storage.InsertOrMerge(questionnaireDto);
                 
