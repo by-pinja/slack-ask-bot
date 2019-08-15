@@ -60,7 +60,7 @@ namespace AzureFunctions
 
         private async Task HandleDialogOpenRequest(ILogger log, DialogOpenRequest dialogRequest)
         {
-            log.LogInformation("Dialog open request received from  {channel} by {answerer}. Answer: {answer}", dialogRequest.Channel, dialogRequest.Answerer, dialogRequest.Answer);
+            log.LogInformation("Dialog open request received from  {channel} by {answerer}", dialogRequest.Channel, dialogRequest.Answerer);
             var dtoQuestionnaire = (await _storage.GetQuestionnaires(dialogRequest.QuestionnaireId)).FirstOrDefault();
             var questionnaire = new Questionnaire()
             {

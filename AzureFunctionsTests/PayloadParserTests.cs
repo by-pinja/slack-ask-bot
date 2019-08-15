@@ -55,7 +55,6 @@ namespace Tests
             Assert.AreEqual("cf3fd7ba-1223-47f1-93c7-a9701ef5567b", result.QuestionnaireId);
             Assert.AreEqual("hjni-testi", result.Channel);
             Assert.AreEqual("heikki-jussi.niemi", result.Answerer);
-            Assert.AreEqual("Joo", result.Answer);
             Assert.AreEqual("https://hooks.slack.com/actions/T077KUF1P/665229938293/DFmg8d8ErDdMvRj7PU40JC6z", result.ResponseUrl);
         }
 
