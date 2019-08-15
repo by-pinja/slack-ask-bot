@@ -79,22 +79,22 @@ namespace SlackLib
             };
         }
 
-        public async Task OpenAnswerDialog(string triggerId, string question, string questionnaireId)
+        public async Task OpenAnswerDialog(string triggerId, Questionnaire questionnaire)
         {
             _logger.LogInformation("Opening dialog");
             var payload = new
             {
                 dialog = new {
-                    callback_id = questionnaireId,
-                    title = question,
+                    callback_id = questionnaire.QuestionId,
+                    title = questionnaire.Question,
                     elements = new []
                     {
                         new 
                         {
-                            label = question,
+                            label = questionnaire.Question,
                             type = "select",
                             name = "answer",
-                            options = new []{"test1", "test2", ":töhötys:"}.Select(option => {
+                            options = questionnaire.AnswerOptions.Select(option => {
                                 return new 
                                 {
                                     label = option,

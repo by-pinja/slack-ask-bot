@@ -8,6 +8,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using SlackLib;
+using SlackLib.Messages;
 
 namespace AzureFunctions
 {
@@ -60,8 +61,14 @@ namespace AzureFunctions
         private async Task HandleDialogOpenRequest(ILogger log, DialogOpenRequest dialogRequest)
         {
             log.LogInformation("Dialog open request received from  {channel} by {answerer}. Answer: {answer}", dialogRequest.Channel, dialogRequest.Answerer, dialogRequest.Answer);
-            var questionnaire = (await _storage.GetQuestionnaires(dialogRequest.QuestionnaireId)).FirstOrDefault();
-            await _slackClient.OpenAnswerDialog(dialogRequest.Id, questionnaire.Question, questionnaire.QuestionaireId);
+            var dtoQuestionnaire = (await _storage.GetQuestionnaires(dialogRequest.QuestionnaireId)).FirstOrDefault();
+            var questionnaire = new Questionnaire()
+            {
+                QuestionId = dtoQuestionnaire.QuestionaireId,
+                Question = dtoQuestionnaire.Question,
+                AnswerOptions = dtoQuestionnaire.AnswerOptions.Split(";")
+            };
+            await _slackClient.OpenAnswerDialog(dialogRequest.Id, questionnaire);
         }
     }
 }
