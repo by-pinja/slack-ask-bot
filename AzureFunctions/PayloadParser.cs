@@ -17,8 +17,6 @@ namespace AzureFunctions
 
         public object Parse(string content)
         {
-            //"block_actions"
-            //"dialog_submission"
             _logger.LogTrace("Parsing raw: {content}", content);
             var escaped = HttpUtility.ParseQueryString(content);
             var payload = escaped["payload"];
@@ -44,7 +42,6 @@ namespace AzureFunctions
                         json.RequireString(x => x.message.blocks[0].block_id),
                         json.RequireString(x => x.channel.name),
                         json.RequireString(x => x.user.username),
-                        json.RequireString(x => x.actions[0].text.text),
                         json.RequireString(x => x.response_url));
                 default:
                     throw new NotImplementedException($"Unkown message type {type}");
