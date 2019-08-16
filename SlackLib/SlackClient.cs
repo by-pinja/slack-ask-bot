@@ -16,11 +16,13 @@ namespace SlackLib
     {
         private readonly ILogger<SlackClient> _logger;
         private readonly SlackClientSettings _slackClientSettings;
+        private readonly SlackResponseParser _slackResponseParser;
 
-        public SlackClient(ILogger<SlackClient> logger, SlackClientSettings slackClientSettings)
+        public SlackClient(ILogger<SlackClient> logger, SlackClientSettings slackClientSettings, SlackResponseParser slackResponseParser)
         {
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _slackClientSettings = slackClientSettings ?? throw new ArgumentNullException(nameof(slackClientSettings));
+            _slackResponseParser = slackResponseParser ?? throw new ArgumentNullException(nameof(slackResponseParser));
         }
 
         private HttpClient CreateClient()
@@ -49,11 +51,11 @@ namespace SlackLib
                 using (var response = await client.PostAsync(uri, new StringContent(serializedPayload, Encoding.UTF8, "application/json")))
                 {
                     var content = await response.Content.ReadAsStringAsync();
-
                     _logger.LogTrace("Content: {0}", content);
-                    if (response.StatusCode != System.Net.HttpStatusCode.OK && content != "ok")
+                    var parsed = _slackResponseParser.Parse(content);
+                    if (response.StatusCode != System.Net.HttpStatusCode.OK || !parsed.Ok)
                     {
-                        _logger.LogTrace("Status code: {0}", response.StatusCode);
+                        _logger.LogTrace("Status code: {0}. Error message: {0}", response.StatusCode, parsed?.Error);
                         _logger.LogTrace("Content: {0}", content);
                         throw new SlackLibException($"Something went wrong while creating questionnaire. Code was {response.StatusCode}");
                     }
@@ -128,10 +130,11 @@ namespace SlackLib
                 using (var response = await client.PostAsync(new Uri("https://slack.com/api/dialog.open"), requestContent))
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    _logger.LogInformation("Status code: {0}", response.StatusCode);
-                    _logger.LogInformation("Content: {0}", content);
-                    if (response.StatusCode != System.Net.HttpStatusCode.OK && content != "ok")
+                    _logger.LogTrace("Content: {0}", content);
+                    var parsed = _slackResponseParser.Parse(content);
+                    if (response.StatusCode != System.Net.HttpStatusCode.OK || !parsed.Ok)
                     {
+                        _logger.LogTrace("Status code: {0}. Error message: {0}", response.StatusCode, parsed?.Error);
                         throw new SlackLibException($"Something went wrong while responding to answer. Code was {response.StatusCode}");
                     }
                 }

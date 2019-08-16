@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AzureFunctions\AzureFunctions.csproj" />
+    <ProjectReference Include="..\SlackLib\SlackLib.csproj" />
   </ItemGroup>
 
 </Project>

@@ -9,6 +9,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using SlackLib;
 using SlackLib.Messages;
+using SlackLib.Payloads;
 
 namespace AzureFunctions
 {
@@ -36,10 +37,10 @@ namespace AzureFunctions
 
             switch (parsed)
             {
-                case AnswerContext answerContext:
+                case DialogSubmission answerContext:
                     await HandleAnswerRequest(answerContext);
                     break;
-                case DialogOpenRequest dialogRequest:
+                case BlockActions dialogRequest:
                     await HandleDialogOpenRequest(dialogRequest);
                     break;
                 default:
@@ -47,33 +48,33 @@ namespace AzureFunctions
             }
         }
 
-        private async Task HandleAnswerRequest(AnswerContext answerContext)
+        private async Task HandleAnswerRequest(DialogSubmission submission)
         {
-            _logger.LogInformation("Answer received from channel {channel} by {answerer}. Answer: {answer}", answerContext.Channel, answerContext.Answerer, answerContext.Answer);
+            _logger.LogInformation("Answer received from channel {channel} by {answerer}. Answer: {answer}", submission.Channel, submission.User.Name, submission.Submission.Answer);
 
-            var questionnaire = (await _storage.GetQuestionnaires(answerContext.QuestionnaireId)).FirstOrDefault();
-            var answer = new AnswerEntity(answerContext.Id, answerContext.Channel)
+            var questionnaire = (await _storage.GetQuestionnaires(submission.CallbackId)).FirstOrDefault();
+            var answer = new AnswerEntity(submission.ActionTimestamp, submission.Channel.Name)
             {
-                Answer = answerContext.Answer,
-                Answerer = answerContext.Answerer,
-                Channel = answerContext.Channel,
+                Answer = submission.Submission.Answer,
+                Answerer = submission.User.Name,
+                Channel = submission.Channel.Name,
                 Question = questionnaire.Question,
                 QuestionnaireId = questionnaire.QuestionaireId
             };
             await _storage.InsertOrMerge(answer);
         }
 
-        private async Task HandleDialogOpenRequest(DialogOpenRequest dialogRequest)
+        private async Task HandleDialogOpenRequest(BlockActions blockActions)
         {
-            _logger.LogInformation("Dialog open request received from  {channel} by {answerer}", dialogRequest.Channel, dialogRequest.Answerer);
-            var dtoQuestionnaire = (await _storage.GetQuestionnaires(dialogRequest.QuestionnaireId)).FirstOrDefault();
+            _logger.LogInformation("Dialog open request received from  {channel} by {answerer}", blockActions.Channel, blockActions.User.Username);
+            var dtoQuestionnaire = (await _storage.GetQuestionnaires(blockActions.Message.Blocks[0].BlockId)).FirstOrDefault();
             var questionnaire = new Questionnaire()
             {
                 QuestionId = dtoQuestionnaire.QuestionaireId,
                 Question = dtoQuestionnaire.Question,
                 AnswerOptions = dtoQuestionnaire.AnswerOptions.Split(";")
             };
-            await _slackClient.OpenAnswerDialog(dialogRequest.Id, questionnaire);
+            await _slackClient.OpenAnswerDialog(blockActions.TriggerId, questionnaire);
         }
     }
 }

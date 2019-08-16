@@ -1,9 +1,10 @@
 using NUnit.Framework;
-using AzureFunctions;
 using System;
 using Microsoft.Extensions.Logging;
+using SlackLib;
+using SlackLib.Payloads;
 
-namespace Tests
+namespace SlackLibTests
 {
     public class PayloadParserTests
     {
@@ -13,6 +14,14 @@ namespace Tests
         public void Setup()
         {
             _parser = new PayloadParser(new MockLogger());
+        }
+
+        [Test]
+        public void Parse_ThrowsArgumentExceptionIfPayloadIsMissing()
+        {
+            const string noPayload = "load=onon";
+            var exception = Assert.Throws<ArgumentException>(() => _parser.Parse(noPayload));
+            Assert.AreEqual("No payload-element found in content", exception.Message);
         }
 
         [Test]
@@ -49,21 +58,13 @@ namespace Tests
                 "%22%2C%22emoji%22%3Atrue%7D%2C%22type%22%3A%22button%22%2C%22action_ts%22%3A" +
                 "%221560504835.208925%22%7D%5D%7D";
 
-            var result = _parser.Parse(realLifeExample) as DialogOpenRequest;
-            Assert.NotNull(result);
-            Assert.AreEqual("664748916452.7257967057.8577a04c0c2536f3d6adf006ce280d05", result.Id);
-            Assert.AreEqual("cf3fd7ba-1223-47f1-93c7-a9701ef5567b", result.QuestionnaireId);
-            Assert.AreEqual("hjni-testi", result.Channel);
-            Assert.AreEqual("heikki-jussi.niemi", result.Answerer);
+            var result = _parser.Parse(realLifeExample) as BlockActions;
+            Assert.NotNull(result, "Result was null");
+            Assert.AreEqual("664748916452.7257967057.8577a04c0c2536f3d6adf006ce280d05", result.TriggerId);
+            Assert.AreEqual("cf3fd7ba-1223-47f1-93c7-a9701ef5567b", result.Message.Blocks[0].BlockId);
+            Assert.AreEqual("hjni-testi", result.Channel.Name);
+            Assert.AreEqual("heikki-jussi.niemi", result.User.Username);
             Assert.AreEqual("https://hooks.slack.com/actions/T077KUF1P/665229938293/DFmg8d8ErDdMvRj7PU40JC6z", result.ResponseUrl);
-        }
-
-        [Test]
-        public void Parse_ThrowsArgumentExceptionIfPayloadIsMissing()
-        {
-            const string noPayload = "load=onon";
-            var exception = Assert.Throws<ArgumentException>(() => _parser.Parse(noPayload));
-            Assert.AreEqual("No payload-element found in content", exception.Message);
         }
 
         [Test]
@@ -82,13 +83,14 @@ namespace Tests
                 "%3A%22M1AqUUw3FqayAbqNtsGMch72%22%2C%22response_url%22%3A%22https%3A%2F%2Fhooks.slac" +
                 "k.com%2Fapp%2FT012AB0A1%2F123456789%2FJpmK0yzoZDeRiqfeduTBYXWQ%22%7D";
 
-            var result = _parser.Parse(realLifeExample) as AnswerContext;
+            var result = _parser.Parse(realLifeExample) as DialogSubmission;
             Assert.NotNull(result);
-            Assert.AreEqual("936893340.702759", result.Id);
-            Assert.AreEqual("employee_offsite_1138b", result.QuestionnaireId);
-            Assert.AreEqual("coverthon-1999", result.Channel);
-            Assert.AreEqual("dreamweaver", result.Answerer);
-            Assert.AreEqual("Sigourney Dreamweaver", result.Answer);
+            Assert.AreEqual("dialog_submission", result.Type);
+            Assert.AreEqual("936893340.702759", result.ActionTimestamp);
+            Assert.AreEqual("employee_offsite_1138b", result.CallbackId);
+            Assert.AreEqual("coverthon-1999", result.Channel.Name);
+            Assert.AreEqual("dreamweaver", result.User.Name);
+            Assert.AreEqual("Sigourney Dreamweaver", result.Submission.Answer);
             Assert.AreEqual("https://hooks.slack.com/app/T012AB0A1/123456789/JpmK0yzoZDeRiqfeduTBYXWQ", result.ResponseUrl);
         }
 
