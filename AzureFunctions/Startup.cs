@@ -46,6 +46,7 @@ namespace AzureFunctions
             builder.Services.AddSingleton(slackClientSettings);
             builder.Services.AddTransient<PayloadParser>();
             builder.Services.AddSingleton<IStorage, Storage>();
+            builder.Services.AddTransient<SlackResponseParser>();
             builder.Services.AddTransient<SlackClient>();
             builder.Services.AddLogging();
         }

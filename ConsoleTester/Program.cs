@@ -66,6 +66,7 @@ namespace ConsoleTester
                 })
                 .AddSingleton(tableStorageSettings)
                 .AddSingleton(slackClientSettings)
+                .AddTransient<SlackResponseParser>()
                 .AddTransient<SlackClient>()
                 .AddSingleton<IStorage, Storage>()
                 .AddTransient<CommandHandler>()

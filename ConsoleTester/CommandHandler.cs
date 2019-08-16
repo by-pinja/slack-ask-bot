@@ -65,7 +65,7 @@ namespace ConsoleTester
             catch (SlackLibException exception)
             {
                 _logger.LogDebug(exception, "SlackLibException encountered while trying to create questionnaire from file {file}", option.QuestionnaireFile);
-                _logger.LogCritical("Unable to send message to Slack. Make sure that Slack WebHook configuration is correct.");
+                _logger.LogCritical("Unable to send message to Slack. See error response for details.");
             }
             catch (IOException exception)
             {
