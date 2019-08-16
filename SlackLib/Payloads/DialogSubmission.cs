@@ -4,7 +4,6 @@ namespace SlackLib.Payloads
 {
     public class DialogSubmission : PayloadBase
     {
-
         [JsonProperty("action_ts")]
         public string ActionTimestamp { get; set; }
 
