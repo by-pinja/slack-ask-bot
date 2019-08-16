@@ -17,12 +17,14 @@ namespace AzureFunctions
         private readonly ILogger<AnswerHandler> _logger;
         private readonly IStorage _storage;
         private readonly SlackClient _slackClient;
-        
-        public AnswerHandler(ILogger<AnswerHandler> logger, IStorage storage, SlackClient slackClient)
+        private readonly PayloadParser _payloadParser;
+
+        public AnswerHandler(ILogger<AnswerHandler> logger, IStorage storage, SlackClient slackClient, PayloadParser payloadParser)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _storage = storage ?? throw new System.ArgumentNullException(nameof(storage));
-            _slackClient = slackClient ?? throw new System.ArgumentNullException(nameof(slackClient));
+            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+            _slackClient = slackClient ?? throw new ArgumentNullException(nameof(slackClient));
+            _payloadParser = payloadParser ?? throw new ArgumentNullException(nameof(payloadParser));
         }
 
         [FunctionName("AnswerHandler")]
@@ -30,7 +32,7 @@ namespace AzureFunctions
         {
             _logger.LogDebug("AnswerHandler hook launched");
             var contentString = await req.Content.ReadAsStringAsync();
-            var parsed = new PayloadParser(_logger).Parse(contentString);
+            var parsed = _payloadParser.Parse(contentString);
 
             switch (parsed)
             {
