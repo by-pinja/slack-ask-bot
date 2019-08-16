@@ -29,7 +29,7 @@ namespace SlackLib.Payloads
     }
 
     /// <summary>
-    /// For some very nice reason this is actually different type than the user received by
+    /// For some very nice reason this is actually different type than the user received by dialog submission.
     /// </summary>
     public class MessagingUser
     {
