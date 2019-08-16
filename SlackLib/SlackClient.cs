@@ -27,8 +27,8 @@ namespace SlackLib
         {
             var payload = new
             {
-                channel = channel,
-                blocks = new []
+                channel,
+                blocks = new[]
                 {
                     Section(questionnaire),
                     AnswerOptions(new string[]{"Vastaa"})
@@ -49,7 +49,7 @@ namespace SlackLib
 
         private dynamic Section(Questionnaire questionnaire)
         {
-            return new 
+            return new
             {
                 type = "section",
                 block_id = questionnaire.QuestionId,
@@ -63,7 +63,7 @@ namespace SlackLib
 
         private dynamic AnswerOptions(string[] options)
         {
-            return new 
+            return new
             {
                 type = "actions",
                 elements = options.Select(option => new
@@ -84,18 +84,19 @@ namespace SlackLib
             _logger.LogInformation("Opening dialog");
             var payload = new
             {
-                dialog = new {
+                dialog = new
+                {
                     callback_id = questionnaire.QuestionId,
                     title = questionnaire.Question,
-                    elements = new []
+                    elements = new[]
                     {
-                        new 
+                        new
                         {
                             label = questionnaire.Question,
                             type = "select",
                             name = "answer",
                             options = questionnaire.AnswerOptions.Select(option => {
-                                return new 
+                                return new
                                 {
                                     label = option,
                                     value = option

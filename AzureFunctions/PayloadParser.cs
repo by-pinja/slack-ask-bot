@@ -27,7 +27,8 @@ namespace AzureFunctions
 
             JObject json = JsonConvert.DeserializeObject<JObject>(payload);
             var type = json.RequireString(x => x.type);
-            switch (type) {
+            switch (type)
+            {
                 case "dialog_submission":
                     return new AnswerContext(
                         json.RequireString(x => x.action_ts),
@@ -36,7 +37,7 @@ namespace AzureFunctions
                         json.RequireString(x => x.user.name),
                         json.RequireString(x => x.submission.answer),
                         json.RequireString(x => x.response_url));
-                case "block_actions": 
+                case "block_actions":
                     return new DialogOpenRequest(
                         json.RequireString(x => x.trigger_id),
                         json.RequireString(x => x.message.blocks[0].block_id),

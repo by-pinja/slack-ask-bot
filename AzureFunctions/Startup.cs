@@ -44,6 +44,7 @@ namespace AzureFunctions
             builder.Services.AddSingleton<TableStorageSettings>(tableStorageSettings);
             builder.Services.AddSingleton<IStorage, Storage>();
             builder.Services.AddTransient<SlackClient>();
+            builder.Services.AddLogging();
         }
     }
 }
