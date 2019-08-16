@@ -11,7 +11,6 @@ namespace CloudLib
         Task<IEnumerable<AnswerEntity>> GetAnswers(string questionnaireId);
         Task InsertOrMerge(QuestionnaireEntity entity);
         Task InsertOrMerge(AnswerEntity entity);
-        Task InsertOrMerge(string channel, string webHook);
         Task DeleteAll();
     }
 }

@@ -166,10 +166,6 @@
                             "value": "answers"
                         },
                         {
-                            "name": "TableStorage:WebHooksTable",
-                            "value": "webHooks"
-                        },
-                        {
                             "name": "SlackClient:BearerToken",
                             "value": "[parameters('slackBearerToken')]"
                         }

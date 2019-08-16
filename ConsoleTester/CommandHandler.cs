@@ -127,12 +127,5 @@ namespace ConsoleTester
             await File.WriteAllTextAsync(option.FileName, json);
             _logger.LogInformation("Questionnaire template file '{file}' created.", option.FileName);
         }
-
-        public async Task HandleWebhookAdd(AddWebhookOption option)
-        {
-            _logger.LogTrace("Adding or updating webhook for channel {channel}", option.Channel);
-
-            await _storage.InsertOrMerge(option.Channel, option.WebHookUrl);
-        }
     }
 }

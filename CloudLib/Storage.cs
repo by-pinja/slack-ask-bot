@@ -14,7 +14,6 @@ namespace CloudLib
 
         private readonly CloudTable _questionaires;
         private readonly CloudTable _answers;
-        private readonly CloudTable _channelWebHooks;
 
         public Storage(ILogger<Storage> logger, TableStorageSettings settings)
         {
@@ -32,11 +31,6 @@ namespace CloudLib
             if (_answers.CreateIfNotExists())
             {
                 _logger.LogTrace("Table {table} doesn't exist, created.", _settings.AnswerTable);
-            }
-            _channelWebHooks = client.GetTableReference(_settings.WebHooksTable);
-            if (_channelWebHooks.CreateIfNotExists())
-            {
-                _logger.LogTrace("Table {table} doesn't exist, created.", _settings.WebHooksTable);
             }
         }
 
@@ -111,13 +105,6 @@ namespace CloudLib
                 }
                 return batch;
             });
-        }
-
-        public async Task InsertOrMerge(string channel, string webHook)
-        {
-            var entity = new ChannelWebhookEntity(channel, webHook);
-            var insertOperation = TableOperation.InsertOrMerge(entity);
-            await _channelWebHooks.ExecuteAsync(insertOperation);
         }
     }
 }
