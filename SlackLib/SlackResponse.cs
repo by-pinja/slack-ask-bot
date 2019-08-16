@@ -1,0 +1,7 @@
+namespace SlackLib
+{
+    public class SlackResponse
+    {
+        public bool Ok { get; set; }
+    }
+}

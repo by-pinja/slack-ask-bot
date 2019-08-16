@@ -5,7 +5,7 @@ namespace SlackLib.Messages
 {
     public class Questionnaire
     {
-        [JsonIgnoreAttribute]
+        [JsonIgnore]
         public string QuestionId { get; set; } = Guid.NewGuid().ToString();
         public string Question { get; set; }
         public string[] AnswerOptions { get; set; }
