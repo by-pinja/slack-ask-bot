@@ -39,9 +39,11 @@ namespace AzureFunctions
                 .Build();
 
             var tableStorageSettings = config.GetSection("TableStorage").Get<TableStorageSettings>();
+            var slackClientSettings = config.GetSection("SlackClient").Get<SlackClientSettings>();
 
             builder.Services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
-            builder.Services.AddSingleton<TableStorageSettings>(tableStorageSettings);
+            builder.Services.AddSingleton(tableStorageSettings);
+            builder.Services.AddSingleton(slackClientSettings);
             builder.Services.AddTransient<PayloadParser>();
             builder.Services.AddSingleton<IStorage, Storage>();
             builder.Services.AddTransient<SlackClient>();

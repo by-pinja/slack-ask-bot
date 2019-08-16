@@ -10,7 +10,7 @@ namespace AzureFunctions
     {
         private readonly ILogger _logger;
 
-        public PayloadParser(ILogger logger)
+        public PayloadParser(ILogger<PayloadParser> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SlackLib.Messages;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 
 namespace SlackLib
 {
@@ -15,35 +16,49 @@ namespace SlackLib
     public class SlackClient
     {
         private readonly ILogger<SlackClient> _logger;
-        private readonly HttpClient _httpClient = new HttpClient();
+        private readonly SlackClientSettings _slackClientSettings;
 
-        public SlackClient(ILogger<SlackClient> logger)
+        public SlackClient(ILogger<SlackClient> logger, SlackClientSettings slackClientSettings)
         {
             _logger = logger;
-            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer xoxp-7257967057-10473521619-554554081012-365eeca937f6e027b5960b29ea2f36c3");
+            _slackClientSettings = slackClientSettings ?? throw new ArgumentNullException(nameof(slackClientSettings));
+        }
+
+        private HttpClient CreateClient()
+        {
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_slackClientSettings.BearerToken}");
+            return client;
         }
 
         public async Task PostQuestionaire(string webHookUrl, string channel, Questionnaire questionnaire)
         {
-            var payload = new
+            using (var client = CreateClient())
             {
-                channel,
-                blocks = new[]
+                var payload = new
                 {
-                    Section(questionnaire),
-                    AnswerOptions(new string[]{"Vastaa"})
-                }
-            };
-            var serializedPayload = JsonConvert.SerializeObject(payload);
-            var response = await _httpClient.PostAsync(new Uri(webHookUrl),
-                new StringContent(serializedPayload, Encoding.UTF8, "application/json"));
+                    channel,
+                    text = "test",
+                    blocks = new[]
+                    {
+                        Section(questionnaire),
+                        AnswerOptions(new string[]{"Vastaa"})
+                    }
+                };
+                var serializedPayload = JsonConvert.SerializeObject(payload);
+                var uri = new Uri("https://slack.com/api/chat.postMessage");
+                using (var response = await client.PostAsync(uri, new StringContent(serializedPayload, Encoding.UTF8, "application/json")))
+                {
+                    var content = await response.Content.ReadAsStringAsync();
 
-            var content = await response.Content.ReadAsStringAsync();
-            if (response.StatusCode != System.Net.HttpStatusCode.OK && content != "ok")
-            {
-                _logger.LogTrace("Status code: {0}", response.StatusCode);
-                _logger.LogTrace("Content: {0}", content);
-                throw new SlackLibException($"Something went wrong while creating questionnaire. Code was {response.StatusCode}");
+                    _logger.LogTrace("Content: {0}", content);
+                    if (response.StatusCode != System.Net.HttpStatusCode.OK && content != "ok")
+                    {
+                        _logger.LogTrace("Status code: {0}", response.StatusCode);
+                        _logger.LogTrace("Content: {0}", content);
+                        throw new SlackLibException($"Something went wrong while creating questionnaire. Code was {response.StatusCode}");
+                    }
+                }
             }
         }
 
@@ -81,15 +96,17 @@ namespace SlackLib
 
         public async Task OpenAnswerDialog(string triggerId, Questionnaire questionnaire)
         {
-            _logger.LogInformation("Opening dialog");
-            var payload = new
+            using (var client = CreateClient())
             {
-                dialog = new
+                _logger.LogInformation("Opening dialog");
+                var payload = new
                 {
-                    callback_id = questionnaire.QuestionId,
-                    title = questionnaire.Question,
-                    elements = new[]
+                    dialog = new
                     {
+                        callback_id = questionnaire.QuestionId,
+                        title = questionnaire.Question,
+                        elements = new[]
+                        {
                         new
                         {
                             label = questionnaire.Question,
@@ -104,19 +121,21 @@ namespace SlackLib
                             })
                         }
                     }
-                },
-                trigger_id = triggerId
-            };
-            var serializedPayload = JsonConvert.SerializeObject(payload);
-            var requestContent = new StringContent(serializedPayload, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync(new Uri("https://slack.com/api/dialog.open"), requestContent);
-
-            var content = await response.Content.ReadAsStringAsync();
-            _logger.LogInformation("Status code: {0}", response.StatusCode);
-            _logger.LogInformation("Content: {0}", content);
-            if (response.StatusCode != System.Net.HttpStatusCode.OK && content != "ok")
-            {
-                throw new SlackLibException($"Something went wrong while responding to answer. Code was {response.StatusCode}");
+                    },
+                    trigger_id = triggerId
+                };
+                var serializedPayload = JsonConvert.SerializeObject(payload);
+                var requestContent = new StringContent(serializedPayload, Encoding.UTF8, "application/json");
+                using (var response = await client.PostAsync(new Uri("https://slack.com/api/dialog.open"), requestContent))
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation("Status code: {0}", response.StatusCode);
+                    _logger.LogInformation("Content: {0}", content);
+                    if (response.StatusCode != System.Net.HttpStatusCode.OK && content != "ok")
+                    {
+                        throw new SlackLibException($"Something went wrong while responding to answer. Code was {response.StatusCode}");
+                    }
+                }
             }
         }
     }
