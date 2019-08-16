@@ -26,17 +26,17 @@ namespace ConsoleTester
 
         private static async Task Run(string[] args, CommandHandler commandHandler, ILogger<Program> logger)
         {
-            await Parser.Default.ParseArguments<QuestionnairesOption, CreateQuestionnaireOption, AnswersOption, DeleteOption, GenerateQuestionnaireTemplateOption, AddWebhookOption>(args)
+            await Parser.Default.ParseArguments<QuestionnairesOption, CreateQuestionnaireOption, AnswersOption, DeleteOption, GenerateQuestionnaireTemplateOption>(args)
                 .MapResult(
                     async (QuestionnairesOption option) => { await commandHandler.HandleGetQuestionnaires(option); },
-                    async (CreateQuestionnaireOption option) => { await commandHandler.HandleCreateQuestionnaires(option);},
+                    async (CreateQuestionnaireOption option) => { await commandHandler.HandleCreateQuestionnaires(option); },
                     async (AnswersOption option) => { await commandHandler.HandleGetAnswers(option); },
                     async (DeleteOption option) => { await commandHandler.HandleDelete(option); },
                     async (GenerateQuestionnaireTemplateOption option) => { await commandHandler.HandleGenerateTemplate(option); },
-                    async (AddWebhookOption option) => { await commandHandler.HandleWebhookAdd(option); },
-                    errors => {
-                        if (errors.Count() == 1 && 
-                            (errors.First().Tag == ErrorType.HelpRequestedError || 
+                    errors =>
+                    {
+                        if (errors.Count() == 1 &&
+                            (errors.First().Tag == ErrorType.HelpRequestedError ||
                             errors.First().Tag == ErrorType.HelpVerbRequestedError ||
                             errors.First().Tag == ErrorType.NoVerbSelectedError ||
                             errors.First().Tag == ErrorType.VersionRequestedError))
@@ -57,14 +57,15 @@ namespace ConsoleTester
                 .Build();
 
             var tableStorageSettings = config.GetSection("TableStorage").Get<TableStorageSettings>();
+            var slackClientSettings = config.GetSection("SlackClient").Get<SlackClientSettings>();
             return new ServiceCollection()
                 .AddLogging(loggingBuilder =>
                 {
                     loggingBuilder.AddConfiguration(config.GetSection("Logging"));
                     loggingBuilder.AddConsole();
                 })
-                .AddSingleton<TableStorageSettings>(tableStorageSettings)
-                .AddTransient<SlackWrapper>()
+                .AddSingleton(tableStorageSettings)
+                .AddSingleton(slackClientSettings)
                 .AddTransient<SlackClient>()
                 .AddSingleton<IStorage, Storage>()
                 .AddTransient<CommandHandler>()

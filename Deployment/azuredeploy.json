@@ -15,6 +15,12 @@
                 "description": "Location for all resources."
             }
         },
+        "slackBearerToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Bearer token that is used for slack messages"
+            }
+        },
         "environment": {
             "type": "string",
             "metadata": {
@@ -30,7 +36,7 @@
         "functionAppName": "[parameters('appName')]",
         "hostingPlanName": "[parameters('appName')]",
         "applicationInsightsName": "[parameters('appName')]",
-        "storageAccountName": "[replace(parameters('appName'), '-', '')]",        
+        "storageAccountName": "[replace(parameters('appName'), '-', '')]",
         "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
         "tableStorageName": "[concat(replace(parameters('appName'), '-', ''), 'table')]",
         "tableStorageId": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('tableStorageName'))]"
@@ -160,8 +166,8 @@
                             "value": "answers"
                         },
                         {
-                            "name": "TableStorage:WebHooksTable",
-                            "value": "webHooks"
+                            "name": "SlackClient:BearerToken",
+                            "value": "[parameters('slackBearerToken')]"
                         }
                     ]
                 }
