@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SlackLib.Messages;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 
 namespace SlackLib
 {
@@ -31,14 +30,14 @@ namespace SlackLib
             return client;
         }
 
-        public async Task PostQuestionaire(string webHookUrl, string channel, Questionnaire questionnaire)
+        public async Task PostQuestionaire(string channel, Questionnaire questionnaire)
         {
             using (var client = CreateClient())
             {
                 var payload = new
                 {
                     channel,
-                    text = "test",
+                    text = "Question",
                     blocks = new[]
                     {
                         Section(questionnaire),

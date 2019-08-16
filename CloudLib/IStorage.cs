@@ -9,7 +9,6 @@ namespace CloudLib
         Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires();
         Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires(string questionnaireId);
         Task<IEnumerable<AnswerEntity>> GetAnswers(string questionnaireId);
-        Task<ChannelWebhookEntity> GetChannelWebHook(string channel);
         Task InsertOrMerge(QuestionnaireEntity entity);
         Task InsertOrMerge(AnswerEntity entity);
         Task InsertOrMerge(string channel, string webHook);

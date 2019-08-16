@@ -63,14 +63,6 @@ namespace CloudLib
             return await _answers.ExecuteQueryAsync(query);
         }
 
-        public async Task<ChannelWebhookEntity> GetChannelWebHook(string channel)
-        {
-            TableQuery<ChannelWebhookEntity> query = new TableQuery<ChannelWebhookEntity>()
-                .Where(TableQuery.GenerateFilterCondition(nameof(ChannelWebhookEntity.Channel), QueryComparisons.Equal, channel));
-
-            return (await _channelWebHooks.ExecuteQueryAsync(query)).FirstOrDefault();
-        }
-
         public async Task InsertOrMerge(QuestionnaireEntity entity)
         {
             var insertOperation = TableOperation.InsertOrMerge(entity);

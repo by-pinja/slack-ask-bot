@@ -16,16 +16,17 @@ namespace ConsoleTester
     /// <summary>
     /// This class knows what to do with parsed commands
     /// </summary>
-    public class CommandHandler 
+    public class CommandHandler
     {
         private readonly ILogger<CommandHandler> _logger;
         private readonly IStorage _storage;
-        private readonly SlackWrapper _slackWrapper;
-        public CommandHandler(ILogger<CommandHandler> logger, IStorage storage, SlackWrapper slackWrapper)
+        private readonly SlackClient _slackClient;
+
+        public CommandHandler(ILogger<CommandHandler> logger, IStorage storage, SlackClient slackClient)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
-            _slackWrapper = slackWrapper ?? throw new ArgumentNullException(nameof(slackWrapper));
+            _slackClient = slackClient ?? throw new ArgumentNullException(nameof(slackClient));
         }
 
         public async Task HandleGetQuestionnaires(QuestionnairesOption option)
@@ -40,7 +41,7 @@ namespace ConsoleTester
 
         public async Task HandleCreateQuestionnaires(CreateQuestionnaireOption option)
         {
-            try 
+            try
             {
                 _logger.LogTrace("Creating questionnaire from file {file}", option.QuestionnaireFile);
 
@@ -57,13 +58,9 @@ namespace ConsoleTester
                     AnswerOptions = string.Join(';', questionnaire.AnswerOptions)
                 };
                 await _storage.InsertOrMerge(questionnaireDto);
-                
-                await _slackWrapper.SendQuestionaire(option.Channel, questionnaire);
+
+                await _slackClient.PostQuestionaire(option.Channel, questionnaire);
                 _logger.LogInformation("Questionnaire created from file {0}.", option.QuestionnaireFile);
-            }
-            catch (ChannelWebHookMissingException)
-            {
-                _logger.LogError("No webhook configured for {channel}. Please add channel webhook before posting to channel", option.Channel);
             }
             catch (SlackLibException exception)
             {
@@ -96,7 +93,7 @@ namespace ConsoleTester
             {
                 using (var writer = new StreamWriter(option.OutputCsvFile))
                 using (var csv = new CsvWriter(writer))
-                {    
+                {
                     csv.WriteRecords(result);
                 }
             }
@@ -118,7 +115,7 @@ namespace ConsoleTester
             var example = new Questionnaire
             {
                 Question = "I said hey, what's going on?",
-                AnswerOptions = new string []
+                AnswerOptions = new string[]
                 {
                     "I try all the time",
                     "in this institution",

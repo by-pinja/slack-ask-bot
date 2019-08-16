@@ -68,16 +68,6 @@ ConnectionString under TableStorage-section in `appsettings.json`-file
 For development, create `appsettings.Delopment.json` and fill your
 storage connections string generated earlier there.
 
-### Adding new channels / Configuring Slack Incoming Webhooks
-These are the target addresses for our questionaires. These should be available in https://api.slack.com/apps "Incoming Webhooks"
-
-Use `upsertChannel` to add or update these
-
-Example
-```
-dotnet run -- upsertChannel -c channel-here -w https://hooks.slack.com/services/HOOK_HERE
-```
-
 ### Creating new questionnaires
 Questionnaires are created by reading JSON file.
 
