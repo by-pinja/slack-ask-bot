@@ -13,20 +13,17 @@ namespace AzureFunctions
             {
                 var result = selector((dynamic)json);
 
-                if(result == null)
+                if (result == null)
                     return null;
 
-                switch(result)
+                return result switch
                 {
-                    case JObject o:
-                        return o.Value<string>();
-                    case JToken o:
-                        return o.Value<string>();
-                    default:
-                        throw new InvalidOperationException($"No defined conversion for JSON object {result?.GetType()}");
-                }
+                    JObject o => o.Value<string>(),
+                    JToken o => o.Value<string>(),
+                    _ => throw new InvalidOperationException($"No defined conversion for JSON object {result?.GetType()}"),
+                };
             }
-            catch(RuntimeBinderException)
+            catch (RuntimeBinderException)
             {
                 throw new InvalidOperationException($"Invalid path before last from JSON {callerFile}:{callerLine}");
             }

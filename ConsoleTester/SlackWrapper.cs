@@ -22,10 +22,11 @@ namespace ConsoleTester
             _logger = logger;
             _client = slackClient;
             _storage = storage;
-        } 
+        }
 
         public async Task SendQuestionaire(string channel, Questionnaire questionnaire)
         {
+            _logger.LogInformation("Sending questionnaire to channel {channel}", channel);
             var webHook = await _storage.GetChannelWebHook(channel);
             if (webHook == null)
             {

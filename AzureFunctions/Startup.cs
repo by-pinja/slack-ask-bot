@@ -42,8 +42,10 @@ namespace AzureFunctions
 
             builder.Services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
             builder.Services.AddSingleton<TableStorageSettings>(tableStorageSettings);
+            builder.Services.AddTransient<PayloadParser>();
             builder.Services.AddSingleton<IStorage, Storage>();
             builder.Services.AddTransient<SlackClient>();
+            builder.Services.AddLogging();
         }
     }
 }
