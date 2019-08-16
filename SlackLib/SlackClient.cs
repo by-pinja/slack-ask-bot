@@ -105,22 +105,22 @@ namespace SlackLib
                     dialog = new
                     {
                         callback_id = questionnaire.QuestionId,
-                        title = questionnaire.Question,
+                        title = "Kysely",
                         elements = new[]
                         {
-                        new
-                        {
-                            label = questionnaire.Question,
-                            type = "select",
-                            name = "answer",
-                            options = questionnaire.AnswerOptions.Select(option => {
-                                return new
-                                {
-                                    label = option,
-                                    value = option
-                                };
-                            })
-                        }
+                            new
+                            {
+                                label = questionnaire.Question,
+                                type = "select",
+                                name = "answer",
+                                options = questionnaire.AnswerOptions.Select(option => {
+                                    return new
+                                    {
+                                        label = option,
+                                        value = option
+                                    };
+                                })
+                            }
                     }
                     },
                     trigger_id = triggerId
