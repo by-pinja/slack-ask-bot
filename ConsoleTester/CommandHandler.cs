@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -92,7 +93,7 @@ namespace ConsoleTester
             if (!string.IsNullOrWhiteSpace(option.OutputCsvFile))
             {
                 using (var writer = new StreamWriter(option.OutputCsvFile))
-                using (var csv = new CsvWriter(writer))
+                using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
                     csv.WriteRecords(result);
                 }
