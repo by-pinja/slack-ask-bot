@@ -1,0 +1,10 @@
+{
+    "ResourceGroupName": "repo-dev",
+    "Location": "North Europe",
+    "GitHubOrganization": "by-pinja",
+    "SlackBearerToken": "Slack OAuth Access Token used for messaging",
+    "Tags": {
+        "subproject": "subprojectid for billing",
+        "example3": "example"
+    }
+}

@@ -15,7 +15,7 @@ namespace SlackLib
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public object Parse(string content)
+        public PayloadBase Parse(string content)
         {
             _logger.LogTrace("Parsing raw: {content}", content);
             var escaped = HttpUtility.ParseQueryString(content);
