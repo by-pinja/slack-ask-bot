@@ -2,13 +2,13 @@
 using System.Threading.Tasks;
 using CloudLib;
 using CommandLine;
-using ConsoleTester.Options;
+using ConsoleInterface.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SlackLib;
 
-namespace ConsoleTester
+namespace ConsoleInterface
 {
     public class Program
     {

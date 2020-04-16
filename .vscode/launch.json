@@ -8,10 +8,10 @@
         "name": ".NET Core Launch (console)",
         "type": "coreclr",
         "request": "launch",
-        "preLaunchTask": "build",
-        "program": "${workspaceFolder}/ConsoleTester/bin/Debug/netcoreapp2.2/ConsoleTester.dll",
+        "preLaunchTask": "build",   
+        "program": "${workspaceFolder}/ConsoleInterface/bin/Debug/netcoreapp3.1/ConsoleInterface.dll",
         "args": [],
-        "cwd": "${workspaceFolder}/ConsoleTester",
+        "cwd": "${workspaceFolder}/ConsoleInterface",
         "console": "internalConsole",
         "stopAtEntry": false
     },
@@ -28,4 +28,4 @@
         "processId": "${command:azureFunctions.pickProcess}"
     }
 ]
-}
+}   

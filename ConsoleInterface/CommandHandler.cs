@@ -5,14 +5,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using CloudLib;
 using CloudLib.Models;
-using ConsoleTester.Options;
+using ConsoleInterface.Options;
 using CsvHelper;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SlackLib;
 using SlackLib.Messages;
 
-namespace ConsoleTester
+namespace ConsoleInterface
 {
     /// <summary>
     /// This class knows what to do with parsed commands
