@@ -66,7 +66,7 @@ namespace AzureFunctions
                 Answerer = submission.User.Name,
                 Channel = submission.Channel.Name,
                 Question = questionnaire.Question,
-                QuestionnaireId = questionnaire.QuestionaireId
+                QuestionnaireId = questionnaire.QuestionnaireId
             };
             await _storage.InsertOrMerge(answer);
         }
@@ -77,7 +77,7 @@ namespace AzureFunctions
             var dtoQuestionnaire = (await _storage.GetQuestionnaires(blockActions.Message.Blocks[0].BlockId)).FirstOrDefault();
             var questionnaire = new Questionnaire()
             {
-                QuestionId = dtoQuestionnaire.QuestionaireId,
+                QuestionId = dtoQuestionnaire.QuestionnaireId,
                 Question = dtoQuestionnaire.Question,
                 AnswerOptions = dtoQuestionnaire.AnswerOptions.Split(";")
             };

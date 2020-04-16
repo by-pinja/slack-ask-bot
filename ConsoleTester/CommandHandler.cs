@@ -32,11 +32,11 @@ namespace ConsoleTester
 
         public async Task HandleGetQuestionnaires(QuestionnairesOption option)
         {
-            _logger.LogTrace("Getting all questionaires");
+            _logger.LogTrace("Getting all questionnaires");
             var result = await _storage.GetQuestionnaires();
-            foreach (var questionaire in result)
+            foreach (var questionnaire in result)
             {
-                _logger.LogInformation("- {created} {channel} {questionnaireId} {question} {answers}", questionaire.Created, questionaire.Channel, questionaire.QuestionaireId, questionaire.Question, questionaire.AnswerOptions);
+                _logger.LogInformation("- {created} {channel} {questionnaireId} {question} {answers}", questionnaire.Created, questionnaire.Channel, questionnaire.QuestionnaireId, questionnaire.Question, questionnaire.AnswerOptions);
             }
         }
 
@@ -52,7 +52,7 @@ namespace ConsoleTester
 
                 var questionnaireDto = new QuestionnaireEntity(questionnaire.QuestionId, option.Channel)
                 {
-                    QuestionaireId = questionnaire.QuestionId,
+                    QuestionnaireId = questionnaire.QuestionId,
                     Channel = option.Channel,
                     Created = DateTime.UtcNow,
                     Question = questionnaire.Question,
@@ -60,7 +60,7 @@ namespace ConsoleTester
                 };
                 await _storage.InsertOrMerge(questionnaireDto);
 
-                await _slackClient.PostQuestionaire(option.Channel, questionnaire);
+                await _slackClient.PostQuestionnaire(option.Channel, questionnaire);
                 _logger.LogInformation("Questionnaire created from file {0}.", option.QuestionnaireFile);
             }
             catch (SlackLibException exception)
