@@ -1,7 +1,6 @@
 {
-    "ResourceGroupName": "Keep below 20 characters excluding -. E.g. repo-dev-name",
+    "ResourceGroupName": "Keep below 20 characters excluding -. E.g. slackaskbot-dev-name",
     "Location": "North Europe",
-    "GitHubOrganization": "by-pinja",
     "SlackBearerToken": "Slack OAuth Access Token used for messaging",
     "Tags": {
         "subproject": "subprojectid for billing",
