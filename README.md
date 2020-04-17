@@ -71,10 +71,10 @@ After creating the environment, for instance by executing
 ```bash
 pwsh ./Deployment/Prepare-Environment.ps1
 ```
-you can quickly test the function is operating normally by
+you can quickly test the correct deployment is operating normally by
 
 ```bash
-pwsh ./Testing/Test-Validation.ps1
+pwsh ./Testing/TestAzureDeployment.ps1
 ```
 
 ### Configuring ConsoleInterface
