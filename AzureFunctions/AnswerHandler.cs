@@ -28,8 +28,8 @@ namespace AzureFunctions
             _payloadParser = payloadParser ?? throw new ArgumentNullException(nameof(payloadParser));
         }
 
-        [FunctionName("AnswerHandler")]
-        public async Task Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequestMessage req)
+        [FunctionName(nameof(AnswerHandlerHook))]
+        public async Task AnswerHandlerHook([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequestMessage req)
         {
             _logger.LogDebug("AnswerHandler hook launched");
             var contentString = await req.Content.ReadAsStringAsync();
@@ -53,13 +53,20 @@ namespace AzureFunctions
             _logger.LogInformation("Answer received from channel {channel} by {answerer}. Answer: {answer}", submission.Channel, submission.User.Name, submission.Submission.Answer);
 
             var questionnaire = (await _storage.GetQuestionnaires(submission.CallbackId)).FirstOrDefault();
+
+            if (questionnaire is null)
+            {
+                _logger.LogError("Error retrieving the questionnaire for callback id: {callbackId}.", submission.CallbackId);
+                return;
+            }
+
             var answer = new AnswerEntity(submission.ActionTimestamp, submission.Channel.Name)
             {
                 Answer = submission.Submission.Answer,
                 Answerer = submission.User.Name,
                 Channel = submission.Channel.Name,
                 Question = questionnaire.Question,
-                QuestionnaireId = questionnaire.QuestionaireId
+                QuestionnaireId = questionnaire.QuestionnaireId
             };
             await _storage.InsertOrMerge(answer);
         }
@@ -70,7 +77,7 @@ namespace AzureFunctions
             var dtoQuestionnaire = (await _storage.GetQuestionnaires(blockActions.Message.Blocks[0].BlockId)).FirstOrDefault();
             var questionnaire = new Questionnaire()
             {
-                QuestionId = dtoQuestionnaire.QuestionaireId,
+                QuestionId = dtoQuestionnaire.QuestionnaireId,
                 Question = dtoQuestionnaire.Question,
                 AnswerOptions = dtoQuestionnaire.AnswerOptions.Split(";")
             };

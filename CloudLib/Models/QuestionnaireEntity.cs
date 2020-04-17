@@ -5,7 +5,7 @@ namespace CloudLib.Models
 {
     public class QuestionnaireEntity : TableEntity
     {
-        public string QuestionaireId { get; set; }
+        public string QuestionnaireId { get; set; }
         public string Channel { get; set; }
         public DateTime Created { get; set; }
         public string Question { get; set; }
@@ -20,9 +20,9 @@ namespace CloudLib.Models
 
         }
 
-        public QuestionnaireEntity(string questionaireId, string channel)
+        public QuestionnaireEntity(string questionnaireId, string channel)
         {
-            RowKey = questionaireId;
+            RowKey = questionnaireId;
             PartitionKey = channel;
         }
     }

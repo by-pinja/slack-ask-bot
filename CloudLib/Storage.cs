@@ -12,7 +12,7 @@ namespace CloudLib
         private readonly ILogger<Storage> _logger;
         private readonly TableStorageSettings _settings;
 
-        private readonly CloudTable _questionaires;
+        private readonly CloudTable _questionnaires;
         private readonly CloudTable _answers;
 
         public Storage(ILogger<Storage> logger, TableStorageSettings settings)
@@ -22,8 +22,8 @@ namespace CloudLib
 
             var storageAccount = CloudStorageAccount.Parse(_settings.ConnectionString);
             var client = storageAccount.CreateCloudTableClient();
-            _questionaires = client.GetTableReference(_settings.QuestionTable);
-            if (_questionaires.CreateIfNotExists())
+            _questionnaires = client.GetTableReference(_settings.QuestionTable);
+            if (_questionnaires.CreateIfNotExists())
             {
                 _logger.LogTrace("Table {table} doesn't exist, created.", _settings.QuestionTable);
             }
@@ -37,14 +37,14 @@ namespace CloudLib
         public async Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires()
         {
             TableQuery<QuestionnaireEntity> query = new TableQuery<QuestionnaireEntity>();
-            return await _questionaires.ExecuteQueryAsync(query);
+            return await _questionnaires.ExecuteQueryAsync(query);
         }
 
         public async Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires(string questionnaireId)
         {
             TableQuery<QuestionnaireEntity> query = new TableQuery<QuestionnaireEntity>()
-                .Where(TableQuery.GenerateFilterCondition(nameof(QuestionnaireEntity.QuestionaireId), QueryComparisons.Equal, questionnaireId));
-            return await _questionaires.ExecuteQueryAsync(query);
+                .Where(TableQuery.GenerateFilterCondition(nameof(QuestionnaireEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
+            return await _questionnaires.ExecuteQueryAsync(query);
         }
 
         public async Task<IEnumerable<AnswerEntity>> GetAnswers(string questionnaireId)
@@ -60,7 +60,7 @@ namespace CloudLib
         public async Task InsertOrMerge(QuestionnaireEntity entity)
         {
             var insertOperation = TableOperation.InsertOrMerge(entity);
-            await _questionaires.ExecuteAsync(insertOperation);
+            await _questionnaires.ExecuteAsync(insertOperation);
         }
 
         public async Task InsertOrMerge(AnswerEntity entity)
@@ -82,7 +82,7 @@ namespace CloudLib
                 _answers.ExecuteBatch(batch);
             }
 
-            _logger.LogTrace("Clearing table {table}", _questionaires.Name);
+            _logger.LogTrace("Clearing table {table}", _questionnaires.Name);
             var questionnaires = await GetQuestionnaires();
             _logger.LogDebug("Found {count} items to delete.", questionnaires.Count());
             var questionnaireBatchGroups = GroupedDeletes(questionnaires);
@@ -90,7 +90,7 @@ namespace CloudLib
             _logger.LogDebug("Executing batch");
             foreach (var batch in questionnaireBatchGroups)
             {
-                _questionaires.ExecuteBatch(batch);
+                _questionnaires.ExecuteBatch(batch);
             }
         }
 

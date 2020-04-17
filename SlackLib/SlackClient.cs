@@ -32,7 +32,7 @@ namespace SlackLib
             return client;
         }
 
-        public async Task PostQuestionaire(string channel, Questionnaire questionnaire)
+        public async Task PostQuestionnaire(string channel, Questionnaire questionnaire)
         {
             using (var client = CreateClient())
             {

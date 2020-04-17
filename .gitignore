@@ -331,6 +331,7 @@ ASALocalRun/
 
 **/appsettings.Development.json
 
-# Testin questionnaire file
+# Testing questionnaire file
 example.json
+developer-settings.json
 publish.zip

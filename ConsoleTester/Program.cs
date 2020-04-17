@@ -51,13 +51,14 @@ namespace ConsoleTester
 
         private static ServiceProvider BuildDependencyInjection()
         {
-            IConfiguration config = new ConfigurationBuilder()
+            var config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
                 .AddJsonFile("appsettings.Development.json", optional: true)
                 .Build();
 
             var tableStorageSettings = config.GetSection("TableStorage").Get<TableStorageSettings>();
             var slackClientSettings = config.GetSection("SlackClient").Get<SlackClientSettings>();
+
             return new ServiceCollection()
                 .AddLogging(loggingBuilder =>
                 {
