@@ -5,7 +5,9 @@
     .DESCRIPTION
     Creates and prepares and environment for development and testing.
     SettingsFile (default developer-settings.json) should contain all
-    relevant information. This assumes that user has already logged in with az login.
+    relevant information.
+    
+    This assumes that the user has already logged in to the Azure Powershell Module.
 
     .PARAMETER SettinsFile
     Settings file that contains environment settings.
@@ -39,4 +41,3 @@ New-AzResourceGroupDeployment `
 
 Write-Host 'Publishing...'
 .\Deployment\Publish.ps1 -ResourceGroup $settingsJson.ResourceGroupName
-Write-Host "Published."
