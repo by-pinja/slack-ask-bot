@@ -41,3 +41,4 @@ New-AzResourceGroupDeployment `
 
 Write-Host 'Publishing...'
 .\Deployment\Publish.ps1 -ResourceGroup $settingsJson.ResourceGroupName
+Write-Host "Published."
