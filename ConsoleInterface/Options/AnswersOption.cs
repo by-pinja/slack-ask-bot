@@ -1,6 +1,6 @@
 using CommandLine;
 
-namespace ConsoleTester.Options
+namespace ConsoleInterface.Options
 {
     [Verb("answers", HelpText = "Gets all answers")]
     public class AnswersOption

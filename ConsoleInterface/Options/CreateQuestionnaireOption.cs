@@ -1,6 +1,6 @@
 using CommandLine;
 
-namespace ConsoleTester.Options
+namespace ConsoleInterface.Options
 {
     [Verb("create", HelpText = "Creates a new questionnaire from file.")]
     public class CreateQuestionnaireOption
