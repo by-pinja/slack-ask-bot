@@ -6,7 +6,7 @@
     Packs and publishes AzureFunctions to Azure.
     Scripts expects that the web app is already created.
     
-    This assumes that the user has already logged in to the Azure Powershell Module.
+    This assumes that user has already logged in with az login.
     
     .PARAMETER ResourceGroup
     Name of the resource group that has the web app deployed
