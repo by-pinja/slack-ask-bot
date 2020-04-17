@@ -1,5 +1,5 @@
 {
-    "ResourceGroupName": "Keep below 20 characters excluding -. E.g. askbot-dev-name",
+    "ResourceGroupName": "Keep below 20 characters excluding -. E.g. repo-dev-name",
     "Location": "North Europe",
     "GitHubOrganization": "by-pinja",
     "SlackBearerToken": "Slack OAuth Access Token used for messaging",
