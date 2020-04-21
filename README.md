@@ -41,7 +41,7 @@ Or the individual steps
 2. Retrieve function url
     Azure Functions Webhook URL can only be retrieved after the application is deployed.
    ```
-   .\Deployment\GetFunctionUri.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name"
+   .\Deployment\GetFunctionUri.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name -FunctionName 'AnswerHandlerHook'"
    ```
 
    Note: This script may throw `The underlying connection was closed: An unexpected error occurred on a send.`
@@ -83,7 +83,7 @@ Configurations are read from `appsettings.json` and `appsettings.Development.jso
 For actual usage, set connection string generated in [Create Application](#create-application) as
 ConnectionString under TableStorage-section in `appsettings.json`-file
 
-For development, create `appsettings.Delopment.json` and fill your
+For development, create `appsettings.Development.json` and fill your
 storage connections string generated earlier there.
 
 ### Creating new questionnaires
