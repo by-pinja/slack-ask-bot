@@ -34,14 +34,20 @@ Or the individual steps
    
 - Publish application
     The following will build and publish this application
+    ```bash
+    pwsh ./Deployment/Publish.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name"
+    ```
     ```
     .\Deployment\Publish.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name"
     ```
     
 2. Retrieve function url
     Azure Functions Webhook URL can only be retrieved after the application is deployed.
+    ```bash
+   pwsh ./Deployment/Get-FunctionUri.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name -FunctionName 'AnswerHandlerHook'"
    ```
-   .\Deployment\GetFunctionUri.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name -FunctionName 'AnswerHandlerHook'"
+   ```
+   .\Deployment\Get-FunctionUri.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name -FunctionName 'AnswerHandlerHook'"
    ```
 
    Note: This script may throw `The underlying connection was closed: An unexpected error occurred on a send.`
