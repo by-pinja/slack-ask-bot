@@ -13,14 +13,14 @@ using SlackLib.Payloads;
 
 namespace AzureFunctions
 {
-    public class AnswerHandler
+    public class AskBotHandler
     {
-        private readonly ILogger<AnswerHandler> _logger;
+        private readonly ILogger<AskBotHandler> _logger;
         private readonly IStorage _storage;
         private readonly SlackClient _slackClient;
         private readonly PayloadParser _payloadParser;
 
-        public AnswerHandler(ILogger<AnswerHandler> logger, IStorage storage, SlackClient slackClient, PayloadParser payloadParser)
+        public AskBotHandler(ILogger<AskBotHandler> logger, IStorage storage, SlackClient slackClient, PayloadParser payloadParser)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
@@ -28,8 +28,8 @@ namespace AzureFunctions
             _payloadParser = payloadParser ?? throw new ArgumentNullException(nameof(payloadParser));
         }
 
-        [FunctionName(nameof(AnswerHandlerHook))]
-        public async Task AnswerHandlerHook([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequestMessage req)
+        [FunctionName(nameof(AskBotHook))]
+        public async Task AskBotHook([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequestMessage req)
         {
             _logger.LogDebug("AnswerHandler hook launched");
             var contentString = await req.Content.ReadAsStringAsync();
@@ -43,8 +43,11 @@ namespace AzureFunctions
                 case BlockActions dialogRequest:
                     await HandleDialogOpenRequest(dialogRequest);
                     break;
+                case Shortcut questionnaireRequest:
+                    await HandleShortcutRequest(questionnaireRequest);
+                    break;
                 default:
-                    throw new NotImplementedException("Unkown object type.");
+                    throw new NotImplementedException("Unknown object type.");
             }
         }
 
@@ -82,6 +85,11 @@ namespace AzureFunctions
                 AnswerOptions = dtoQuestionnaire.AnswerOptions.Split(";")
             };
             await _slackClient.OpenAnswerDialog(blockActions.TriggerId, questionnaire);
+        }
+
+        private async Task HandleShortcutRequest(Shortcut shortcutRequest)
+        {
+            _logger.LogInformation("Shortcut request received from {user} with callback ID: {callback}", shortcutRequest.User.Username, shortcutRequest.CallbackId);
         }
     }
 }

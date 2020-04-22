@@ -74,10 +74,10 @@ namespace CloudLib
             _logger.LogTrace("Clearing table {table}", _answers.Name);
             var answers = await GetAnswers(null);
             _logger.LogDebug("Found {count} items to delete.", answers.Count());
-            var asnwerBatchGroups = GroupedDeletes(answers);
+            var answerBatchGroups = GroupedDeletes(answers);
 
             _logger.LogDebug("Executing batches");
-            foreach (var batch in asnwerBatchGroups)
+            foreach (var batch in answerBatchGroups)
             {
                 _answers.ExecuteBatch(batch);
             }

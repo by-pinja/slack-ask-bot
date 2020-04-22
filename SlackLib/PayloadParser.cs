@@ -17,14 +17,17 @@ namespace SlackLib
 
         public PayloadBase Parse(string content)
         {
+            if (content is null) throw new ArgumentNullException(nameof(content));
+
             _logger.LogTrace("Parsing raw: {content}", content);
             var escaped = HttpUtility.ParseQueryString(content);
             var payload = escaped["payload"];
-            if (payload == null)
+            if (payload is null)
             {
                 throw new ArgumentException("No payload-element found in content");
             }
 
+            _logger.LogDebug("Deserializing payload: {payload}", payload);
             var json = JsonConvert.DeserializeObject<PayloadBase>(payload);
             switch (json.Type)
             {
@@ -32,8 +35,10 @@ namespace SlackLib
                     return JsonConvert.DeserializeObject<DialogSubmission>(payload);
                 case "block_actions":
                     return JsonConvert.DeserializeObject<BlockActions>(payload);
+                case "shortcut":
+                    return JsonConvert.DeserializeObject<Shortcut>(payload);
                 default:
-                    throw new NotImplementedException($"Unkown message type {json.Type}");
+                    throw new NotImplementedException($"Unknown message type {json.Type}");
             }
         }
     }

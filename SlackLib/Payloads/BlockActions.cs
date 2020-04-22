@@ -11,7 +11,7 @@ namespace SlackLib.Payloads
 
         public Channel Channel { get; set; }
 
-        public MessagingUser User { get; set; }
+        public User User { get; set; }
 
         [JsonProperty("response_url")]
         public string ResponseUrl { get; set; }
@@ -26,13 +26,5 @@ namespace SlackLib.Payloads
     {
         [JsonProperty("block_id")]
         public string BlockId { get; set; }
-    }
-
-    /// <summary>
-    /// For some very nice reason this is actually different type than the user received by dialog submission.
-    /// </summary>
-    public class MessagingUser
-    {
-        public string Username { get; set; }
     }
 }
