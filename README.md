@@ -44,10 +44,10 @@ Or the individual steps
 2. Retrieve function url
     Azure Functions Webhook URL can only be retrieved after the application is deployed.
     ```bash
-   pwsh ./Deployment/Get-FunctionUri.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name -FunctionName 'AnswerHandlerHook'"
+   pwsh ./Deployment/Get-FunctionUri.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name" -FunctionName 'AskBotHook'"
    ```
    ```
-   .\Deployment\Get-FunctionUri.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name -FunctionName 'AnswerHandlerHook'"
+   .\Deployment\Get-FunctionUri.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name" -FunctionName 'AskBotHook'"
    ```
 
    Note: This script may throw `The underlying connection was closed: An unexpected error occurred on a send.`

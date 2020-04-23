@@ -56,7 +56,6 @@ namespace AzureFunctions
             _logger.LogInformation("Answer received from channel {channel} by {answerer}. Answer: {answer}", submission.Channel, submission.User.Name, submission.Submission.Answer);
 
             var questionnaire = (await _storage.GetQuestionnaires(submission.CallbackId)).FirstOrDefault();
-
             if (questionnaire is null)
             {
                 _logger.LogError("Error retrieving the questionnaire for callback id: {callbackId}.", submission.CallbackId);
@@ -90,6 +89,8 @@ namespace AzureFunctions
         private async Task HandleShortcutRequest(Shortcut shortcutRequest)
         {
             _logger.LogInformation("Shortcut request received from {user} with callback ID: {callback}", shortcutRequest.User.Username, shortcutRequest.CallbackId);
+
+            await _slackClient.OpenCreateQuestionnaireModel(shortcutRequest.TriggerId);
         }
     }
 }
