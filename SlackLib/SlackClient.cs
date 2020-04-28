@@ -16,20 +16,16 @@ namespace SlackLib
     {
         private readonly ILogger<SlackClient> _logger;
         private readonly SlackResponseParser _slackResponseParser;
-        private static readonly HttpClient _client;
+        private readonly HttpClient _client;
 
         public SlackClient(ILogger<SlackClient> logger, SlackClientSettings slackClientSettings, SlackResponseParser slackResponseParser)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _slackResponseParser = slackResponseParser ?? throw new ArgumentNullException(nameof(slackResponseParser));
-            if (_client is null) throw new NullReferenceException("Http client uninitialized in static constructor.");
-            _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {slackClientSettings?.BearerToken ?? throw new ArgumentNullException(nameof(slackClientSettings))}");
-        }
-
-        // Static constructors run before instance constructors.
-        static SlackClient()
-        {
-            _client = new HttpClient();
+            var client = new HttpClient();
+            //if (_client is null) throw new NullReferenceException("Http client uninitialized in static constructor.");
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {slackClientSettings?.BearerToken ?? throw new ArgumentNullException(nameof(slackClientSettings))}");
+            _client = client;
         }
 
         ~SlackClient()
@@ -126,166 +122,163 @@ namespace SlackLib
 
             var viewPayload = new
             {
-                type = "modal",
                 trigger_id = triggerId,
-                title = new
+                view = new
                 {
-                    type = "plain_text",
-                    text = "My App",
-                    emoji = true
-                },
-                submit = new
-                {
-                    type = "plain_text",
-                    text = "Submit",
-                    emoji = true
-                },
-                close = new
-                {
-                    type = "plain_text",
-                    text = "Cancel",
-                    emoji = true
-                },
-                blocks = new[]
-                {
-                    new
+                    type = "modal",
+                    callback_id = "create_questionnaire",
+                    title = new
                     {
-                        type = "input",
-                        element = new
-                        {
-                            type = "plain_text_input",
-                            action_id = "title",
-                            placeholder = new
-                            {
-                                type = "plain_text",
-                                text = "What do you want to ask of the world?"
-                            }
-                        },
-                        label = new
-                        {
-                            type = "plain_text",
-                            text = "Title"
-                        }
+                        type = "plain_text",
+                        text = "My App",
+                        emoji = true
                     },
-                    new
+                    submit = new
                     {
-                        type = "input",
-                        element = new
-                        {
-                            type = "multi_channels_select",
-                            action_id = "channels",
-                            placeholder = new
-                            {
-                                type = "plain_text",
-                                text = "Where should the poll be sent?"
-                            }
-                        },
-                        label = new
-                        {
-                            type = "plain_text",
-                            text = "Channel(s)"
-                        }
+                        type = "plain_text",
+                        text = "Submit",
+                        emoji = true
                     },
-                    new
+                    close = new
                     {
-                        type = "input",
-                        element = new
-                        {
-                            type = "plain_text_input",
-                            action_id = "option_1",
-                            placeholder = new
-                            {
-                                type = "plain_text",
-                                text = "First option"
-                            }
-                        },
-                        label = new
-                        {
-                            type = "plain_text",
-                            text = "Option 1"
-                        }
+                        type = "plain_text",
+                        text = "Cancel",
+                        emoji = true
                     },
-                    new
+                    blocks = new object[]
                     {
-                        type = "input",
-                        element = new
+                        new
                         {
-                            type = "plain_text_input",
-                            action_id = "option_2",
-                            placeholder = new
+                            type = "input",
+                            element = new
+                            {
+                                type = "plain_text_input",
+                                action_id = "title",
+                                placeholder = new
+                                {
+                                    type = "plain_text",
+                                    text = "What do you want to ask of the world?"
+                                }
+                            },
+                            label = new
                             {
                                 type = "plain_text",
-                                text = "How many options do they need, really?"
+                                text = "Title"
                             }
                         },
-                        label = new
+                        new
                         {
-                            type = "plain_text",
-                            text = "Option 2"
-                        }
-                    },
-                    new
-                    {
-                        //type = "actions",
-                        // elements = new[]
-                        // {
-                        //     new
-                        //     {
-                        //         type = "button",
-                        //         action_id = "add_option",
-                        //         text = new
-                        //         {
-                        //             type = "plain_text",
-                        //             text = "Add another option  "
-                        //         }
-                        //     }
-                        // }
-                        type = "input",
-                        element = new
-                        {
-                            type = "plain_text_input",
-                            action_id = "option_2",
-                            placeholder = new
+                            type = "input",
+                            element = new
+                            {
+                                type = "multi_channels_select",
+                                action_id = "channels",
+                                placeholder = new
+                                {
+                                    type = "plain_text",
+                                    text = "Where should the poll be sent?"
+                                }
+                            },
+                            label = new
                             {
                                 type = "plain_text",
-                                text = "How many options do they need, really?"
+                                text = "Channel(s)"
                             }
                         },
-                        label = new
+                        new
                         {
-                            type = "plain_text",
-                            text = "Option 2"
+                            type = "input",
+                            element = new
+                            {
+                                type = "plain_text_input",
+                                action_id = "option_1",
+                                placeholder = new
+                                {
+                                    type = "plain_text",
+                                    text = "First option"
+                                }
+                            },
+                            label = new
+                            {
+                                type = "plain_text",
+                                text = "Option 1"
+                            }
+                        },
+                        new
+                        {
+                            type = "input",
+                            element = new
+                            {
+                                type = "plain_text_input",
+                                action_id = "option_2",
+                                placeholder = new
+                                {
+                                    type = "plain_text",
+                                    text = "How many options do they need, really?"
+                                }
+                            },
+                            label = new
+                            {
+                                type = "plain_text",
+                                text = "Option 2"
+                            }
+                        },
+                        new
+                        {
+                            type = "actions",
+                            elements = new[]
+                            {
+                                new
+                                {
+                                    type = "button",
+                                    action_id = "add_option",
+                                    text = new
+                                    {
+                                        type = "plain_text",
+                                        text = "Add another option  "
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             };
 
-            await ExecuteSlackCall(viewPayload, "https://slack.com/api/views.open", "creating questionnaire");
+            await ExecuteSlackCall(viewPayload, "https://slack.com/api/views.open", "creating questionnaire").ConfigureAwait(false);
         }
 
         private async Task ExecuteSlackCall(dynamic payload, string address, string action)
         {
-            var serializedPayload = JsonConvert.SerializeObject(payload);
-            var requestContent = new StringContent(serializedPayload, Encoding.UTF8, "application/json");
             _logger.LogDebug("Executing slack request: {action}.", action);
+
             try
             {
-                var response = await _client.PostAsync(address, requestContent);
-                response.EnsureSuccessStatusCode();
-
-                var content = await response.Content.ReadAsStringAsync();
-
-                _logger.LogTrace("Request successful. Content: {0}", content);
-                var parsed = _slackResponseParser.Parse(content);
-                if (parsed == null || !parsed.Ok)
+                string serializedPayload = JsonConvert.SerializeObject(payload);
+                _logger.LogDebug("Serialised: {payload}.", serializedPayload);
+                using (var requestContent = new StringContent(serializedPayload, Encoding.UTF8, "application/json"))
                 {
-                    _logger.LogTrace("Request successful but SlackAPI error. Error message: {0}", parsed?.Error ?? "Could not parse slack response.");
-                    throw new SlackLibException($"Something went wrong while {action}.");
+                    var response = await _client.PostAsync(address, requestContent).ConfigureAwait(false);
+                    response.EnsureSuccessStatusCode();
+
+                    var content = await response.Content.ReadAsStringAsync();
+
+                    _logger.LogTrace("Request successful, checking content. Content: {0}", content);
+                    var parsed = _slackResponseParser.Parse(content);
+                    if (parsed == null || !parsed.Ok)
+                    {
+                        _logger.LogTrace("Request successful but SlackAPI error. Error message: {0}", parsed?.Error ?? "Could not parse slack response.");
+                        throw new SlackLibException($"Something went wrong while {action}.");
+                    }
                 }
             }
             catch (HttpRequestException)
             {
                 _logger.LogTrace("Failed Http request to Slack API.");
+                throw;
+            }
+            catch (JsonSerializationException)
+            {
+                _logger.LogTrace("Failed to serialise the payload into json.");
                 throw;
             }
         }

@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using CloudLib;
 using CloudLib.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
@@ -29,9 +30,9 @@ namespace AzureFunctions
         }
 
         [FunctionName(nameof(AskBotHook))]
-        public async Task AskBotHook([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequestMessage req)
+        public async Task<IActionResult> AskBotHook([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequestMessage req)
         {
-            _logger.LogDebug("AnswerHandler hook launched");
+            _logger.LogDebug("AskBot hook launched");
             var contentString = await req.Content.ReadAsStringAsync();
             var parsed = _payloadParser.Parse(contentString);
 
@@ -49,6 +50,8 @@ namespace AzureFunctions
                 default:
                     throw new NotImplementedException("Unknown object type.");
             }
+
+            return new OkResult();
         }
 
         private async Task HandleAnswerRequest(DialogSubmission submission)
