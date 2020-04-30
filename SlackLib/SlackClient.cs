@@ -33,7 +33,7 @@ namespace SlackLib
             _client.Dispose();
         }
 
-        public async Task PostQuestionnaire(string channel, Questionnaire questionnaire)
+        public async Task PostQuestionnaire(Questionnaire questionnaire, string channel)
         {
             _logger.LogInformation("Posting questionnaire message");
 
@@ -48,7 +48,7 @@ namespace SlackLib
                     }
             };
 
-            await ExecuteSlackCall(messagePayload, "https://slack.com/api/chat.postMessage", "posting questionnaire message");
+            await ExecuteSlackCall(messagePayload, "https://slack.com/api/chat.postMessage", "posting questionnaire message.");
         }
 
         private dynamic Section(Questionnaire questionnaire)
@@ -150,6 +150,7 @@ namespace SlackLib
                         new
                         {
                             type = "input",
+                            block_id = "TitleBlock",
                             element = new
                             {
                                 type = "plain_text_input",
@@ -169,9 +170,10 @@ namespace SlackLib
                         new
                         {
                             type = "input",
+                            block_id = "ChannelBlock",
                             element = new
                             {
-                                type = "multi_channels_select",
+                                type = "channels_select",
                                 action_id = "channels",
                                 placeholder = new
                                 {
@@ -188,6 +190,7 @@ namespace SlackLib
                         new
                         {
                             type = "input",
+                            block_id = "Option1Block",
                             element = new
                             {
                                 type = "plain_text_input",
@@ -207,6 +210,7 @@ namespace SlackLib
                         new
                         {
                             type = "input",
+                            block_id = "Option2Block",
                             element = new
                             {
                                 type = "plain_text_input",

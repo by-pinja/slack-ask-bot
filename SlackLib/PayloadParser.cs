@@ -37,6 +37,8 @@ namespace SlackLib
                     return JsonConvert.DeserializeObject<BlockActions>(payload);
                 case "shortcut":
                     return JsonConvert.DeserializeObject<Shortcut>(payload);
+                case "view_submission":
+                    return JsonConvert.DeserializeObject<ViewSubmission>(payload);
                 default:
                     throw new NotImplementedException($"Unknown message type {json.Type}");
             }

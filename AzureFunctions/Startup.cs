@@ -9,6 +9,7 @@ using AzureFunctions;
 using Microsoft.Extensions.Configuration;
 using CloudLib;
 using SlackLib;
+using AskBotCore;
 
 [assembly: WebJobsStartup(typeof(Startup))]
 namespace AzureFunctions
@@ -41,14 +42,15 @@ namespace AzureFunctions
             var tableStorageSettings = config.GetSection("TableStorage").Get<TableStorageSettings>();
             var slackClientSettings = config.GetSection("SlackClient").Get<SlackClientSettings>();
 
-            builder.Services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
-            builder.Services.AddSingleton(tableStorageSettings);
-            builder.Services.AddSingleton(slackClientSettings);
-            builder.Services.AddTransient<PayloadParser>();
-            builder.Services.AddSingleton<IStorage, Storage>();
-            builder.Services.AddTransient<SlackResponseParser>();
-            builder.Services.AddTransient<SlackClient>();
-            builder.Services.AddLogging();
+            builder.Services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>()
+            .AddSingleton(tableStorageSettings)
+            .AddSingleton(slackClientSettings)
+            .AddTransient<PayloadParser>()
+            .AddSingleton<IStorage, Storage>()
+            .AddTransient<SlackResponseParser>()
+            .AddTransient<SlackClient>()
+            .AddSingleton<AskBotControl>()
+            .AddLogging();
         }
     }
 }

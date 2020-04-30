@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using AskBotCore;
 using CloudLib;
 using CloudLib.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -20,13 +21,15 @@ namespace AzureFunctions
         private readonly IStorage _storage;
         private readonly SlackClient _slackClient;
         private readonly PayloadParser _payloadParser;
+        private readonly AskBotControl _control;
 
-        public AskBotHandler(ILogger<AskBotHandler> logger, IStorage storage, SlackClient slackClient, PayloadParser payloadParser)
+        public AskBotHandler(ILogger<AskBotHandler> logger, IStorage storage, SlackClient slackClient, PayloadParser payloadParser, AskBotControl control)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
             _slackClient = slackClient ?? throw new ArgumentNullException(nameof(slackClient));
             _payloadParser = payloadParser ?? throw new ArgumentNullException(nameof(payloadParser));
+            _control = control ?? throw new ArgumentNullException(nameof(control));
         }
 
         [FunctionName(nameof(AskBotHook))]
@@ -46,6 +49,9 @@ namespace AzureFunctions
                     break;
                 case Shortcut questionnaireRequest:
                     await HandleShortcutRequest(questionnaireRequest);
+                    break;
+                case ViewSubmission viewSubmission:
+                    await HandleViewSubmission(viewSubmission);
                     break;
                 default:
                     throw new NotImplementedException("Unknown object type.");
@@ -94,6 +100,25 @@ namespace AzureFunctions
             _logger.LogInformation("Shortcut request received from {user} with callback ID: {callback}", shortcutRequest.User.Username, shortcutRequest.CallbackId);
 
             await _slackClient.OpenCreateQuestionnaireModel(shortcutRequest.TriggerId);
+        }
+
+        private async Task HandleViewSubmission(ViewSubmission viewSubmission)
+        {
+            _logger.LogInformation("Entered view submission.");
+
+            var channel = viewSubmission.View.State.values["ChannelBlock"].First().Value.value;
+
+            var answerOptionDictionaries = viewSubmission.View.State.values.Where(d => d.Key.Contains("Answer")).Select(kvp => kvp.Value);
+            var answerOptions = answerOptionDictionaries.Select(d => d.First().Value.value).ToArray();
+
+            var questionnaire = new Questionnaire
+            {
+                QuestionId = Guid.NewGuid().ToString(),
+                Question = viewSubmission.View.State.values["TitleBlock"]["title"].value,
+                AnswerOptions = answerOptions
+            };
+
+            await _control.CreateQuestionnaire(questionnaire, channel, DateTime.UtcNow).ConfigureAwait(false);
         }
     }
 }
