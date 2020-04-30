@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using AskBotCore;
 using CloudLib;
 using CommandLine;
 using ConsoleInterface.Options;
@@ -29,7 +30,7 @@ namespace ConsoleInterface
             await Parser.Default.ParseArguments<QuestionnairesOption, CreateQuestionnaireOption, AnswersOption, DeleteOption, GenerateQuestionnaireTemplateOption>(args)
                 .MapResult(
                     async (QuestionnairesOption option) => { await commandHandler.HandleGetQuestionnaires(option); },
-                    async (CreateQuestionnaireOption option) => { await commandHandler.HandleCreateQuestionnaires(option); },
+                    async (CreateQuestionnaireOption option) => { await commandHandler.HandleCreateQuestionnaire(option); },
                     async (AnswersOption option) => { await commandHandler.HandleGetAnswers(option); },
                     async (DeleteOption option) => { await commandHandler.HandleDelete(option); },
                     async (GenerateQuestionnaireTemplateOption option) => { await commandHandler.HandleGenerateTemplate(option); },
@@ -71,6 +72,7 @@ namespace ConsoleInterface
                 .AddTransient<SlackClient>()
                 .AddSingleton<IStorage, Storage>()
                 .AddTransient<CommandHandler>()
+                .AddSingleton<AskBotControl>()
                 .BuildServiceProvider();
         }
     }

@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CloudLib\CloudLib.csproj" />
     <ProjectReference Include="..\SlackLib\SlackLib.csproj" />
+    <ProjectReference Include="..\AskBotCore\AskBotCore.csproj" />
   </ItemGroup>
 
 </Project>
