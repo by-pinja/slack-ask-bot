@@ -72,7 +72,7 @@ namespace ConsoleInterface
                 using (var writer = new StreamWriter(option.OutputCsvFile))
                 using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    csv.WriteRecords(result);
+                    csv.WriteRecords(result.Answers);
                 }
                 _logger.LogInformation("Answers written to file: {file}.", option.OutputCsvFile);
             }

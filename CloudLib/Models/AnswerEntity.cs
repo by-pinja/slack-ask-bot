@@ -16,10 +16,10 @@ namespace CloudLib.Models
 
         }
 
-        public AnswerEntity(string triggerId, string channel)
+        public AnswerEntity(string questionnaireId, string username)
         {
-            RowKey = triggerId;
-            PartitionKey = channel;
+            RowKey = questionnaireId;
+            PartitionKey = username;
         }
     }
 }

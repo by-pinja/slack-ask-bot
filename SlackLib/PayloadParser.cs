@@ -31,8 +31,6 @@ namespace SlackLib
             var json = JsonConvert.DeserializeObject<PayloadBase>(payload);
             switch (json.Type)
             {
-                case "dialog_submission":
-                    return JsonConvert.DeserializeObject<DialogSubmission>(payload);
                 case "block_actions":
                     return JsonConvert.DeserializeObject<BlockActions>(payload);
                 case "shortcut":

@@ -5,11 +5,14 @@ namespace SlackLib.Payloads
         public string Name { get; set; }
     }
 
-    /// <summary>
-    /// For some very nice reason this is actually different type than the user received by dialog submission.
-    /// </summary>
+    // For some very nice reason this is actually different type than the user received by dialog submission.
     public class User
     {
         public string Username { get; set; }
+    }
+
+    public class WithText
+    {
+        public string Text { get; set; }
     }
 }

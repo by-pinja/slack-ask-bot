@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SlackLib.Messages;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using CloudLib.Models;
 
 namespace SlackLib
 {
@@ -40,12 +42,28 @@ namespace SlackLib
             var messagePayload = new
             {
                 channel,
-                text = "Question",
+                text = "PostQuestionnaire",
                 blocks = new[]
                 {
-                        Section(questionnaire),
-                        AnswerOptions(new string[]{"Vastaa"})
+                    Section(questionnaire),
+                    new
+                    {
+                        type = "actions",
+                        elements = new[]
+                        {
+                            new
+                            {
+                                type = "button",
+                                value = questionnaire.QuestionId,
+                                text = new
+                                {
+                                    type = "plain_text",
+                                    text = "Vastaa"
+                                }
+                            }
+                        }
                     }
+                }
             };
 
             await ExecuteSlackCall(messagePayload, "https://slack.com/api/chat.postMessage", "posting questionnaire message.");
@@ -65,58 +83,94 @@ namespace SlackLib
             };
         }
 
-        private dynamic AnswerOptions(string[] options)
-        {
-            return new
-            {
-                type = "actions",
-                elements = options.Select(option => new
-                {
-                    type = "button",
-                    text = new
-                    {
-                        type = "plain_text",
-                        text = option,
-                        emoji = true
-                    }
-                }).ToArray()
-            };
-        }
+        // private dynamic AnswerOptions(string[] options)
+        // {
+        //     return new
+        //     {
+        //         type = "actions",
+        //         elements = options.Select(option => new
+        //         {
+        //             type = "button",
+        //             action_id = "Open questionnaire",
+        //             text = new
+        //             {
+        //                 type = "plain_text",
+        //                 text = option,
+        //                 emoji = true
+        //             }
+        //         }).ToArray()
+        //     };
+        // }
 
-        public async Task OpenAnswerDialog(string triggerId, Questionnaire questionnaire)
+        public async Task OpenAnswerView(string triggerId, Questionnaire questionnaire)
         {
-            _logger.LogInformation("Opening dialog");
+            _logger.LogInformation("Opening questionnaire to answer");
 
             var viewPayload = new
             {
-                dialog = new
+                trigger_id = triggerId,
+                view = new
                 {
-                    callback_id = questionnaire.QuestionId,
-                    title = "Kysely",
-                    elements = new[]
+                    type = "modal",
+                    callback_id = "open_questionnaire",
+                    private_metadata = questionnaire.QuestionId,
+                    title = new
                     {
-                            new
+                        type = "plain_text",
+                        text = questionnaire.Question,
+                    },
+                    submit = new
+                    {
+                        type = "plain_text",
+                        text = "Submit",
+                    },
+                    close = new
+                    {
+                        type = "plain_text",
+                        text = "Cancel",
+                    },
+                    blocks = new[]
+                    {
+                        new
+                        {
+                            type = "input",
+                            block_id = "AnswerBlock",
+                            element = new
                             {
-                                label = questionnaire.Question,
-                                type = "select",
-                                name = "answer",
-                                options = questionnaire.AnswerOptions.Select(option => {
+                                type = "static_select",
+                                action_id = "title",
+                                placeholder = new
+                                {
+                                    type = "plain_text",
+                                    text = "Select an option"
+                                },
+                                options = questionnaire.AnswerOptions.Select(option =>
+                                {
                                     return new
                                     {
-                                        label = option,
+                                        text = new
+                                        {
+                                            type = "plain_text",
+                                            text = option
+                                        },
                                         value = option
                                     };
                                 })
                             },
+                            label = new
+                            {
+                                type = "plain_text",
+                                text = questionnaire.Question
+                            }
                         }
-                },
-                trigger_id = triggerId
+                    }
+                }
             };
 
-            await ExecuteSlackCall(viewPayload, "https://slack.com/api/dialog.open", "opening dialog");
+            await ExecuteSlackCall(viewPayload, "https://slack.com/api/views.open", "opening answer view");
         }
 
-        public async Task OpenCreateQuestionnaireModel(string triggerId)
+        public async Task OpenCreateQuestionnaireView(string triggerId)
         {
             _logger.LogInformation("Opening create questionnaire model.");
 
@@ -130,20 +184,17 @@ namespace SlackLib
                     title = new
                     {
                         type = "plain_text",
-                        text = "My App",
-                        emoji = true
+                        text = "Create questionnaire",
                     },
                     submit = new
                     {
                         type = "plain_text",
                         text = "Submit",
-                        emoji = true
                     },
                     close = new
                     {
                         type = "plain_text",
                         text = "Cancel",
-                        emoji = true
                     },
                     blocks = new object[]
                     {
@@ -190,7 +241,7 @@ namespace SlackLib
                         new
                         {
                             type = "input",
-                            block_id = "Option1Block",
+                            block_id = "Answer1Block",
                             element = new
                             {
                                 type = "plain_text_input",
@@ -210,7 +261,7 @@ namespace SlackLib
                         new
                         {
                             type = "input",
-                            block_id = "Option2Block",
+                            block_id = "Answer2Block",
                             element = new
                             {
                                 type = "plain_text_input",
@@ -251,9 +302,134 @@ namespace SlackLib
             await ExecuteSlackCall(viewPayload, "https://slack.com/api/views.open", "creating questionnaire").ConfigureAwait(false);
         }
 
+        public async Task OpenGetAnswersView(IEnumerable<QuestionnaireEntity> questionnaires, string triggerId)
+        {
+            _logger.LogInformation("Opening get answers view.");
+
+            var viewPayload = new
+            {
+                trigger_id = triggerId,
+                view = new
+                {
+                    type = "modal",
+                    callback_id = "get_answers",
+                    title = new
+                    {
+                        type = "plain_text",
+                        text = $"Which questionnaire would you like to get the answers for?",
+                    },
+                    submit = new
+                    {
+                        type = "plain_text",
+                        text = "Submit",
+                    },
+                    close = new
+                    {
+                        type = "plain_text",
+                        text = "Cancel",
+                    },
+                    blocks = new[]
+                    {
+                        new
+                        {
+                            type = "input",
+                            block_id = "SelectBlock",
+                            element = new
+                            {
+                                type = "static_select",
+                                action_id = "questionnaires",
+                                placeholder = new
+                                {
+                                    type = "plain_text",
+                                    text = "Select a questionnaire"
+                                },
+                                options = questionnaires.Select(option =>
+                                {
+                                    return new
+                                    {
+                                        text = new
+                                        {
+                                            type = "plain_text",
+                                            text = option.Question
+                                        },
+                                        value = option.QuestionnaireId
+                                    };
+                                })
+                            },
+                            label = new
+                            {
+                                type = "plain_text",
+                                text = "Questionnaire"
+                            }
+                        }
+                    }
+                }
+            };
+
+            await ExecuteSlackCall(viewPayload, "https://slack.com/api/views.open", "opening get answers view").ConfigureAwait(false);
+        }
+
+        public async Task UpdateViewWithAnswers(QuestionnaireResult questionnaireResult, string viewId, string hash)
+        {
+            _logger.LogInformation("Updating the get answers view.");
+
+            var viewPayload = new
+            {
+                view_id = viewId,
+                hash,
+                view = new
+                {
+                    type = "modal",
+                    callback_id = "display_answers",
+                    title = new
+                    {
+                        type = "plain_text",
+                        text = questionnaireResult.Question,
+                    },
+                    submit = new
+                    {
+                        type = "plain_text",
+                        text = "Submit",
+                    },
+                    close = new
+                    {
+                        type = "plain_text",
+                        text = "Cancel",
+                    },
+                    blocks = new object[]
+                    {
+                        new
+                        {
+                            type = "section",
+                            text = new
+                            {
+                                type = "plain_text",
+                                text = ":wave: The votes are in.",
+                                emoji = true
+                            }
+                        },
+                        questionnaireResult.Answers.Select(kvp =>
+                        {
+                            return new
+                            {
+                                type = "section",
+                                text = new
+                                {
+                                    type = "plain_text",
+                                    text = $"\"{kvp.Key}\": {kvp.Value} votes.",
+                                }
+                            };
+                        })
+                    }
+                }
+            };
+
+            await ExecuteSlackCall(viewPayload, "https://slack.com/api/views.update", "opening answers for questionnaire view").ConfigureAwait(false);
+        }
+
         private async Task ExecuteSlackCall(dynamic payload, string address, string action)
         {
-            _logger.LogDebug("Executing slack request: {action}.", action);
+            _logger.LogDebug("Executing slack request: {action}. Address: {address}", action, address);
 
             try
             {

@@ -26,7 +26,7 @@ namespace AskBotCore
             _slackClient = slackClient ?? throw new ArgumentNullException(nameof(slackClient));
         }
 
-        public async Task GetQuestionnaires()
+        public async Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires()
         {
             _logger.LogTrace("Getting all questionnaires.");
 
@@ -35,6 +35,8 @@ namespace AskBotCore
             {
                 _logger.LogInformation("- {created} {channel} {questionnaireId} {question} {answers}", questionnaire.Created, questionnaire.Channel, questionnaire.QuestionnaireId, questionnaire.Question, questionnaire.AnswerOptions);
             }
+
+            return result;
         }
 
         public async Task CreateQuestionnaire(Questionnaire questionnaire, string channel, DateTime time)
@@ -56,7 +58,6 @@ namespace AskBotCore
                 await _slackClient.PostQuestionnaire(questionnaire, channel).ConfigureAwait(false);
                 _logger.LogInformation("Questionnaire created.");
             }
-
             catch (SlackLibException exception)
             {
                 _logger.LogDebug(exception, "SlackLibException encountered while trying to create questionnaire.");
@@ -64,19 +65,42 @@ namespace AskBotCore
             }
         }
 
-        public async Task<IEnumerable<AnswerEntity>> GetAnswers(string questionnaireId)
+        public async Task<QuestionnaireResult> GetAnswers(string questionnaireId)
         {
             _logger.LogTrace("Getting {questionnaireId} answers", string.IsNullOrWhiteSpace(questionnaireId) ? "all" : questionnaireId);
 
-            var result = await _storage.GetAnswers(questionnaireId);
-            _logger.LogDebug("Found {count} answers", result.Count());
-            foreach (var answer in result)
+            var answers = await _storage.GetAnswers(questionnaireId);
+            if (answers is null || answers.Count() == 0)
+            {
+                _logger.LogError("Could not find any answers.");
+            }
+            _logger.LogDebug("Found {count} answers", answers.Count());
+            foreach (var answer in answers)
             {
                 _logger.LogInformation("- {questionnaireId} {answer} {time} {answerer}", answer.QuestionnaireId, answer.Answer, answer.Timestamp, answer.Answerer);
             }
 
+            var answersDictionary = new Dictionary<string, int>();
+            foreach (var answer in answers)
+            {
+                if (answersDictionary.ContainsKey(answer.Answer))
+                {
+                    answersDictionary[answer.Answer]++;
+                }
+                else
+                {
+                    answersDictionary[answer.Answer] = 1;
+                }
+            }
+
             _logger.LogInformation("Answers retrieved.");
-            return result;
+            var questionnaireResult = new QuestionnaireResult
+            {
+                Question = answers.First().Question,
+                Answers = answersDictionary
+            };
+
+            return questionnaireResult;
         }
 
         public async Task DeleteAll()

@@ -7,24 +7,22 @@ namespace SlackLib.Payloads
         [JsonProperty("trigger_id")]
         public string TriggerId { get; set; }
 
-        public Message Message { get; set; }
+        public WithText Message { get; set; }
 
         public Channel Channel { get; set; }
 
         public User User { get; set; }
 
-        [JsonProperty("response_url")]
-        public string ResponseUrl { get; set; }
+        public Action[] Actions { get; set; }
     }
 
-    public class Message
+    public class Action
     {
-        public Block[] Blocks { get; set; }
-    }
+        [JsonProperty("action_id")]
+        public string ActionId { get; set; }
 
-    public class Block
-    {
         [JsonProperty("block_id")]
         public string BlockId { get; set; }
+        public string Value { get; set; }
     }
 }
