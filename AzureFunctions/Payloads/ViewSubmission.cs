@@ -1,28 +1,16 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using AskBotCore;
-using CloudLib;
-using CloudLib.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using SlackLib;
 using SlackLib.Messages;
 
 namespace AzureFunctions.Payloads
 {
-    public class ViewSubmission : PayloadBase, IPayload
+    public class ViewSubmission
     {
-        public ViewSubmission(SlackClient slackClient, AskBotControl control, IStorage storage, ILogger<PayloadBase> logger) : base(slackClient, control, storage, logger)
-        {
-        }
+        public View View { get; set; }
+        public User User { get; set; }
 
-        private View View { get; set; }
-        private User User { get; set; }
-
-        private dynamic GetUpdateModelWithAnswersPayload(QuestionnaireResult questionnaireResult)
+        public dynamic GetUpdateModelWithAnswersPayload(QuestionnaireResult questionnaireResult)
         {
             var blockSection = new object[] {
                         new
@@ -52,8 +40,7 @@ namespace AzureFunctions.Payloads
 
             return new
             {
-                view_id = View.Id,
-                View.Hash,
+                response_action = "update",
                 view = new
                 {
                     type = "modal",
@@ -76,73 +63,6 @@ namespace AzureFunctions.Payloads
                     blocks = blockSection.Concat(answers)
                 }
             };
-        }
-
-        public async Task<IActionResult> Handle()
-        {
-            _logger.LogInformation("View submission received.");
-
-            switch (View.CallbackId)
-            {
-                case "create_questionnaire":
-                    _logger.LogInformation("Creating and posting questionnaire received from {user}.", User.Username);
-
-                    var channel = View.State.values["ChannelBlock"].First().Value.Value;
-                    if (string.IsNullOrWhiteSpace(channel))
-                    {
-                        throw new Exception("channel is null");
-                    }
-                    var question = View.State.values["TitleBlock"]["title"].Value;
-                    if (string.IsNullOrWhiteSpace(question))
-                    {
-                        throw new Exception("question is null");
-                    }
-
-                    var answerOptionDictionaries = View.State.values.Where(d => d.Key.Contains("Answer")).Select(kvp => kvp.Value);
-                    var answerOptions = answerOptionDictionaries.Select(d => d.First().Value.Value).ToArray();
-
-                    if (answerOptions.Count() == 0)
-                    {
-                        throw new Exception("answer option is empty.");
-                    }
-
-                    var questionnaire = new Questionnaire
-                    {
-                        QuestionId = Guid.NewGuid().ToString(),
-                        Question = question,
-                        AnswerOptions = answerOptions
-                    };
-
-                    await _control.CreateQuestionnaire(questionnaire, channel, DateTime.UtcNow).ConfigureAwait(false);
-                    break;
-                case "open_questionnaire":
-                    _logger.LogInformation("Answer received from {answerer}.", User.Username);
-                    var answer = View.State.values.First().Value.First().Value.SelectedOption.Value;
-                    _logger.LogDebug("Answer: {answer}", answer);
-
-                    var answerEntity = new AnswerEntity(View.PrivateMetadata, User.Username)
-                    {
-                        Answer = answer,
-                        Answerer = User.Username,
-                        //Channel = submission.Channel.Name,
-                        Question = View.Title.Text,
-                        QuestionnaireId = View.PrivateMetadata
-                    };
-                    await _storage.InsertOrMerge(answerEntity);
-                    break;
-                case "get_answers":
-                    var selectedQuestionnaireId = View.State.values.First().Value.First().Value.SelectedOption.Value;
-                    _logger.LogInformation("Get answers for questionnaire with ID: {questionnaire}.", selectedQuestionnaireId);
-                    var questionnaireResult = await _control.GetAnswers(selectedQuestionnaireId).ConfigureAwait(false);
-                    var payload = GetUpdateModelWithAnswersPayload(questionnaireResult);
-                    return new JsonResult(payload);
-                    //await _slackClient.UpdateViewWithAnswers(questionnaireResult, viewSubmission.View.Id, viewSubmission.View.Hash);
-                    break;
-                default:
-                    throw new NotImplementedException($"Unknown view callback id: {View.CallbackId}.");
-            }
-
-            return new OkResult();
         }
     }
 

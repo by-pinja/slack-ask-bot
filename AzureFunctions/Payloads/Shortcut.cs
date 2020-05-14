@@ -1,32 +1,21 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using AskBotCore;
-using CloudLib;
 using CloudLib.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using SlackLib;
 
 namespace AzureFunctions.Payloads
 {
-    public class Shortcut : PayloadBase, IPayload
+    public class Shortcut
     {
-        public Shortcut(SlackClient slackClient, AskBotControl control, IStorage storage, ILogger<PayloadBase> logger) : base(slackClient, control, storage, logger)
-        {
-        }
-
         [JsonProperty("callback_id")]
-        private string CallbackId { get; set; }
+        public string CallbackId { get; set; }
 
-        private User User { get; set; }
+        public User User { get; set; }
 
         [JsonProperty("trigger_id")]
-        private string TriggerId { get; set; }
+        public string TriggerId { get; set; }
 
-        private dynamic GetOpenListOfQuestionnairesPayload(IEnumerable<QuestionnaireEntity> questionnaires)
+        public dynamic GetOpenListOfQuestionnairesPayload(IEnumerable<QuestionnaireEntity> questionnaires)
         {
             return new
             {
@@ -89,7 +78,7 @@ namespace AzureFunctions.Payloads
             };
         }
 
-        private dynamic GetOpenCreateQuestionnairesPayload()
+        public dynamic GetOpenCreateQuestionnairesPayload()
         {
             return new
             {
@@ -215,33 +204,6 @@ namespace AzureFunctions.Payloads
                     }
                 }
             };
-        }
-
-        public async Task<IActionResult> Handle()
-        {
-            _logger.LogInformation("Shortcut request received from {user} with callback ID: {callback}", User.Username, CallbackId);
-
-            dynamic payload;
-            switch (CallbackId)
-            {
-                case "create_questionnaire":
-                    payload = GetOpenCreateQuestionnairesPayload();
-
-                    _logger.LogInformation("Opening slack model to create questionnaire.");
-                    await _slackClient.OpenModelView(payload);
-                    break;
-                case "get_answers":
-                    var questionnaires = await _control.GetQuestionnaires().ConfigureAwait(false);
-                    payload = GetOpenListOfQuestionnairesPayload(questionnaires);
-
-                    _logger.LogInformation("Opening slack model to list the questionnaires available.");
-                    await _slackClient.OpenModelView(payload);
-                    break;
-                default:
-                    throw new NotImplementedException($"Unknown shortcut callback id: {CallbackId}.");
-            }
-
-            return new OkResult();
         }
     }
 }

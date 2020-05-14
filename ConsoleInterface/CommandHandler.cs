@@ -21,9 +21,9 @@ namespace ConsoleInterface
     public class CommandHandler
     {
         private readonly ILogger<CommandHandler> _logger;
-        private readonly AskBotControl _control;
+        private readonly IAskBotControl _control;
 
-        public CommandHandler(ILogger<CommandHandler> logger, AskBotControl control)
+        public CommandHandler(ILogger<CommandHandler> logger, IAskBotControl control)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _control = control ?? throw new ArgumentNullException(nameof(control));
@@ -33,7 +33,7 @@ namespace ConsoleInterface
         {
             _logger.LogTrace("Get all questionnaires activated from console interface.");
 
-            await _control.GetQuestionnaires().ConfigureAwait(false);
+            // await _control.GetQuestionnaires().ConfigureAwait(false);
         }
 
         public async Task HandleCreateQuestionnaire(CreateQuestionnaireOption option)

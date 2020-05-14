@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using CloudLib;
 using SlackLib;
 using AskBotCore;
+using System;
 
 [assembly: WebJobsStartup(typeof(Startup))]
 namespace AzureFunctions
@@ -42,12 +43,17 @@ namespace AzureFunctions
             var tableStorageSettings = config.GetSection("TableStorage").Get<TableStorageSettings>();
             var slackClientSettings = config.GetSection("SlackClient").Get<SlackClientSettings>();
 
+            builder.Services.AddHttpClient<ISlackClient, SlackClient>(c =>
+            {
+                // c.BaseAddress = new Uri("https://api.github.com/");
+                c.DefaultRequestHeaders.Add("Authorization", $"Bearer {slackClientSettings.BearerToken}");
+            });
+
             builder.Services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>()
             .AddSingleton(tableStorageSettings)
             .AddSingleton(slackClientSettings)
-            .AddSingleton<IStorage, Storage>()
-            .AddTransient<SlackClient>()
-            .AddSingleton<AskBotControl>()
+            .AddTransient<IStorage, Storage>()
+            .AddTransient<IAskBotControl, AskBotControl>()
             .AddLogging();
         }
     }

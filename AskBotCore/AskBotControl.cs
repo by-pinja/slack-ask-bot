@@ -13,30 +13,17 @@ namespace AskBotCore
     /// <summary>
     /// This class is the core operator for the questionnaire processes.
     /// </summary>
-    public class AskBotControl
+    public class AskBotControl : IAskBotControl
     {
         private readonly ILogger<AskBotControl> _logger;
         private readonly IStorage _storage;
-        private readonly SlackClient _slackClient;
+        private readonly ISlackClient _slackClient;
 
-        public AskBotControl(ILogger<AskBotControl> logger, IStorage storage, SlackClient slackClient)
+        public AskBotControl(ILogger<AskBotControl> logger, IStorage storage, ISlackClient slackClient)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
             _slackClient = slackClient ?? throw new ArgumentNullException(nameof(slackClient));
-        }
-
-        public async Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires()
-        {
-            _logger.LogTrace("Getting all questionnaires.");
-
-            var result = await _storage.GetQuestionnaires().ConfigureAwait(false);
-            foreach (var questionnaire in result)
-            {
-                _logger.LogInformation("- {created} {channel} {questionnaireId} {question} {answers}", questionnaire.Created, questionnaire.Channel, questionnaire.QuestionnaireId, questionnaire.Question, questionnaire.AnswerOptions);
-            }
-
-            return result;
         }
 
         public async Task CreateQuestionnaire(Questionnaire questionnaire, string channel, DateTime time)
@@ -55,7 +42,8 @@ namespace AskBotCore
             {
                 await _storage.InsertOrMerge(questionnaireDto).ConfigureAwait(false);
                 _logger.LogTrace("Questionnaire stored.");
-                await _slackClient.PostQuestionnaire(questionnaire, channel).ConfigureAwait(false);
+                var payload = GetQuestionnairePostPayload(questionnaire, channel);
+                await _slackClient.PostMessage(payload).ConfigureAwait(false);
                 _logger.LogInformation("Questionnaire created.");
             }
             catch (SlackLibException exception)
@@ -108,6 +96,45 @@ namespace AskBotCore
             _logger.LogTrace("Deleting all questionnaires and answers.");
             await _storage.DeleteAll().ConfigureAwait(false);
             _logger.LogInformation("All items deleted.");
+        }
+
+        private dynamic GetQuestionnairePostPayload(Questionnaire questionnaire, string channel)
+        {
+            return new
+            {
+                channel,
+                text = "PostQuestionnaire",
+                blocks = new object[]
+                {
+                    new
+                    {
+                        type = "section",
+                        block_id = questionnaire.QuestionId,
+                        text = new
+                        {
+                            type = "mrkdwn",
+                            text = questionnaire.Question
+                        }
+                    },
+                    new
+                    {
+                        type = "actions",
+                        elements = new[]
+                        {
+                            new
+                            {
+                                type = "button",
+                                value = questionnaire.QuestionId,
+                                text = new
+                                {
+                                    type = "plain_text",
+                                    text = "Vastaa"
+                                }
+                            }
+                        }
+                    }
+                }
+            };
         }
     }
 }

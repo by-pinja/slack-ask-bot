@@ -3,7 +3,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using SlackLib.Messages;
 using Microsoft.Extensions.Logging;
 
 namespace SlackLib
@@ -16,76 +15,11 @@ namespace SlackLib
         private readonly ILogger<SlackClient> _logger;
         private readonly HttpClient _client;
 
-        public SlackClient(ILogger<SlackClient> logger, SlackClientSettings slackClientSettings)
+        public SlackClient(ILogger<SlackClient> logger, HttpClient client)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            var client = new HttpClient();
-            //if (_client is null) throw new NullReferenceException("Http client uninitialized in static constructor.");
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {slackClientSettings?.BearerToken ?? throw new ArgumentNullException(nameof(slackClientSettings))}");
-            _client = client;
+            _client = client ?? throw new ArgumentNullException(nameof(client));
         }
-
-        ~SlackClient()
-        {
-            _client.Dispose();
-        }
-
-
-
-        public async Task PostQuestionnaire(Questionnaire questionnaire, string channel)
-        {
-            _logger.LogInformation("Posting questionnaire message.");
-
-            var messagePayload = new
-            {
-                channel,
-                text = "PostQuestionnaire",
-                blocks = new[]
-                {
-                    Section(questionnaire),
-                    new
-                    {
-                        type = "actions",
-                        elements = new[]
-                        {
-                            new
-                            {
-                                type = "button",
-                                value = questionnaire.QuestionId,
-                                text = new
-                                {
-                                    type = "plain_text",
-                                    text = "Vastaa"
-                                }
-                            }
-                        }
-                    }
-                }
-            };
-
-            await ExecuteSlackCall(messagePayload, "https://slack.com/api/chat.postMessage");
-        }
-
-        private dynamic Section(Questionnaire questionnaire)
-        {
-            return new
-            {
-                type = "section",
-                block_id = questionnaire.QuestionId,
-                text = new
-                {
-                    type = "mrkdwn",
-                    text = questionnaire.Question
-                }
-            };
-        }
-
-        // public async Task UpdateViewWithAnswers(QuestionnaireResult questionnaireResult, string viewId, string hash)
-        // {
-        //     _logger.LogInformation("Updating the get answers view.");
-
-        //     await ExecuteSlackCall(viewPayload, "https://slack.com/api/views.update", "opening answers for questionnaire view").ConfigureAwait(false);
-        // }
 
         public async Task PostMessage(dynamic payload)
         {
@@ -95,11 +29,6 @@ namespace SlackLib
         public async Task OpenModelView(dynamic payload)
         {
             await ExecuteSlackCall(payload, "https://slack.com/api/views.open").ConfigureAwait(false);
-        }
-
-        public async Task UpdateModelView(dynamic payload)
-        {
-            await ExecuteSlackCall(payload, "https://slack.com/api/views.update").ConfigureAwait(false);
         }
 
         private async Task ExecuteSlackCall(dynamic payload, string address)
@@ -118,10 +47,10 @@ namespace SlackLib
                     var content = await response.Content.ReadAsStringAsync();
 
                     _logger.LogTrace("Request successful, checking content. Content: {content}", content);
-                    var parsed = JsonConvert.DeserializeObject<dynamic>(content);
+                    var parsed = JsonConvert.DeserializeObject<SlackResponse>(content);
                     if (parsed is null || !parsed.Ok)
                     {
-                        _logger.LogTrace("Request successful but SlackAPI error. Error message: {error_message}", (string)parsed.Error);
+                        _logger.LogTrace("Request successful but SlackAPI error. Error message: {error_message}", parsed.Error);
                         throw new SlackLibException($"Error message: {parsed.Error}");
                     }
                 }

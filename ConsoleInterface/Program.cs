@@ -68,10 +68,10 @@ namespace ConsoleInterface
                 })
                 .AddSingleton(tableStorageSettings)
                 .AddSingleton(slackClientSettings)
-                .AddTransient<SlackClient>()
-                .AddSingleton<IStorage, Storage>()
+                .AddTransient<ISlackClient, SlackClient>()
+                .AddTransient<IStorage, Storage>()
+                .AddTransient<AskBotControl>()
                 .AddTransient<CommandHandler>()
-                .AddSingleton<AskBotControl>()
                 .BuildServiceProvider();
         }
     }

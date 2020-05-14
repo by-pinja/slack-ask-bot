@@ -1,34 +1,23 @@
-using System;
 using System.Linq;
-using System.Threading.Tasks;
-using AskBotCore;
-using CloudLib;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using SlackLib;
 using SlackLib.Messages;
 
 namespace AzureFunctions.Payloads
 {
-    public class BlockActions : PayloadBase, IPayload
+    public class BlockActions
     {
-        public BlockActions(SlackClient slackClient, AskBotControl control, IStorage storage, ILogger<PayloadBase> logger) : base(slackClient, control, storage, logger)
-        {
-        }
-
         [JsonProperty("trigger_id")]
-        private string TriggerId { get; set; }
+        public string TriggerId { get; set; }
 
-        private WithText Message { get; set; }
+        public WithText Message { get; set; }
 
-        private Channel Channel { get; set; }
+        public Channel Channel { get; set; }
 
-        private User User { get; set; }
+        public User User { get; set; }
 
-        private Action[] Actions { get; set; }
+        public Action[] Actions { get; set; }
 
-        private dynamic GetOpenQuestionnaireViewPayload(Questionnaire questionnaire)
+        public dynamic GetOpenQuestionnaireViewPayload(Questionnaire questionnaire)
         {
             return new
             {
@@ -90,32 +79,6 @@ namespace AzureFunctions.Payloads
                     }
                 }
             };
-        }
-
-        public async Task<IActionResult> Handle()
-        {
-            _logger.LogInformation("Model open request received from {channel} by {answerer}", Channel.Name, User.Username);
-            var dtoQuestionnaire = (await _storage.GetQuestionnaires(Actions[0].Value)).FirstOrDefault();
-
-            if (dtoQuestionnaire is null)
-            {
-                _logger.LogCritical("Error retrieving the questionnaire for callback id: {callbackId}.", Actions[0].Value);
-                throw new Exception("Can not retrieve the correct questionnaire.");
-            }
-
-            var questionnaire = new Questionnaire()
-            {
-                QuestionId = dtoQuestionnaire.QuestionnaireId,
-                Question = dtoQuestionnaire.Question,
-                AnswerOptions = dtoQuestionnaire.AnswerOptions.Split(";")
-            };
-
-            var viewPayload = GetOpenQuestionnaireViewPayload(questionnaire);
-
-            _logger.LogInformation("Opening slack model to answer the questionnaire.");
-            await _slackClient.OpenModelView(viewPayload);
-
-            return new OkResult();
         }
     }
 
