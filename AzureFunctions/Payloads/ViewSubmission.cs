@@ -50,15 +50,10 @@ namespace AzureFunctions.Payloads
                         type = "plain_text",
                         text = questionnaireResult.Question,
                     },
-                    submit = new
-                    {
-                        type = "plain_text",
-                        text = "Submit",
-                    },
                     close = new
                     {
                         type = "plain_text",
-                        text = "Cancel",
+                        text = "Close",
                     },
                     blocks = blockSection.Concat(answers)
                 }

@@ -74,20 +74,23 @@ namespace AzureFunctions
             _logger.LogInformation("Questionnaire open request received from {channel} by {answerer}", blockAction.Channel.Name, blockAction.User.Username);
             var dtoQuestionnaire = await _storage.GetQuestionnaire(blockAction.Actions[0].Value);
 
+            dynamic viewPayload;
             if (dtoQuestionnaire is null)
             {
                 _logger.LogCritical("Error retrieving the questionnaire for callback id: {callbackId}.", blockAction.Actions[0].Value);
-                throw new Exception("Can not retrieve the correct questionnaire.");
+                viewPayload = blockAction.GetRemovedQuestionnaireViewPayload();
             }
-
-            var questionnaire = new Questionnaire()
+            else
             {
-                QuestionId = dtoQuestionnaire.QuestionnaireId,
-                Question = dtoQuestionnaire.Question,
-                AnswerOptions = dtoQuestionnaire.AnswerOptions.Split(";")
-            };
+                var questionnaire = new Questionnaire()
+                {
+                    QuestionId = dtoQuestionnaire.QuestionnaireId,
+                    Question = dtoQuestionnaire.Question,
+                    AnswerOptions = dtoQuestionnaire.AnswerOptions.Split(";")
+                };
 
-            var viewPayload = blockAction.GetOpenQuestionnaireViewPayload(questionnaire);
+                viewPayload = blockAction.GetOpenQuestionnaireViewPayload(questionnaire);
+            }
 
             _logger.LogInformation("Opening slack model to answer the questionnaire.");
             await _slackClient.OpenModelView(viewPayload);
@@ -110,9 +113,22 @@ namespace AzureFunctions
                     break;
                 case "get_answers":
                     var questionnaires = await _storage.GetQuestionnaires().ConfigureAwait(false);
-                    payload = shortcut.GetOpenListOfQuestionnairesPayload(questionnaires);
+                    if (questionnaires is null || questionnaires.Count() == 0)
+                    {
+                        payload = shortcut.GetNoQuestionnairesAvailablePayload();
+                    }
+                    else
+                    {
+                        payload = shortcut.GetOpenListOfQuestionnairesPayload(questionnaires);
+                    }
 
                     _logger.LogInformation("Opening slack model to list the questionnaires available.");
+                    await _slackClient.OpenModelView(payload);
+                    break;
+                case "delete_questionnaires":
+                    _logger.LogInformation("Deleting all questionnaires.");
+                    await _control.DeleteAll();
+                    payload = shortcut.GetDeleteQuestionnairesPayload();
                     await _slackClient.OpenModelView(payload);
                     break;
                 default:

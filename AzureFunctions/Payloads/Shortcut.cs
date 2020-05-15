@@ -78,6 +78,78 @@ namespace AzureFunctions.Payloads
             };
         }
 
+        public dynamic GetNoQuestionnairesAvailablePayload()
+        {
+            return new
+            {
+                trigger_id = TriggerId,
+                view = new
+                {
+                    type = "modal",
+                    callback_id = "no_available_questionnaires",
+                    title = new
+                    {
+                        type = "plain_text",
+                        text = $"Error",
+                    },
+                    close = new
+                    {
+                        type = "plain_text",
+                        text = "Close",
+                    },
+                    blocks = new[]
+                    {
+                        new
+                        {
+                            type = "section",
+                            text = new
+                            {
+                                type = "plain_text",
+                                text = ":panic: There are no available questionnaires.",
+                                emoji = true
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        public dynamic GetDeleteQuestionnairesPayload()
+        {
+            return new
+            {
+                trigger_id = TriggerId,
+                view = new
+                {
+                    type = "modal",
+                    callback_id = "delete_questionnaires",
+                    title = new
+                    {
+                        type = "plain_text",
+                        text = $"Delete questionnaires",
+                    },
+                    close = new
+                    {
+                        type = "plain_text",
+                        text = "Close",
+                    },
+                    blocks = new[]
+                    {
+                        new
+                        {
+                            type = "section",
+                            text = new
+                            {
+                                type = "plain_text",
+                                text = ":+1: All questionnaires have been deleted.",
+                                emoji = true
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
         public dynamic GetOpenCreateQuestionnairesPayload()
         {
             return new

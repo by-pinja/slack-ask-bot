@@ -80,6 +80,42 @@ namespace AzureFunctions.Payloads
                 }
             };
         }
+
+        public dynamic GetRemovedQuestionnaireViewPayload()
+        {
+            return new
+            {
+                trigger_id = TriggerId,
+                view = new
+                {
+                    type = "modal",
+                    callback_id = "questionnaire_not_found",
+                    title = new
+                    {
+                        type = "plain_text",
+                        text = "Error",
+                    },
+                    close = new
+                    {
+                        type = "plain_text",
+                        text = "Close",
+                    },
+                    blocks = new[]
+                    {
+                        new
+                        {
+                            type = "section",
+                            text = new
+                            {
+                                type = "plain_text",
+                                text = ":panic: The questionnaire you are attempting to answer has been deleted.",
+                                emoji = true
+                            }
+                        }
+                    }
+                }
+            };
+        }
     }
 
     public class Action

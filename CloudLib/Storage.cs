@@ -41,6 +41,12 @@ namespace CloudLib
             return await _questionnaires.ExecuteQueryAsync(query);
         }
 
+        public async Task<IEnumerable<AnswerEntity>> GetAnswers()
+        {
+            var query = new TableQuery<AnswerEntity>();
+            return await _answers.ExecuteQueryAsync(query);
+        }
+
         public async Task<QuestionnaireEntity> GetQuestionnaire(string questionnaireId)
         {
             var query = new TableQuery<QuestionnaireEntity>().Where(TableQuery.GenerateFilterCondition(nameof(QuestionnaireEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
@@ -78,7 +84,7 @@ namespace CloudLib
         public async Task DeleteAll()
         {
             _logger.LogTrace("Clearing table {table}", _answers.Name);
-            var answers = await GetAnswers(null);
+            var answers = await GetAnswers();
             _logger.LogDebug("Found {count} items to delete.", answers.Count());
             var answerBatchGroups = GroupedDeletes(answers);
 
