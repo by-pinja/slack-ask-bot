@@ -7,7 +7,7 @@ namespace CloudLib
     public interface IStorage
     {
         Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires();
-        Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires(string questionnaireId);
+        Task<QuestionnaireEntity> GetQuestionnaire(string questionnaireId);
         Task<IEnumerable<AnswerEntity>> GetAnswers(string questionnaireId);
         Task InsertOrMerge(QuestionnaireEntity entity);
         Task InsertOrMerge(AnswerEntity entity);

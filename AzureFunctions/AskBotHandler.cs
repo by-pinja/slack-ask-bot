@@ -72,7 +72,7 @@ namespace AzureFunctions
         public async Task<IActionResult> HandleBlockAction(BlockActions blockAction)
         {
             _logger.LogInformation("Questionnaire open request received from {channel} by {answerer}", blockAction.Channel.Name, blockAction.User.Username);
-            var dtoQuestionnaire = (await _storage.GetQuestionnaires(blockAction.Actions[0].Value)).FirstOrDefault();
+            var dtoQuestionnaire = await _storage.GetQuestionnaire(blockAction.Actions[0].Value);
 
             if (dtoQuestionnaire is null)
             {
@@ -177,7 +177,7 @@ namespace AzureFunctions
                 case "get_answers":
                     var selectedQuestionnaireId = viewSubmission.View.State.values.First().Value.First().Value.SelectedOption.Value;
                     _logger.LogInformation("Get answers for questionnaire with ID: {questionnaire}.", selectedQuestionnaireId);
-                    var questionnaireResult = await _control.GetAnswers(selectedQuestionnaireId).ConfigureAwait(false);
+                    var questionnaireResult = await _control.GetQuestionnaireResult(selectedQuestionnaireId).ConfigureAwait(false);
                     var payload = viewSubmission.GetUpdateModelWithAnswersPayload(questionnaireResult);
                     return new JsonResult(payload);
                 default:

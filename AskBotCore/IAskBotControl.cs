@@ -7,7 +7,7 @@ namespace AskBotCore
     public interface IAskBotControl
     {
         Task CreateQuestionnaire(Questionnaire questionnaire, string channel, DateTime time);
-        Task<QuestionnaireResult> GetAnswers(string questionnaireId);
+        Task<QuestionnaireResult> GetQuestionnaireResult(string questionnaireId);
         Task DeleteAll();
     }
 }

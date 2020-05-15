@@ -53,32 +53,34 @@ namespace AskBotCore
             }
         }
 
-        public async Task<QuestionnaireResult> GetAnswers(string questionnaireId)
+        public async Task<QuestionnaireResult> GetQuestionnaireResult(string questionnaireId)
         {
-            _logger.LogTrace("Getting {questionnaireId} answers", string.IsNullOrWhiteSpace(questionnaireId) ? "all" : questionnaireId);
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException(nameof(questionnaireId));
+
+            var questionnaire = await _storage.GetQuestionnaire(questionnaireId);
+            if (questionnaire is null)
+            {
+                _logger.LogError("Could not questionnaire with id {questionnaireId}.", questionnaireId);
+                throw new Exception("Could not find questionaire.");
+            }
+            _logger.LogTrace("Getting {questionnaireId} answers.", questionnaire.Question);
 
             var answers = await _storage.GetAnswers(questionnaireId);
-            if (answers is null || answers.Count() == 0)
-            {
-                _logger.LogError("Could not find any answers.");
-            }
             _logger.LogDebug("Found {count} answers", answers.Count());
+            
             foreach (var answer in answers)
             {
                 _logger.LogInformation("- {questionnaireId} {answer} {time} {answerer}", answer.QuestionnaireId, answer.Answer, answer.Timestamp, answer.Answerer);
             }
 
             var answersDictionary = new Dictionary<string, int>();
+            foreach (var availableAnswer in questionnaire.AnswerOptions.Split(';'))
+            {
+                answersDictionary[availableAnswer] = 0;
+            }
             foreach (var answer in answers)
             {
-                if (answersDictionary.ContainsKey(answer.Answer))
-                {
-                    answersDictionary[answer.Answer]++;
-                }
-                else
-                {
-                    answersDictionary[answer.Answer] = 1;
-                }
+                answersDictionary[answer.Answer]++;
             }
 
             _logger.LogInformation("Answers retrieved.");

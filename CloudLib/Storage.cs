@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,24 +37,29 @@ namespace CloudLib
 
         public async Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires()
         {
-            TableQuery<QuestionnaireEntity> query = new TableQuery<QuestionnaireEntity>();
+            var query = new TableQuery<QuestionnaireEntity>();
             return await _questionnaires.ExecuteQueryAsync(query);
         }
 
-        public async Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires(string questionnaireId)
+        public async Task<QuestionnaireEntity> GetQuestionnaire(string questionnaireId)
         {
-            TableQuery<QuestionnaireEntity> query = new TableQuery<QuestionnaireEntity>()
-                .Where(TableQuery.GenerateFilterCondition(nameof(QuestionnaireEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
-            return await _questionnaires.ExecuteQueryAsync(query);
+            var query = new TableQuery<QuestionnaireEntity>().Where(TableQuery.GenerateFilterCondition(nameof(QuestionnaireEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
+            var questionnaires = await _questionnaires.ExecuteQueryAsync(query);
+            if (questionnaires.Count != 1)
+            {
+                throw new Exception($"{questionnaires.Count} questionnaires found in query for questionnaire with id {questionnaireId} ");
+            }
+
+            return questionnaires.First();
         }
 
         public async Task<IEnumerable<AnswerEntity>> GetAnswers(string questionnaireId)
         {
-            TableQuery<AnswerEntity> query = new TableQuery<AnswerEntity>();
-            if (!string.IsNullOrWhiteSpace(questionnaireId))
+            if (string.IsNullOrWhiteSpace(questionnaireId))
             {
-                query.Where(TableQuery.GenerateFilterCondition(nameof(AnswerEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
+                throw new Exception("Empty questionnaire Id.");
             }
+            var query = new TableQuery<AnswerEntity>().Where(TableQuery.GenerateFilterCondition(nameof(AnswerEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
             return await _answers.ExecuteQueryAsync(query);
         }
 

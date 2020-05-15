@@ -65,7 +65,7 @@ namespace ConsoleInterface
         {
             _logger.LogTrace("Get questionnaire answers activated from console interface.");
 
-            var result = await _control.GetAnswers(option.QuestionnaireId).ConfigureAwait(false);
+            var result = await _control.GetQuestionnaireResult(option.QuestionnaireId).ConfigureAwait(false);
 
             if (!string.IsNullOrWhiteSpace(option.OutputCsvFile))
             {
