@@ -59,6 +59,114 @@ namespace AzureFunctions.Payloads
                 }
             };
         }
+
+        public dynamic GetDeletedQuestionnairePayload(string questionnaireTitle)
+        {
+            return new
+            {
+                response_action = "update",
+                view = new
+                {
+                    type = "modal",
+                    callback_id = "deleted_questionnaire",
+                    title = new
+                    {
+                        type = "plain_text",
+                        text = "Questionnaire deleted",
+                    },
+                    close = new
+                    {
+                        type = "plain_text",
+                        text = "Close",
+                    },
+                    blocks = new[]
+                    {
+                        new
+                        {
+                            type = "section",
+                            text = new
+                            {
+                                type = "plain_text",
+                                text = $":+1: The questionnaire \"{questionnaireTitle}\" and the answers have been deleted.",
+                                emoji = true
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        public dynamic GetDeletedQuestionnairesPayload()
+        {
+            return new
+            {
+                response_action = "update",
+                view = new
+                {
+                    type = "modal",
+                    callback_id = "delete_questionnaires",
+                    title = new
+                    {
+                        type = "plain_text",
+                        text = $"Deleted all data",
+                    },
+                    close = new
+                    {
+                        type = "plain_text",
+                        text = "Close",
+                    },
+                    blocks = new[]
+                    {
+                        new
+                        {
+                            type = "section",
+                            text = new
+                            {
+                                type = "plain_text",
+                                text = ":+1: All questionnaires and answers have been deleted.",
+                                emoji = true
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        public dynamic GetConfirmAnsweredPayload()
+        {
+            return new
+            {
+                response_action = "update",
+                view = new
+                {
+                    type = "modal",
+                    callback_id = "confirm_answered",
+                    title = new
+                    {
+                        type = "plain_text",
+                        text = "Answer Submitted",
+                    },
+                    close = new
+                    {
+                        type = "plain_text",
+                        text = "Close",
+                    },
+                    blocks = new[]
+                    {
+                        new
+                        {
+                            type = "section",
+                            text = new
+                            {
+                                type = "plain_text",
+                                text = ":partyparrot: Your answer has been successfully submitted.",
+                                emoji = true
+                            }
+                        }
+                    }
+                }
+            };
+        }
     }
 
     public class View

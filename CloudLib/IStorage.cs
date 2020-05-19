@@ -12,5 +12,6 @@ namespace CloudLib
         Task InsertOrMerge(QuestionnaireEntity entity);
         Task InsertOrMerge(AnswerEntity entity);
         Task DeleteAll();
+        Task DeleteQuestionnaireAndAnswers(string questionnaireId);
     }
 }

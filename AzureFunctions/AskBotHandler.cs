@@ -77,7 +77,7 @@ namespace AzureFunctions
             dynamic viewPayload;
             if (dtoQuestionnaire is null)
             {
-                _logger.LogCritical("Error retrieving the questionnaire for callback id: {callbackId}.", blockAction.Actions[0].Value);
+                _logger.LogDebug("Error retrieving the questionnaire for callback id: {callbackId}.", blockAction.Actions[0].Value);
                 viewPayload = blockAction.GetRemovedQuestionnaireViewPayload();
             }
             else
@@ -112,6 +112,8 @@ namespace AzureFunctions
                     await _slackClient.OpenModelView(payload);
                     break;
                 case "get_answers":
+                case "delete_a_questionnaire":
+                    _logger.LogInformation("Fetching questionnaires.");
                     var questionnaires = await _storage.GetQuestionnaires().ConfigureAwait(false);
                     if (questionnaires is null || questionnaires.Count() == 0)
                     {
@@ -119,16 +121,15 @@ namespace AzureFunctions
                     }
                     else
                     {
-                        payload = shortcut.GetOpenListOfQuestionnairesPayload(questionnaires);
+                        payload = shortcut.GetOpenListOfQuestionnairesPayload(questionnaires, shortcut.CallbackId);
                     }
 
                     _logger.LogInformation("Opening slack model to list the questionnaires available.");
                     await _slackClient.OpenModelView(payload);
                     break;
                 case "delete_questionnaires":
-                    _logger.LogInformation("Deleting all questionnaires.");
-                    await _control.DeleteAll();
-                    payload = shortcut.GetDeleteQuestionnairesPayload();
+                    _logger.LogInformation("Send cornfirmation view.");
+                    payload = shortcut.GetConfirmDeleteAllPayload();
                     await _slackClient.OpenModelView(payload);
                     break;
                 default:
@@ -189,13 +190,26 @@ namespace AzureFunctions
                         QuestionnaireId = viewSubmission.View.PrivateMetadata
                     };
                     await _storage.InsertOrMerge(answerEntity);
-                    break;
+
+                    var answeredPayload = viewSubmission.GetConfirmAnsweredPayload();
+                    return new JsonResult(answeredPayload);
                 case "get_answers":
                     var selectedQuestionnaireId = viewSubmission.View.State.values.First().Value.First().Value.SelectedOption.Value;
-                    _logger.LogInformation("Get answers for questionnaire with ID: {questionnaire}.", selectedQuestionnaireId);
+                    _logger.LogInformation("Getting answers for questionnaire with ID: {questionnaire}.", selectedQuestionnaireId);
                     var questionnaireResult = await _control.GetQuestionnaireResult(selectedQuestionnaireId).ConfigureAwait(false);
-                    var payload = viewSubmission.GetUpdateModelWithAnswersPayload(questionnaireResult);
-                    return new JsonResult(payload);
+                    var withAnswersPayload = viewSubmission.GetUpdateModelWithAnswersPayload(questionnaireResult);
+                    return new JsonResult(withAnswersPayload);
+                case "delete_a_questionnaire":
+                    var questionnaireId = viewSubmission.View.State.values.First().Value.First().Value.SelectedOption.Value;
+                    _logger.LogInformation("Deleting questionnaire with ID: {questionnaire}.", questionnaireId);
+                    var questionnaireTitle = await _control.DeleteQuestionnaireAndAnswers(questionnaireId).ConfigureAwait(false);
+                    var deletedQuestionnairePayload = viewSubmission.GetDeletedQuestionnairePayload(questionnaireTitle);
+                    return new JsonResult(deletedQuestionnairePayload);
+                case "delete_questionnaires":
+                    _logger.LogInformation("Deleting all questionnaires and answers.");
+                    await _control.DeleteAll();
+                    var deletedQuestionnairesPayload = viewSubmission.GetDeletedQuestionnairesPayload();
+                    return new JsonResult(deletedQuestionnairesPayload);
                 default:
                     throw new NotImplementedException($"Unknown view callback id: {viewSubmission.View.CallbackId}.");
             }

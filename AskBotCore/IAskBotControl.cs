@@ -9,5 +9,6 @@ namespace AskBotCore
         Task CreateQuestionnaire(Questionnaire questionnaire, string channel, DateTime time);
         Task<QuestionnaireResult> GetQuestionnaireResult(string questionnaireId);
         Task DeleteAll();
+        Task<string> DeleteQuestionnaireAndAnswers(string questionnaireId);
     }
 }

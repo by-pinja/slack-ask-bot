@@ -108,7 +108,7 @@ namespace AzureFunctions.Payloads
                             text = new
                             {
                                 type = "plain_text",
-                                text = ":panic: The questionnaire you are attempting to answer has been deleted.",
+                                text = ":panic: The questionnaire you are attempting to answer could not be found.",
                                 emoji = true
                             }
                         }

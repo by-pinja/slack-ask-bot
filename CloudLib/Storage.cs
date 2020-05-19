@@ -53,7 +53,8 @@ namespace CloudLib
             var questionnaires = await _questionnaires.ExecuteQueryAsync(query);
             if (questionnaires.Count != 1)
             {
-                throw new Exception($"{questionnaires.Count} questionnaires found in query for questionnaire with id {questionnaireId} ");
+                _logger.LogDebug("{count} questionnaires found in query for questionnaire with id {questionnaireId}", questionnaires.Count, questionnaireId);
+                return null;
             }
 
             return questionnaires.First();
@@ -61,10 +62,7 @@ namespace CloudLib
 
         public async Task<IEnumerable<AnswerEntity>> GetAnswers(string questionnaireId)
         {
-            if (string.IsNullOrWhiteSpace(questionnaireId))
-            {
-                throw new Exception("Empty questionnaire Id.");
-            }
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException(nameof(questionnaireId));
             var query = new TableQuery<AnswerEntity>().Where(TableQuery.GenerateFilterCondition(nameof(AnswerEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
             return await _answers.ExecuteQueryAsync(query);
         }
@@ -104,6 +102,33 @@ namespace CloudLib
             {
                 _questionnaires.ExecuteBatch(batch);
             }
+        }
+
+        public async Task DeleteQuestionnaireAndAnswers(string questionnaireId)
+        {
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException(nameof(questionnaireId));
+
+            var questionnaire = await GetQuestionnaire(questionnaireId);
+            _logger.LogDebug("Found questionnaire to delete.");
+
+            var questionnaireBatch = new TableBatchOperation();
+            questionnaireBatch.Add(TableOperation.Delete(questionnaire));
+            _questionnaires.ExecuteBatch(questionnaireBatch);
+            _logger.LogDebug("Deleted questionnaire.");
+
+            var answers = await GetAnswers(questionnaireId);
+            if (answers.Count() == 0)
+            {
+                return;
+            }
+            _logger.LogDebug("Found {count} answer item(s) to delete.", answers.Count());
+            var answerBatch = new TableBatchOperation();
+            foreach (var answer in answers)
+            {
+                answerBatch.Add(TableOperation.Delete(answer));
+            }
+            _answers.ExecuteBatch(answerBatch);
+            _logger.LogDebug("Deleted answer(s).");
         }
 
         private IEnumerable<TableBatchOperation> GroupedDeletes(IEnumerable<TableEntity> entities)

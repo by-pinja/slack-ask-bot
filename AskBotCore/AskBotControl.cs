@@ -60,14 +60,14 @@ namespace AskBotCore
             var questionnaire = await _storage.GetQuestionnaire(questionnaireId);
             if (questionnaire is null)
             {
-                _logger.LogError("Could not questionnaire with id {questionnaireId}.", questionnaireId);
-                throw new Exception("Could not find questionaire.");
+                _logger.LogError("Could not find questionnaire with id {questionnaireId}.", questionnaireId);
+                throw new Exception("Could not find questionnaire.");
             }
             _logger.LogTrace("Getting {questionnaireId} answers.", questionnaire.Question);
 
             var answers = await _storage.GetAnswers(questionnaireId);
-            _logger.LogDebug("Found {count} answers", answers.Count());
-            
+            _logger.LogDebug("Found {count} answer(s)", answers.Count());
+
             foreach (var answer in answers)
             {
                 _logger.LogInformation("- {questionnaireId} {answer} {time} {answerer}", answer.QuestionnaireId, answer.Answer, answer.Timestamp, answer.Answerer);
@@ -86,7 +86,7 @@ namespace AskBotCore
             _logger.LogInformation("Answers retrieved.");
             var questionnaireResult = new QuestionnaireResult
             {
-                Question = answers.First().Question,
+                Question = questionnaire.Question,
                 Answers = answersDictionary
             };
 
@@ -98,6 +98,23 @@ namespace AskBotCore
             _logger.LogTrace("Deleting all questionnaires and answers.");
             await _storage.DeleteAll().ConfigureAwait(false);
             _logger.LogInformation("All items deleted.");
+        }
+
+        public async Task<string> DeleteQuestionnaireAndAnswers(string questionnaireId)
+        {
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException(nameof(questionnaireId));
+
+            var questionnaire = await _storage.GetQuestionnaire(questionnaireId);
+            if (questionnaire is null)
+            {
+                _logger.LogError("Could not find questionnaire with id {questionnaireId}.", questionnaireId);
+                throw new Exception("Could not find questionnaire.");
+            }
+            
+            _logger.LogTrace("Deleting questionnaire and answers.");
+            await _storage.DeleteQuestionnaireAndAnswers(questionnaireId);
+
+            return questionnaire.Question;
         }
 
         private dynamic GetQuestionnairePostPayload(Questionnaire questionnaire, string channel)

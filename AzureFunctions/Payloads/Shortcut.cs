@@ -15,7 +15,7 @@ namespace AzureFunctions.Payloads
         [JsonProperty("trigger_id")]
         public string TriggerId { get; set; }
 
-        public dynamic GetOpenListOfQuestionnairesPayload(IEnumerable<QuestionnaireEntity> questionnaires)
+        public dynamic GetOpenListOfQuestionnairesPayload(IEnumerable<QuestionnaireEntity> questionnaires, string callbackId)
         {
             return new
             {
@@ -23,7 +23,7 @@ namespace AzureFunctions.Payloads
                 view = new
                 {
                     type = "modal",
-                    callback_id = "get_answers",
+                    callback_id = callbackId,
                     title = new
                     {
                         type = "plain_text",
@@ -114,7 +114,7 @@ namespace AzureFunctions.Payloads
             };
         }
 
-        public dynamic GetDeleteQuestionnairesPayload()
+        public dynamic GetConfirmDeleteAllPayload()
         {
             return new
             {
@@ -126,7 +126,12 @@ namespace AzureFunctions.Payloads
                     title = new
                     {
                         type = "plain_text",
-                        text = $"Delete questionnaires",
+                        text = $"Delete all data",
+                    },
+                    submit = new
+                    {
+                        type = "plain_text",
+                        text = "Yes",
                     },
                     close = new
                     {
@@ -141,7 +146,7 @@ namespace AzureFunctions.Payloads
                             text = new
                             {
                                 type = "plain_text",
-                                text = ":+1: All questionnaires have been deleted.",
+                                text = ":warning: Are you sure you would like to delete all questionnaires and answers?",
                                 emoji = true
                             }
                         }
