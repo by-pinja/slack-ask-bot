@@ -1,27 +1,15 @@
 using System.Linq;
-using Newtonsoft.Json;
 using SlackLib.Messages;
 
 namespace AzureFunctions.Payloads
 {
-    public class BlockActions
+    public static class BlockActionExtensions
     {
-        [JsonProperty("trigger_id")]
-        public string TriggerId { get; set; }
-
-        public WithText Message { get; set; }
-
-        public Channel Channel { get; set; }
-
-        public User User { get; set; }
-
-        public Action[] Actions { get; set; }
-
-        public dynamic GetOpenQuestionnaireViewPayload(Questionnaire questionnaire)
+        public static dynamic GetOpenQuestionnaireViewPayload(this BlockAction action, Questionnaire questionnaire)
         {
             return new
             {
-                trigger_id = TriggerId,
+                trigger_id = action.TriggerId,
                 view = new
                 {
                     type = "modal",
@@ -81,11 +69,11 @@ namespace AzureFunctions.Payloads
             };
         }
 
-        public dynamic GetRemovedQuestionnaireViewPayload()
+        public static dynamic GetRemovedQuestionnaireViewPayload(this BlockAction action)
         {
             return new
             {
-                trigger_id = TriggerId,
+                trigger_id = action.TriggerId,
                 view = new
                 {
                     type = "modal",
@@ -116,15 +104,5 @@ namespace AzureFunctions.Payloads
                 }
             };
         }
-    }
-
-    public class Action
-    {
-        [JsonProperty("action_id")]
-        public string ActionId { get; set; }
-
-        [JsonProperty("block_id")]
-        public string BlockId { get; set; }
-        public string Value { get; set; }
     }
 }

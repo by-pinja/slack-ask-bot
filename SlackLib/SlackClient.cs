@@ -50,19 +50,19 @@ namespace SlackLib
                     var parsed = JsonConvert.DeserializeObject<SlackResponse>(content);
                     if (parsed is null || !parsed.Ok)
                     {
-                        _logger.LogTrace("Request successful but SlackAPI error. Error message: {error_message}", parsed.Error);
+                        _logger.LogCritical("Request successful but SlackAPI error. Error message: {error_message}", parsed.Error);
                         throw new SlackLibException($"Error message: {parsed.Error}");
                     }
                 }
             }
             catch (JsonSerializationException)
             {
-                _logger.LogTrace("Failed to serialise the payload or deserialize the slack response.");
+                _logger.LogCritical("Failed to serialise the payload or deserialize the slack response.");
                 throw;
             }
             catch (HttpRequestException)
             {
-                _logger.LogTrace("Failed Http request to Slack API.");
+                _logger.LogCritical("Failed Http request to Slack API.");
                 throw;
             }
         }

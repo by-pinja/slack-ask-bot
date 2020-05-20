@@ -56,7 +56,7 @@ namespace AzureFunctions
             switch ((string)json.type)
             {
                 case "block_actions":
-                    var blockAction = JsonConvert.DeserializeObject<BlockActions>(payloadString);
+                    var blockAction = JsonConvert.DeserializeObject<BlockAction>(payloadString);
                     return await HandleBlockAction(blockAction);
                 case "shortcut":
                     var shortcut = JsonConvert.DeserializeObject<Shortcut>(payloadString);
@@ -69,7 +69,7 @@ namespace AzureFunctions
             }
         }
 
-        public async Task<IActionResult> HandleBlockAction(BlockActions blockAction)
+        private async Task<IActionResult> HandleBlockAction(BlockAction blockAction)
         {
             _logger.LogInformation("Questionnaire open request received from {channel} by {answerer}", blockAction.Channel.Name, blockAction.User.Username);
             var dtoQuestionnaire = await _storage.GetQuestionnaire(blockAction.Actions[0].Value);
@@ -98,7 +98,7 @@ namespace AzureFunctions
             return new OkResult();
         }
 
-        public async Task<IActionResult> HandleShortcut(Shortcut shortcut)
+        private async Task<IActionResult> HandleShortcut(Shortcut shortcut)
         {
             _logger.LogInformation("Shortcut request received from {user} with callback ID: {callback}", shortcut.User.Username, shortcut.CallbackId);
 
@@ -109,7 +109,6 @@ namespace AzureFunctions
                     payload = shortcut.GetOpenCreateQuestionnairesPayload();
 
                     _logger.LogInformation("Opening slack model to create questionnaire.");
-                    await _slackClient.OpenModelView(payload);
                     break;
                 case "get_answers":
                 case "delete_a_questionnaire":
@@ -125,21 +124,20 @@ namespace AzureFunctions
                     }
 
                     _logger.LogInformation("Opening slack model to list the questionnaires available.");
-                    await _slackClient.OpenModelView(payload);
                     break;
                 case "delete_questionnaires":
                     _logger.LogInformation("Send cornfirmation view.");
                     payload = shortcut.GetConfirmDeleteAllPayload();
-                    await _slackClient.OpenModelView(payload);
                     break;
                 default:
                     throw new NotImplementedException($"Unknown shortcut callback id: {shortcut.CallbackId}.");
             }
+            await _slackClient.OpenModelView(payload);
 
             return new OkResult();
         }
 
-        public async Task<IActionResult> HandleViewSubmission(ViewSubmission viewSubmission)
+        private async Task<IActionResult> HandleViewSubmission(ViewSubmission viewSubmission)
         {
             _logger.LogInformation("View submission received.");
 
@@ -151,12 +149,12 @@ namespace AzureFunctions
                     var channel = viewSubmission.View.State.values["ChannelBlock"].First().Value.Value;
                     if (string.IsNullOrWhiteSpace(channel))
                     {
-                        throw new Exception("channel is null");
+                        throw new ArgumentException("View submission channel is empty");
                     }
                     var question = viewSubmission.View.State.values["TitleBlock"]["title"].Value;
                     if (string.IsNullOrWhiteSpace(question))
                     {
-                        throw new Exception("question is null");
+                        throw new ArgumentException("View submission question is empty");
                     }
 
                     var answerOptionDictionaries = viewSubmission.View.State.values.Where(d => d.Key.Contains("Answer")).Select(kvp => kvp.Value);
@@ -164,7 +162,7 @@ namespace AzureFunctions
 
                     if (answerOptions.Count() == 0)
                     {
-                        throw new Exception("answer option is empty.");
+                        throw new ArgumentException("View submission answer options are empty.");
                     }
 
                     var questionnaire = new Questionnaire

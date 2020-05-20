@@ -38,19 +38,12 @@ namespace AskBotCore
                 Question = questionnaire.Question,
                 AnswerOptions = string.Join(";", questionnaire.AnswerOptions)
             };
-            try
-            {
-                await _storage.InsertOrMerge(questionnaireDto).ConfigureAwait(false);
-                _logger.LogTrace("Questionnaire stored.");
-                var payload = GetQuestionnairePostPayload(questionnaire, channel);
-                await _slackClient.PostMessage(payload).ConfigureAwait(false);
-                _logger.LogInformation("Questionnaire created.");
-            }
-            catch (SlackLibException exception)
-            {
-                _logger.LogDebug(exception, "SlackLibException encountered while trying to create questionnaire.");
-                _logger.LogCritical("Unable to send message to Slack. See error response for details.");
-            }
+
+            await _storage.InsertOrMerge(questionnaireDto).ConfigureAwait(false);
+            _logger.LogTrace("Questionnaire stored.");
+            var payload = GetQuestionnairePostPayload(questionnaire, channel);
+            await _slackClient.PostMessage(payload).ConfigureAwait(false);
+            _logger.LogInformation("Questionnaire created.");
         }
 
         public async Task<QuestionnaireResult> GetQuestionnaireResult(string questionnaireId)
@@ -110,7 +103,7 @@ namespace AskBotCore
                 _logger.LogError("Could not find questionnaire with id {questionnaireId}.", questionnaireId);
                 throw new Exception("Could not find questionnaire.");
             }
-            
+
             _logger.LogTrace("Deleting questionnaire and answers.");
             await _storage.DeleteQuestionnaireAndAnswers(questionnaireId);
 
