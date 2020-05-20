@@ -18,7 +18,7 @@ namespace AzureFunctions.Payloads
                     title = new
                     {
                         type = "plain_text",
-                        text = questionnaire.Question,
+                        text = "Submit answer",
                     },
                     submit = new
                     {

@@ -14,7 +14,7 @@ namespace AzureFunctions.Payloads
                             text = new
                             {
                                 type = "plain_text",
-                                text = ":wave: The votes are in.",
+                                text = $":wave: The votes are in. {questionnaireResult.Question}",
                                 emoji = true
                             }
                         }
@@ -43,7 +43,7 @@ namespace AzureFunctions.Payloads
                     title = new
                     {
                         type = "plain_text",
-                        text = questionnaireResult.Question,
+                        text = "Results",
                     },
                     close = new
                     {
