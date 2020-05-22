@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Microsoft.Extensions.Logging;
 
 namespace SlackLib
@@ -37,7 +37,7 @@ namespace SlackLib
 
             try
             {
-                string serializedPayload = JsonConvert.SerializeObject(payload);
+                string serializedPayload = JsonSerializer.Serialize(payload);
                 _logger.LogDebug("Serialised: {payload}.", serializedPayload);
                 using (var requestContent = new StringContent(serializedPayload, Encoding.UTF8, "application/json"))
                 {
@@ -47,15 +47,15 @@ namespace SlackLib
                     var content = await response.Content.ReadAsStringAsync();
 
                     _logger.LogTrace("Request successful, checking content. Content: {content}", content);
-                    var parsed = JsonConvert.DeserializeObject<SlackResponse>(content);
-                    if (parsed is null || !parsed.Ok)
+                    var parsed = JsonSerializer.Deserialize<SlackResponse>(content);
+                    if (parsed is null || !parsed.ok)
                     {
-                        _logger.LogCritical("Request successful but SlackAPI error. Error message: {error_message}", parsed.Error);
-                        throw new SlackLibException($"Error message: {parsed.Error}");
+                        _logger.LogCritical("Request successful but SlackAPI error. Error message: {error_message}", parsed.error);
+                        throw new SlackLibException($"Error message: {parsed.error}");
                     }
                 }
             }
-            catch (JsonSerializationException)
+            catch (JsonException)
             {
                 _logger.LogCritical("Failed to serialise the payload or deserialize the slack response.");
                 throw;

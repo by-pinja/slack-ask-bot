@@ -1,10 +1,10 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace AzureFunctions.Payloads
 {
     public class BlockAction
     {
-        [JsonProperty("trigger_id")]
+        [JsonPropertyName("trigger_id")]
         public string TriggerId { get; set; }
 
         public WithText Message { get; set; }
@@ -18,10 +18,10 @@ namespace AzureFunctions.Payloads
 
     public class Action
     {
-        [JsonProperty("action_id")]
+        [JsonPropertyName("action_id")]
         public string ActionId { get; set; }
 
-        [JsonProperty("block_id")]
+        [JsonPropertyName("block_id")]
         public string BlockId { get; set; }
         public string Value { get; set; }
     }

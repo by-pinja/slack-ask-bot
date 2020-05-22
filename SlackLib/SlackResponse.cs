@@ -2,8 +2,8 @@ namespace SlackLib
 {
     public class SlackResponse
     {
-        public bool Ok { get; set; }
+        public bool ok { get; set; }
 
-        public string Error { get; set; }
+        public string error { get; set; }
     }
 }

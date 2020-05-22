@@ -18,7 +18,7 @@ namespace AzureFunctions.Payloads
                     title = new
                     {
                         type = "plain_text",
-                        text = $"Select a questionnaire.",
+                        text = callbackId == "get_answers" ? "Get answers" : "Delete a questionnaire",
                     },
                     submit = new
                     {
@@ -272,6 +272,6 @@ namespace AzureFunctions.Payloads
                     }
                 }
             };
-        }        
+        }
     }
 }

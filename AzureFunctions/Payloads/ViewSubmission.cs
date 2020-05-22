@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace AzureFunctions.Payloads
 {
@@ -17,10 +17,10 @@ namespace AzureFunctions.Payloads
 
         public WithText Title { get; set; }
 
-        [JsonProperty("callback_id")]
+        [JsonPropertyName("callback_id")]
         public string CallbackId { get; set; }
 
-        [JsonProperty("private_metadata")]
+        [JsonPropertyName("private_metadata")]
         public string PrivateMetadata { get; set; }
     }
 
@@ -33,11 +33,11 @@ namespace AzureFunctions.Payloads
     {
         public string Value { get; set; }
 
-        [JsonProperty("selected_option")]
+        [JsonPropertyName("selected_option")]
         public SelectedOption SelectedOption { get; set; }
 
-        [JsonProperty("selected_channel")]
-        private string SelectedChannel { set { this.Value = value; } }
+        [JsonPropertyName("selected_channel")]
+        public string SelectedChannel { set { this.Value = value; } }
     }
 
     public class SelectedOption

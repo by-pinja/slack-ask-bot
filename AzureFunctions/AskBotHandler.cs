@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 using AskBotCore;
@@ -11,7 +12,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using SlackLib;
 using SlackLib.Messages;
 
@@ -51,21 +51,31 @@ namespace AzureFunctions
             }
 
             _logger.LogDebug("Deserializing payload: {payload}", payloadString);
-            var json = JsonConvert.DeserializeObject<dynamic>(payloadString);
+            var json = JsonSerializer.Deserialize<JsonElement>(payloadString);
 
-            switch ((string)json.type)
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+            };
+            switch (json.GetProperty("type").GetString())
             {
                 case "block_actions":
-                    var blockAction = JsonConvert.DeserializeObject<BlockAction>(payloadString);
+                    _logger.LogDebug($"BlockAction");
+                    var blockAction = JsonSerializer.Deserialize<BlockAction>(payloadString, options);
+                    _logger.LogDebug($"Success");
                     return await HandleBlockAction(blockAction);
                 case "shortcut":
-                    var shortcut = JsonConvert.DeserializeObject<Shortcut>(payloadString);
+                    _logger.LogDebug($"shortcut");
+                    var shortcut = JsonSerializer.Deserialize<Shortcut>(payloadString, options);
+                    _logger.LogDebug($"Success");
                     return await HandleShortcut(shortcut);
                 case "view_submission":
-                    var viewSubmission = JsonConvert.DeserializeObject<ViewSubmission>(payloadString);
+                    _logger.LogDebug($"ViewSubmission");
+                    var viewSubmission = JsonSerializer.Deserialize<ViewSubmission>(payloadString, options);
+                    _logger.LogDebug($"Success");
                     return await HandleViewSubmission(viewSubmission);
                 default:
-                    throw new NotImplementedException($"Unknown payload type {json.type}.");
+                    throw new NotImplementedException($"Unknown payload type {json.GetProperty("type").GetString()}.");
             }
         }
 
@@ -172,6 +182,7 @@ namespace AzureFunctions
                         AnswerOptions = answerOptions
                     };
 
+                    _logger.LogDebug("Questionnaire ready to be created.");
                     await _control.CreateQuestionnaire(questionnaire, channel, DateTime.UtcNow).ConfigureAwait(false);
                     break;
                 case "open_questionnaire":
