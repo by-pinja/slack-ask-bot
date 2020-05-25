@@ -45,7 +45,7 @@ namespace AzureFunctions
 
             builder.Services.AddHttpClient<ISlackClient, SlackClient>(c =>
             {
-                // c.BaseAddress = new Uri("https://api.github.com/");
+                c.BaseAddress = new Uri("https://slack.com/api/");
                 c.DefaultRequestHeaders.Add("Authorization", $"Bearer {slackClientSettings.BearerToken}");
             });
 

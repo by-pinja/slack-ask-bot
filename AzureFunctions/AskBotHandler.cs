@@ -159,12 +159,12 @@ namespace AzureFunctions
                     var channel = viewSubmission.View.State.values["ChannelBlock"].First().Value.Value;
                     if (string.IsNullOrWhiteSpace(channel))
                     {
-                        throw new ArgumentException("View submission channel is empty");
+                        throw new ArgumentException("View submission channel is empty", nameof(viewSubmission));
                     }
                     var question = viewSubmission.View.State.values["TitleBlock"]["title"].Value;
                     if (string.IsNullOrWhiteSpace(question))
                     {
-                        throw new ArgumentException("View submission question is empty");
+                        throw new ArgumentException("View submission question is empty", nameof(viewSubmission));
                     }
 
                     var answerOptionDictionaries = viewSubmission.View.State.values.Where(d => d.Key.Contains("Answer")).Select(kvp => kvp.Value);
@@ -172,7 +172,7 @@ namespace AzureFunctions
 
                     if (answerOptions.Count() == 0)
                     {
-                        throw new ArgumentException("View submission answer options are empty.");
+                        throw new ArgumentException("View submission answer options are empty.", nameof(viewSubmission));
                     }
 
                     var questionnaire = new Questionnaire

@@ -23,12 +23,12 @@ namespace SlackLib
 
         public async Task PostMessage(dynamic payload)
         {
-            await ExecuteSlackCall(payload, "https://slack.com/api/chat.postMessage").ConfigureAwait(false);
+            await ExecuteSlackCall(payload, "chat.postMessage").ConfigureAwait(false);
         }
 
         public async Task OpenModelView(dynamic payload)
         {
-            await ExecuteSlackCall(payload, "https://slack.com/api/views.open").ConfigureAwait(false);
+            await ExecuteSlackCall(payload, "views.open").ConfigureAwait(false);
         }
 
         private async Task ExecuteSlackCall(dynamic payload, string address)

@@ -48,7 +48,7 @@ namespace AskBotCore
 
         public async Task<QuestionnaireResult> GetQuestionnaireResult(string questionnaireId)
         {
-            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException(nameof(questionnaireId));
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("QuestionnaireId is empty", nameof(questionnaireId));
 
             var questionnaire = await _storage.GetQuestionnaire(questionnaireId);
             if (questionnaire is null)
@@ -95,7 +95,7 @@ namespace AskBotCore
 
         public async Task<string> DeleteQuestionnaireAndAnswers(string questionnaireId)
         {
-            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException(nameof(questionnaireId));
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("QuestionnaireId", nameof(questionnaireId));
 
             var questionnaire = await _storage.GetQuestionnaire(questionnaireId);
             if (questionnaire is null)
