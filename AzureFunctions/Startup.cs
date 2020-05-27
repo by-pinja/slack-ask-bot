@@ -2,8 +2,6 @@ using System.Diagnostics;
 using System.Reflection;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using AzureFunctions;
 using Microsoft.Extensions.Configuration;
@@ -11,8 +9,9 @@ using CloudLib;
 using SlackLib;
 using AskBotCore;
 using System;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 
-[assembly: WebJobsStartup(typeof(Startup))]
+[assembly: FunctionsStartup(typeof(Startup))]
 namespace AzureFunctions
 {
     internal class CustomTelemetryInitializer : ITelemetryInitializer
@@ -32,9 +31,9 @@ namespace AzureFunctions
         }
     }
 
-    public class Startup : IWebJobsStartup
+    public class Startup : FunctionsStartup
     {
-        public void Configure(IWebJobsBuilder builder)
+        public override void Configure(IFunctionsHostBuilder builder)
         {
             var config = new ConfigurationBuilder()
                 .AddEnvironmentVariables()

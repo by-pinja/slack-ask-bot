@@ -57,25 +57,39 @@ namespace AzureFunctions
             {
                 PropertyNameCaseInsensitive = true,
             };
-            switch (json.GetProperty("type").GetString())
+
+            try
             {
-                case "block_actions":
-                    _logger.LogDebug($"BlockAction");
-                    var blockAction = JsonSerializer.Deserialize<BlockAction>(payloadString, options);
-                    _logger.LogDebug($"Success");
-                    return await HandleBlockAction(blockAction);
-                case "shortcut":
-                    _logger.LogDebug($"shortcut");
-                    var shortcut = JsonSerializer.Deserialize<Shortcut>(payloadString, options);
-                    _logger.LogDebug($"Success");
-                    return await HandleShortcut(shortcut);
-                case "view_submission":
-                    _logger.LogDebug($"ViewSubmission");
-                    var viewSubmission = JsonSerializer.Deserialize<ViewSubmission>(payloadString, options);
-                    _logger.LogDebug($"Success");
-                    return await HandleViewSubmission(viewSubmission);
-                default:
-                    throw new NotImplementedException($"Unknown payload type {json.GetProperty("type").GetString()}.");
+                switch (json.GetProperty("type").GetString())
+                {
+                    case "block_actions":
+                        _logger.LogDebug($"BlockAction");
+                        var blockAction = JsonSerializer.Deserialize<BlockAction>(payloadString, options);
+                        _logger.LogDebug($"Success");
+                        return await HandleBlockAction(blockAction);
+                    case "shortcut":
+                        _logger.LogDebug($"shortcut");
+                        var shortcut = JsonSerializer.Deserialize<Shortcut>(payloadString, options);
+                        _logger.LogDebug($"Success");
+                        return await HandleShortcut(shortcut);
+                    case "view_submission":
+                        _logger.LogDebug($"ViewSubmission");
+                        var viewSubmission = JsonSerializer.Deserialize<ViewSubmission>(payloadString, options);
+                        _logger.LogDebug($"Success");
+                        return await HandleViewSubmission(viewSubmission);
+                    default:
+                        throw new NotImplementedException($"Unknown payload type {json.GetProperty("type").GetString()}.");
+                }
+            }
+            catch (SlackLibException e)
+            {
+                _logger.LogCritical("Slack lib exception, returning bad result. Message: {message}", e.Message);
+                return new BadRequestResult();
+            }
+            catch (NotImplementedException e)
+            {
+                _logger.LogCritical("Not implemented exception, returning bad result. Message: {message}", e.Message);
+                return new BadRequestResult();
             }
         }
 
