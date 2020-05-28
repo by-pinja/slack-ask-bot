@@ -14,6 +14,7 @@ namespace AzureFunctions.Payloads
         public User User { get; set; }
 
         public Action[] Actions { get; set; }
+        public View View { get; set; }
     }
 
     public class Action

@@ -6,5 +6,6 @@ namespace SlackLib
     {
         Task PostMessage(dynamic payload);
         Task OpenModelView(dynamic payload);
+        Task UpdateModelView(dynamic payload);
     }
 }
