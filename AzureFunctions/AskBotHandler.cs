@@ -266,7 +266,7 @@ namespace AzureFunctions
                     placeholder = new
                     {
                         type = "plain_text",
-                        text = "What do you want to ask of the world?"
+                        text = "What is your question?"
                     },
                 },
                 label = new
@@ -347,7 +347,7 @@ namespace AzureFunctions
                                 type = "plain_text",
                                 text = "Delete option"
                             },
-                            value = numberOfOptions <= 1 ? "1" : $"{numberOfOptions - 1}"
+                            value = numberOfOptions <= 2 ? "2" : $"{numberOfOptions - 1}"
                         }
                     }
                 }
