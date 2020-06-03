@@ -50,12 +50,12 @@ namespace SlackLib
 
                     var content = await response.Content.ReadAsStringAsync();
 
-                    _logger.LogTrace("Request successful, checking content. Content: {content}", content);
-                    var parsed = JsonSerializer.Deserialize<SlackResponse>(content);
-                    if (parsed is null || !parsed.ok)
+                    _logger.LogDebug("Request successful, checking content. Content: {content}", content);
+                    var parsed = JsonSerializer.Deserialize<JsonElement>(content);
+                    if (!parsed.GetProperty("ok").GetBoolean())
                     {
-                        _logger.LogCritical("Request successful but SlackAPI error. Error message: {error_message}", parsed.error);
-                        throw new SlackLibException($"Error message: {parsed.error}");
+                        _logger.LogCritical("Request successful but SlackAPI error. Error message: {error_message}", parsed.GetProperty("error").GetString());
+                        throw new SlackLibException($"Error message: {parsed.GetProperty("error").GetString()}");
                     }
                 }
             }

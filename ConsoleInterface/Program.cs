@@ -70,7 +70,7 @@ namespace ConsoleInterface
                 .AddSingleton(slackClientSettings)
                 .AddTransient<ISlackClient, SlackClient>()
                 .AddTransient<IStorage, Storage>()
-                .AddTransient<AskBotControl>()
+                .AddTransient<IAskBotControl, AskBotControl>()
                 .AddTransient<CommandHandler>()
                 .BuildServiceProvider();
         }
