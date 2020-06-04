@@ -39,7 +39,7 @@ namespace AzureFunctions
             var contentString = await req.Content.ReadAsStringAsync();
             if (string.IsNullOrWhiteSpace(contentString))
             {
-                throw new ArgumentException("Content of HttpRequest is empty.");
+                throw new ArgumentException("Content of HttpRequest is empty.", nameof(req));
             }
 
             _logger.LogTrace("Parsing raw: {content}", contentString);
@@ -47,7 +47,7 @@ namespace AzureFunctions
             var payloadString = escaped["payload"];
             if (string.IsNullOrWhiteSpace(payloadString))
             {
-                throw new ArgumentException("No payload element found in content.");
+                throw new ArgumentException("No payload element found in content.", nameof(req));
             }
 
             _logger.LogDebug("Deserializing payload: {payload}", payloadString);
@@ -55,7 +55,7 @@ namespace AzureFunctions
 
             var options = new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true,
+                PropertyNameCaseInsensitive = true
             };
 
             try
@@ -63,19 +63,15 @@ namespace AzureFunctions
                 switch (json.GetProperty("type").GetString())
                 {
                     case "block_actions":
-                        _logger.LogDebug($"BlockAction");
                         var blockAction = JsonSerializer.Deserialize<BlockAction>(payloadString, options);
-                        _logger.LogDebug($"Success");
-                        return await HandleBlockAction(blockAction);
+                        await HandleBlockAction(blockAction);
+                        return new OkResult();
                     case "shortcut":
-                        _logger.LogDebug($"shortcut");
                         var shortcut = JsonSerializer.Deserialize<Shortcut>(payloadString, options);
-                        _logger.LogDebug($"Success");
-                        return await HandleShortcut(shortcut);
+                        await HandleShortcut(shortcut);
+                        return new OkResult();
                     case "view_submission":
-                        _logger.LogDebug($"ViewSubmission");
                         var viewSubmission = JsonSerializer.Deserialize<ViewSubmission>(payloadString, options);
-                        _logger.LogDebug($"Success");
                         return await HandleViewSubmission(viewSubmission);
                     default:
                         throw new NotImplementedException($"Unknown payload type {json.GetProperty("type").GetString()}.");
@@ -83,8 +79,8 @@ namespace AzureFunctions
             }
             catch (SlackLibException e)
             {
-                _logger.LogCritical("Slack lib exception, returning bad result. Message: {message}", e.Message);
-                return new BadRequestResult();
+                _logger.LogCritical("Slack lib exception, returning error result. Message: {message}", e.Message);
+                return new StatusCodeResult(500);
             }
             catch (NotImplementedException e)
             {
@@ -93,14 +89,15 @@ namespace AzureFunctions
             }
         }
 
-        private async Task<IActionResult> HandleBlockAction(BlockAction blockAction)
+        private async Task HandleBlockAction(BlockAction blockAction)
         {
-            if (blockAction.Actions.Count() != 1) throw new ArgumentException("The block action list did not have 1 element in");
+            if (blockAction.Actions.Count() != 1) throw new ArgumentException("The block action list did not have 1 element in", nameof(blockAction));
 
-            if (blockAction.Actions.First().ActionId == "add_option" || blockAction.Actions.First().ActionId == "delete_option")
+            var actionToHandle = blockAction.Actions.First();
+            if (actionToHandle.ActionId == "add_option" || actionToHandle.ActionId == "delete_option")
             {
                 _logger.LogInformation("Adding/deleting option to questionnaire.");
-                var viewPayload = blockAction.GetAddOptionToQuestionnairePayload(GetCreateQuestionnaireMainPayload(int.Parse(blockAction.Actions.First().Value)));
+                var viewPayload = blockAction.GetAddOptionToQuestionnairePayload(GetCreateQuestionnaireMainPayload(int.Parse(actionToHandle.Value)));
 
                 _logger.LogDebug("Updating slack model with new available options.");
                 await _slackClient.UpdateModelView(viewPayload);
@@ -108,12 +105,12 @@ namespace AzureFunctions
             else
             {
                 _logger.LogInformation("Questionnaire open request received from {channel} by {answerer}", blockAction.Channel.Name, blockAction.User.Username);
-                var dtoQuestionnaire = await _storage.GetQuestionnaire(blockAction.Actions[0].Value);
+                var dtoQuestionnaire = await _storage.GetQuestionnaire(actionToHandle.Value);
 
                 dynamic viewPayload;
                 if (dtoQuestionnaire is null)
                 {
-                    _logger.LogDebug("Error retrieving the questionnaire for callback id: {callbackId}.", blockAction.Actions[0].Value);
+                    _logger.LogDebug("Error retrieving the questionnaire for callback id: {callbackId}.", actionToHandle.Value);
                     viewPayload = blockAction.GetRemovedQuestionnaireViewPayload();
                 }
                 else
@@ -131,11 +128,9 @@ namespace AzureFunctions
                 _logger.LogInformation("Opening slack model to answer the questionnaire.");
                 await _slackClient.OpenModelView(viewPayload);
             }
-
-            return new OkResult();
         }
 
-        private async Task<IActionResult> HandleShortcut(Shortcut shortcut)
+        private async Task HandleShortcut(Shortcut shortcut)
         {
             _logger.LogInformation("Shortcut request received from {user} with callback ID: {callback}", shortcut.User.Username, shortcut.CallbackId);
 
@@ -170,8 +165,6 @@ namespace AzureFunctions
                     throw new NotImplementedException($"Unknown shortcut callback id: {shortcut.CallbackId}.");
             }
             await _slackClient.OpenModelView(payload);
-
-            return new OkResult();
         }
 
         private async Task<IActionResult> HandleViewSubmission(ViewSubmission viewSubmission)
@@ -183,18 +176,18 @@ namespace AzureFunctions
                 case "create_questionnaire":
                     _logger.LogInformation("Creating and posting questionnaire received from {user}.", viewSubmission.User.Username);
 
-                    var channel = viewSubmission.View.State.values["ChannelBlock"]["channel"].Value;
+                    var channel = viewSubmission.View.State.Values["ChannelBlock"]["channel"].Value;
                     if (string.IsNullOrWhiteSpace(channel))
                     {
                         throw new ArgumentException("View submission channel is empty", nameof(viewSubmission));
                     }
-                    var question = viewSubmission.View.State.values["TitleBlock"]["title"].Value;
+                    var question = viewSubmission.View.State.Values["TitleBlock"]["title"].Value;
                     if (string.IsNullOrWhiteSpace(question))
                     {
                         throw new ArgumentException("View submission question is empty", nameof(viewSubmission));
                     }
 
-                    var answerOptionDictionaries = viewSubmission.View.State.values.Where(d => d.Key.Contains("Answer")).Select(kvp => kvp.Value);
+                    var answerOptionDictionaries = viewSubmission.View.State.Values.Where(d => d.Key.Contains("Answer")).Select(kvp => kvp.Value);
                     var answerOptions = answerOptionDictionaries.Select(d => d.First().Value.Value).ToArray();
 
                     if (answerOptions.Count() == 0)
@@ -214,37 +207,36 @@ namespace AzureFunctions
                     break;
                 case "open_questionnaire":
                     _logger.LogInformation("Answer received from {answerer}.", viewSubmission.User.Username);
-                    var answer = viewSubmission.View.State.values.First().Value.First().Value.SelectedOption.Value;
+                    var answer = viewSubmission.View.State.Values.First().Value.First().Value.SelectedOption.Value;
                     _logger.LogDebug("Answer: {answer}", answer);
 
                     var answerEntity = new AnswerEntity(viewSubmission.View.PrivateMetadata, viewSubmission.User.Username)
                     {
                         Answer = answer,
                         Answerer = viewSubmission.User.Username,
-                        //Channel = submission.Channel.Name,
                         Question = viewSubmission.View.Title.Text,
                         QuestionnaireId = viewSubmission.View.PrivateMetadata
                     };
                     await _storage.InsertOrMerge(answerEntity);
 
-                    var answeredPayload = viewSubmission.GetConfirmAnsweredPayload();
+                    var answeredPayload = PayloadUtility.GetConfirmAnsweredPayload();
                     return new JsonResult(answeredPayload);
                 case "get_answers":
-                    var selectedQuestionnaireId = viewSubmission.View.State.values.First().Value.First().Value.SelectedOption.Value;
+                    var selectedQuestionnaireId = viewSubmission.View.State.Values.First().Value.First().Value.SelectedOption.Value;
                     _logger.LogInformation("Getting answers for questionnaire with ID: {questionnaire}.", selectedQuestionnaireId);
                     var questionnaireResult = await _control.GetQuestionnaireResult(selectedQuestionnaireId).ConfigureAwait(false);
-                    var withAnswersPayload = viewSubmission.GetUpdateModelWithAnswersPayload(questionnaireResult);
+                    var withAnswersPayload = PayloadUtility.GetUpdateModelWithAnswersPayload(questionnaireResult);
                     return new JsonResult(withAnswersPayload);
                 case "delete_a_questionnaire":
-                    var questionnaireId = viewSubmission.View.State.values.First().Value.First().Value.SelectedOption.Value;
+                    var questionnaireId = viewSubmission.View.State.Values.First().Value.First().Value.SelectedOption.Value;
                     _logger.LogInformation("Deleting questionnaire with ID: {questionnaire}.", questionnaireId);
                     var questionnaireTitle = await _control.DeleteQuestionnaireAndAnswers(questionnaireId).ConfigureAwait(false);
-                    var deletedQuestionnairePayload = viewSubmission.GetDeletedQuestionnairePayload(questionnaireTitle);
+                    var deletedQuestionnairePayload = PayloadUtility.GetDeletedQuestionnairePayload(questionnaireTitle);
                     return new JsonResult(deletedQuestionnairePayload);
                 case "delete_questionnaires":
                     _logger.LogInformation("Deleting all questionnaires and answers.");
                     await _control.DeleteAll();
-                    var deletedQuestionnairesPayload = viewSubmission.GetDeletedQuestionnairesPayload();
+                    var deletedQuestionnairesPayload = PayloadUtility.GetDeletedQuestionnairesPayload();
                     return new JsonResult(deletedQuestionnairesPayload);
                 default:
                     throw new NotImplementedException($"Unknown view callback id: {viewSubmission.View.CallbackId}.");

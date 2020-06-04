@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using AskBotCore;
+using CloudLib;
 using ConsoleInterface.Options;
 using CsvHelper;
 using Microsoft.Extensions.Logging;
@@ -18,18 +19,20 @@ namespace ConsoleInterface
     {
         private readonly ILogger<CommandHandler> _logger;
         private readonly IAskBotControl _control;
+        private readonly IStorage _storage;
 
-        public CommandHandler(ILogger<CommandHandler> logger, IAskBotControl control)
+        public CommandHandler(ILogger<CommandHandler> logger, IAskBotControl control, IStorage storage)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _control = control ?? throw new ArgumentNullException(nameof(control));
+            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
         }
 
         public async Task HandleGetQuestionnaires(QuestionnairesOption option)
         {
             _logger.LogTrace("Get all questionnaires activated from console interface.");
 
-            // await _control.GetQuestionnaires().ConfigureAwait(false);
+            await _storage.GetQuestionnaires().ConfigureAwait(false);
         }
 
         public async Task HandleCreateQuestionnaire(CreateQuestionnaireOption option)

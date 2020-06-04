@@ -1,11 +1,50 @@
 using System.Linq;
 using SlackLib.Messages;
 
-namespace AzureFunctions.Payloads
+namespace AskBotCore
 {
-    public static class ViewSubmissionExtensions
+    public static class PayloadUtility
     {
-        public static dynamic GetUpdateModelWithAnswersPayload(this ViewSubmission viewSubmission, QuestionnaireResult questionnaireResult)
+        public static dynamic GetQuestionnairePostPayload(Questionnaire questionnaire, string channel)
+        {
+            return new
+            {
+                channel,
+                text = "PostQuestionnaire",
+                blocks = new object[]
+                {
+                    new
+                    {
+                        type = "section",
+                        block_id = questionnaire.QuestionId,
+                        text = new
+                        {
+                            type = "mrkdwn",
+                            text = questionnaire.Question
+                        }
+                    },
+                    new
+                    {
+                        type = "actions",
+                        elements = new[]
+                        {
+                            new
+                            {
+                                type = "button",
+                                value = questionnaire.QuestionId,
+                                text = new
+                                {
+                                    type = "plain_text",
+                                    text = "Vastaa"
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        public static dynamic GetUpdateModelWithAnswersPayload(QuestionnaireResult questionnaireResult)
         {
             var blockSection = new object[] {
                         new
@@ -55,7 +94,7 @@ namespace AzureFunctions.Payloads
             };
         }
 
-        public static dynamic GetDeletedQuestionnairePayload(this ViewSubmission viewSubmission, string questionnaireTitle)
+        public static dynamic GetDeletedQuestionnairePayload(string questionnaireTitle)
         {
             return new
             {
@@ -91,7 +130,7 @@ namespace AzureFunctions.Payloads
             };
         }
 
-        public static dynamic GetDeletedQuestionnairesPayload(this ViewSubmission viewSubmission)
+        public static dynamic GetDeletedQuestionnairesPayload()
         {
             return new
             {
@@ -127,7 +166,7 @@ namespace AzureFunctions.Payloads
             };
         }
 
-        public static dynamic GetConfirmAnsweredPayload(this ViewSubmission viewSubmission)
+        public static dynamic GetConfirmAnsweredPayload()
         {
             return new
             {

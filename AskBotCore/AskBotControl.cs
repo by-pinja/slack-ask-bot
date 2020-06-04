@@ -28,7 +28,10 @@ namespace AskBotCore
 
         public async Task CreateQuestionnaire(Questionnaire questionnaire, string channel, DateTime time)
         {
-            _logger.LogTrace("Creating questionnaire.");
+            if (questionnaire == null) throw new ArgumentNullException(nameof(questionnaire));
+            if (string.IsNullOrWhiteSpace(channel)) throw new ArgumentException("Channel is empty", nameof(channel));
+
+            _logger.LogTrace("Creating questionnaire: {questionnaire}. Channel: {channel}", questionnaire.Question, channel);
 
             var questionnaireDto = new QuestionnaireEntity(questionnaire.QuestionId, channel)
             {
@@ -41,7 +44,7 @@ namespace AskBotCore
 
             await _storage.InsertOrMerge(questionnaireDto).ConfigureAwait(false);
             _logger.LogTrace("Questionnaire stored.");
-            var payload = GetQuestionnairePostPayload(questionnaire, channel);
+            var payload = PayloadUtility.GetQuestionnairePostPayload(questionnaire, channel);
             await _slackClient.PostMessage(payload).ConfigureAwait(false);
             _logger.LogInformation("Questionnaire created.");
         }
@@ -108,45 +111,6 @@ namespace AskBotCore
             await _storage.DeleteQuestionnaireAndAnswers(questionnaireId);
 
             return questionnaire.Question;
-        }
-
-        private dynamic GetQuestionnairePostPayload(Questionnaire questionnaire, string channel)
-        {
-            return new
-            {
-                channel,
-                text = "PostQuestionnaire",
-                blocks = new object[]
-                {
-                    new
-                    {
-                        type = "section",
-                        block_id = questionnaire.QuestionId,
-                        text = new
-                        {
-                            type = "mrkdwn",
-                            text = questionnaire.Question
-                        }
-                    },
-                    new
-                    {
-                        type = "actions",
-                        elements = new[]
-                        {
-                            new
-                            {
-                                type = "button",
-                                value = questionnaire.QuestionId,
-                                text = new
-                                {
-                                    type = "plain_text",
-                                    text = "Vastaa"
-                                }
-                            }
-                        }
-                    }
-                }
-            };
         }
     }
 }

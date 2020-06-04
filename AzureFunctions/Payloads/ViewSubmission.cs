@@ -26,7 +26,7 @@ namespace AzureFunctions.Payloads
 
     public class State
     {
-        public Dictionary<string, Dictionary<string, Data>> values { get; set; }
+        public Dictionary<string, Dictionary<string, Data>> Values { get; set; }
     }
 
     public class Data
