@@ -55,7 +55,7 @@ namespace SlackLib.Tests
             };
 
             AsyncTestDelegate actual = async () => await slackClient.PostMessage(payload);
-            Assert.ThrowsAsync<HttpRequestException>(actual);
+            Assert.ThrowsAsync<SlackLibException>(actual);
             Assert.AreEqual(logger.LastLogLevel, LogLevel.Critical);
         }
 
