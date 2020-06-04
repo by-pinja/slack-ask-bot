@@ -11,7 +11,6 @@ namespace CloudLib.Models
 
         public AnswerEntity()
         {
-
         }
 
         public AnswerEntity(string questionnaireId, string username)

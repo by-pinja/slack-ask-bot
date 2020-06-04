@@ -17,7 +17,6 @@ namespace CloudLib.Models
 
         public QuestionnaireEntity()
         {
-
         }
 
         public QuestionnaireEntity(string questionnaireId, string channel)
