@@ -218,6 +218,7 @@ namespace AskBotCore
                         type = "plain_text",
                         text = "What is your question?"
                     },
+                    max_length = "75"
                 },
                 label = new
                 {
@@ -262,6 +263,7 @@ namespace AskBotCore
                             type = "plain_text",
                             text = "Available option"
                         },
+                        max_length = "75"
                     },
                     label = new
                     {
