@@ -48,16 +48,16 @@ namespace AskBotCore
         public static dynamic GetUpdateModelWithAnswersPayload(QuestionnaireResult questionnaireResult)
         {
             var blockSection = new object[] {
-                        new
-                        {
-                            type = "section",
-                            text = new
-                            {
-                                type = "plain_text",
-                                text = $":wave: The votes are in. {questionnaireResult.Question}",
-                                emoji = true
-                            }
-                        }
+                new
+                {
+                    type = "section",
+                    text = new
+                    {
+                        type = "plain_text",
+                        text = $":wave: The votes are in. {questionnaireResult.Question}",
+                        emoji = true
+                    }
+                }
             };
 
             var answers = questionnaireResult.Answers.Select(kvp =>

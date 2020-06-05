@@ -81,7 +81,7 @@ namespace AzureFunctions.Payloads
                     title = new
                     {
                         type = "plain_text",
-                        text = $"Error",
+                        text = $"Unavailable",
                     },
                     close = new
                     {
@@ -96,7 +96,7 @@ namespace AzureFunctions.Payloads
                             text = new
                             {
                                 type = "plain_text",
-                                text = ":panic: There are no available questionnaires.",
+                                text = ":desert_island: There are no available questionnaires.",
                                 emoji = true
                             }
                         }
