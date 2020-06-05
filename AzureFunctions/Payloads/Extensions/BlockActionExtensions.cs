@@ -81,7 +81,7 @@ namespace AzureFunctions.Payloads
                     title = new
                     {
                         type = "plain_text",
-                        text = "Error",
+                        text = "Unavailable",
                     },
                     close = new
                     {
@@ -96,7 +96,7 @@ namespace AzureFunctions.Payloads
                             text = new
                             {
                                 type = "plain_text",
-                                text = ":panic: The questionnaire you are attempting to answer could not be found.",
+                                text = ":disappointed: The questionnaire you are attempting to answer has closed.",
                                 emoji = true
                             }
                         }
