@@ -94,39 +94,44 @@ namespace AzureFunctions
             if (blockAction.Actions.Count() != 1) throw new ArgumentException("The block action list did not have 1 element in", nameof(blockAction));
 
             var actionToHandle = blockAction.Actions.First();
-            if (actionToHandle.ActionId == "add_option" || actionToHandle.ActionId == "delete_option")
+            dynamic viewPayload;
+            switch (actionToHandle.ActionId)
             {
-                _logger.LogInformation("Adding/deleting option to questionnaire.");
-                var viewPayload = blockAction.GetAddOptionToQuestionnairePayload(GetCreateQuestionnaireMainPayload(int.Parse(actionToHandle.Value)));
+                case "add_option":
+                case "delete_option":
+                    _logger.LogInformation("Adding/deleting option to questionnaire.");
+                    var mainPayload = PayloadUtility.GetCreateQuestionnaireMainPayload(int.Parse(actionToHandle.Value));
+                    viewPayload = blockAction.GetAddOptionToQuestionnairePayload(mainPayload);
 
-                _logger.LogDebug("Updating slack model with new available options.");
-                await _slackClient.UpdateModelView(viewPayload);
-            }
-            else
-            {
-                _logger.LogInformation("Questionnaire open request received from {channel} by {answerer}", blockAction.Channel.Name, blockAction.User.Username);
-                var dtoQuestionnaire = await _storage.GetQuestionnaire(actionToHandle.Value);
+                    _logger.LogDebug("Updating slack model with new available options.");
+                    await _slackClient.UpdateModelView(viewPayload);
+                    break;
+                case "open_questionnaire":
+                    _logger.LogInformation("Questionnaire open request received from {channel} by {answerer}", blockAction.Channel.Name, blockAction.User.Username);
+                    var dtoQuestionnaire = await _storage.GetQuestionnaire(actionToHandle.Value);
 
-                dynamic viewPayload;
-                if (dtoQuestionnaire is null)
-                {
-                    _logger.LogDebug("Error retrieving the questionnaire for callback id: {callbackId}.", actionToHandle.Value);
-                    viewPayload = blockAction.GetRemovedQuestionnaireViewPayload();
-                }
-                else
-                {
-                    var questionnaire = new Questionnaire()
+                    if (dtoQuestionnaire is null)
                     {
-                        QuestionId = dtoQuestionnaire.QuestionnaireId,
-                        Question = dtoQuestionnaire.Question,
-                        AnswerOptions = dtoQuestionnaire.AnswerOptions.Split(";")
-                    };
+                        _logger.LogDebug("Error retrieving the questionnaire for callback id: {callbackId}.", actionToHandle.Value);
+                        viewPayload = blockAction.GetRemovedQuestionnaireViewPayload();
+                    }
+                    else
+                    {
+                        var questionnaire = new Questionnaire()
+                        {
+                            QuestionId = dtoQuestionnaire.QuestionnaireId,
+                            Question = dtoQuestionnaire.Question,
+                            AnswerOptions = dtoQuestionnaire.AnswerOptions.Split(";")
+                        };
 
-                    viewPayload = blockAction.GetOpenQuestionnaireViewPayload(questionnaire);
-                }
+                        viewPayload = blockAction.GetOpenQuestionnaireViewPayload(questionnaire);
+                    }
 
-                _logger.LogInformation("Opening slack model to answer the questionnaire.");
-                await _slackClient.OpenModelView(viewPayload);
+                    _logger.LogInformation("Opening slack model to answer the questionnaire.");
+                    await _slackClient.OpenModelView(viewPayload);
+                    break;
+                default:
+                    throw new NotImplementedException($"Unknown blockAction callback id: {actionToHandle.ActionId}.");
             }
         }
 
@@ -138,7 +143,7 @@ namespace AzureFunctions
             switch (shortcut.CallbackId)
             {
                 case "create_questionnaire":
-                    payload = shortcut.GetOpenCreateQuestionnairesPayload(GetCreateQuestionnaireMainPayload());
+                    payload = shortcut.GetOpenCreateQuestionnairesPayload(PayloadUtility.GetCreateQuestionnaireMainPayload());
 
                     _logger.LogInformation("Opening slack model to create questionnaire.");
                     break;
@@ -243,134 +248,6 @@ namespace AzureFunctions
             }
 
             return new OkResult();
-        }
-
-        private object GetCreateQuestionnaireMainPayload(int numberOfOptions = 2)
-        {
-            var titleAndChannelBlocks = new object[]{ new
-            {
-                type = "input",
-                block_id = "TitleBlock",
-                element = new
-                {
-                    type = "plain_text_input",
-                    action_id = "title",
-                    placeholder = new
-                    {
-                        type = "plain_text",
-                        text = "What is your question?"
-                    },
-                },
-                label = new
-                {
-                    type = "plain_text",
-                    text = "Title"
-                }
-            },
-            new
-            {
-                type = "input",
-                block_id = "ChannelBlock",
-                element = new
-                {
-                    type = "channels_select",
-                    action_id = "channel",
-                    placeholder = new
-                    {
-                        type = "plain_text",
-                        text = "Where should the poll be sent?"
-                    },
-                },
-                label = new
-                {
-                    type = "plain_text",
-                    text = "Channel(s)"
-                }
-            }};
-
-            var answerBlocks = new object[numberOfOptions];
-            for (var i = 0; i < numberOfOptions; i++)
-            {
-                answerBlocks[i] = new
-                {
-                    type = "input",
-                    block_id = $"AnswerBlock{i + 1}",
-                    element = new
-                    {
-                        type = "plain_text_input",
-                        action_id = $"option_{i + 1}",
-                        placeholder = new
-                        {
-                            type = "plain_text",
-                            text = "Available option"
-                        },
-                    },
-                    label = new
-                    {
-                        type = "plain_text",
-                        text = $"Option {i + 1}"
-                    }
-                };
-            }
-
-            var buttonBlocks = new object[1] {
-                new
-                {
-                    type = "actions",
-                    elements = new[]
-                    {
-                        new
-                        {
-                            type = "button",
-                            action_id = "add_option",
-                            text = new
-                            {
-                                type = "plain_text",
-                                text = "Add another option"
-                            },
-                            value = numberOfOptions >= 8 ? "8" : $"{numberOfOptions + 1}"
-                        },
-                        new
-                        {
-                            type = "button",
-                            action_id = "delete_option",
-                            text = new
-                            {
-                                type = "plain_text",
-                                text = "Delete option"
-                            },
-                            value = numberOfOptions <= 2 ? "2" : $"{numberOfOptions - 1}"
-                        }
-                    }
-                }
-            };
-
-            var blocks = new object[titleAndChannelBlocks.Length + answerBlocks.Length + buttonBlocks.Length];
-            titleAndChannelBlocks.CopyTo(blocks, 0);
-            answerBlocks.CopyTo(blocks, titleAndChannelBlocks.Length);
-            buttonBlocks.CopyTo(blocks, titleAndChannelBlocks.Length + answerBlocks.Length);
-
-            return new
-            {
-                type = "modal",
-                callback_id = "create_questionnaire",
-                title = new
-                {
-                    type = "plain_text",
-                    text = "Create questionnaire",
-                },
-                submit = new
-                {
-                    type = "plain_text",
-                    text = "Submit",
-                },
-                close = new
-                {
-                    type = "plain_text",
-                    text = "Cancel",
-                },
-                blocks
-            };
         }
     }
 }

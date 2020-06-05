@@ -49,6 +49,8 @@ namespace CloudLib
 
         public async Task<QuestionnaireEntity> GetQuestionnaire(string questionnaireId)
         {
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("Questionnaire id is empty", nameof(questionnaireId));
+
             var query = new TableQuery<QuestionnaireEntity>().Where(TableQuery.GenerateFilterCondition(nameof(QuestionnaireEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
             var questionnaires = await _questionnaires.ExecuteQueryAsync(query);
             if (questionnaires.Count != 1)
