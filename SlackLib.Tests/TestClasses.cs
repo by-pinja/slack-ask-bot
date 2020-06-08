@@ -19,6 +19,7 @@ namespace SlackLib.Tests
             }
         }
 
+        // Can not use NSubstitute to mock ILogger because FormattedLogValues, used in the logger deep down, is an internal class.
         public class MockLogger<T> : ILogger<T>
         {
             public LogLevel LastLogLevel { get; set; }

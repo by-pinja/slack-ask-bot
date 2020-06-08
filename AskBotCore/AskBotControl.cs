@@ -39,7 +39,7 @@ namespace AskBotCore
                 Channel = channel,
                 Created = time,
                 Question = questionnaire.Question,
-                AnswerOptions = string.Join(";", questionnaire.AnswerOptions)
+                AnswerOptions = questionnaire.AnswerOptions//string.Join(";", questionnaire.AnswerOptions)
             };
 
             await _storage.InsertOrMerge(questionnaireDto).ConfigureAwait(false);
@@ -70,7 +70,7 @@ namespace AskBotCore
             }
 
             var answersDictionary = new Dictionary<string, int>();
-            foreach (var availableAnswer in questionnaire.AnswerOptions.Split(';'))
+            foreach (var availableAnswer in questionnaire.AnswerOptions)//.Split(';'))
             {
                 answersDictionary[availableAnswer] = 0;
             }

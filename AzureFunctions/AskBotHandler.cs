@@ -121,7 +121,7 @@ namespace AzureFunctions
                         {
                             QuestionId = dtoQuestionnaire.QuestionnaireId,
                             Question = dtoQuestionnaire.Question,
-                            AnswerOptions = dtoQuestionnaire.AnswerOptions.Split(";")
+                            AnswerOptions = dtoQuestionnaire.AnswerOptions//.Split(";")
                         };
 
                         viewPayload = blockAction.GetOpenQuestionnaireViewPayload(questionnaire);
@@ -202,7 +202,7 @@ namespace AzureFunctions
 
                     var questionnaire = new Questionnaire
                     {
-                        QuestionId = Guid.NewGuid().ToString(),
+                        QuestionId = Guid.NewGuid(),
                         Question = question,
                         AnswerOptions = answerOptions
                     };

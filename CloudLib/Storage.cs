@@ -64,7 +64,7 @@ namespace CloudLib
 
         public async Task<IEnumerable<AnswerEntity>> GetAnswers(string questionnaireId)
         {
-            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("QuestionnaireId is empty.", nameof(questionnaireId));
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("Questionnaire id is empty.", nameof(questionnaireId));
             var query = new TableQuery<AnswerEntity>().Where(TableQuery.GenerateFilterCondition(nameof(AnswerEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
             return await _answers.ExecuteQueryAsync(query);
         }
@@ -108,7 +108,7 @@ namespace CloudLib
 
         public async Task DeleteQuestionnaireAndAnswers(string questionnaireId)
         {
-            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("QuestionnaireId is empty", nameof(questionnaireId));
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("Questionnaire id is empty", nameof(questionnaireId));
 
             var questionnaire = await GetQuestionnaire(questionnaireId);
             _logger.LogDebug("Found questionnaire to delete.");
