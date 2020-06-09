@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CloudLib.Models;
+using Microsoft.Azure.Cosmos.Table;
 
 namespace CloudLib
 {
@@ -9,8 +10,7 @@ namespace CloudLib
         Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires();
         Task<QuestionnaireEntity> GetQuestionnaire(string questionnaireId);
         Task<IEnumerable<AnswerEntity>> GetAnswers(string questionnaireId);
-        Task InsertOrMerge(QuestionnaireEntity entity);
-        Task InsertOrMerge(AnswerEntity entity);
+        Task InsertOrMerge(ITableEntity entity);
         Task DeleteAll();
         Task DeleteQuestionnaireAndAnswers(string questionnaireId);
     }

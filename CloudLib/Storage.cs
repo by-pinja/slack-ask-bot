@@ -69,16 +69,10 @@ namespace CloudLib
             return await _answers.ExecuteQueryAsync(query);
         }
 
-        public async Task InsertOrMerge(QuestionnaireEntity entity)
+        public async Task InsertOrMerge(ITableEntity entity)
         {
             var insertOperation = TableOperation.InsertOrMerge(entity);
             await _questionnaires.ExecuteAsync(insertOperation);
-        }
-
-        public async Task InsertOrMerge(AnswerEntity entity)
-        {
-            var insertOperation = TableOperation.InsertOrMerge(entity);
-            await _answers.ExecuteAsync(insertOperation);
         }
 
         public async Task DeleteAll()
