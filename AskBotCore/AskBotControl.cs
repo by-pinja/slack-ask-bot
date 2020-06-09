@@ -26,25 +26,15 @@ namespace AskBotCore
             _slackClient = slackClient ?? throw new ArgumentNullException(nameof(slackClient));
         }
 
-        public async Task CreateQuestionnaire(Questionnaire questionnaire, string channel, DateTime time)
+        public async Task CreateQuestionnaire(QuestionnaireEntity questionnaire)
         {
             if (questionnaire == null) throw new ArgumentNullException(nameof(questionnaire));
-            if (string.IsNullOrWhiteSpace(channel)) throw new ArgumentException("Channel is empty", nameof(channel));
+            if (string.IsNullOrWhiteSpace(questionnaire.Channel)) throw new ArgumentException("Channel is empty", nameof(questionnaire.Channel));
+            _logger.LogTrace("Creating questionnaire: {questionnaire}. Channel: {channel}", questionnaire.Question, questionnaire.Channel);
 
-            _logger.LogTrace("Creating questionnaire: {questionnaire}. Channel: {channel}", questionnaire.Question, channel);
-
-            var questionnaireDto = new QuestionnaireEntity(questionnaire.QuestionId, channel)
-            {
-                QuestionnaireId = questionnaire.QuestionId,
-                Channel = channel,
-                Created = time,
-                Question = questionnaire.Question,
-                AnswerOptions = questionnaire.AnswerOptions//string.Join(";", questionnaire.AnswerOptions)
-            };
-
-            await _storage.InsertOrMerge(questionnaireDto).ConfigureAwait(false);
+            await _storage.InsertOrMerge(questionnaire).ConfigureAwait(false);
             _logger.LogTrace("Questionnaire stored.");
-            var payload = PayloadUtility.GetQuestionnairePostPayload(questionnaire, channel);
+            var payload = PayloadUtility.GetQuestionnairePostPayload(questionnaire);
             await _slackClient.PostMessage(payload).ConfigureAwait(false);
             _logger.LogInformation("Questionnaire created.");
         }

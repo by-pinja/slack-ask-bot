@@ -5,10 +5,10 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using AskBotCore;
 using CloudLib;
+using CloudLib.Models;
 using ConsoleInterface.Options;
 using CsvHelper;
 using Microsoft.Extensions.Logging;
-using SlackLib.Messages;
 
 namespace ConsoleInterface
 {
@@ -35,17 +35,20 @@ namespace ConsoleInterface
             await _storage.GetQuestionnaires().ConfigureAwait(false);
         }
 
-        public async Task HandleCreateQuestionnaire(CreateQuestionnaireOption option)
+        public async Task HandleCreateQuestionnaire(CreateQuestionnaireOption option, string guid, DateTime dateTime)
         {
             try
             {
                 _logger.LogTrace("Creating questionnaire from file {file}", option.QuestionnaireFile);
 
                 var json = await File.ReadAllTextAsync(option.QuestionnaireFile);
-                var questionnaire = JsonSerializer.Deserialize<Questionnaire>(json);
+                var questionnaire = JsonSerializer.Deserialize<QuestionnaireEntity>(json);
                 _logger.LogDebug("Questionnaire deserialized, question {0}", questionnaire.Question);
+                questionnaire.QuestionnaireId = guid;
+                questionnaire.Channel = option.Channel;
+                questionnaire.Created = dateTime;
 
-                await _control.CreateQuestionnaire(questionnaire, option.Channel, DateTime.UtcNow).ConfigureAwait(false);
+                await _control.CreateQuestionnaire(questionnaire).ConfigureAwait(false);
                 _logger.LogInformation("Questionnaire created from file {0}.", option.QuestionnaireFile);
             }
             catch (IOException exception)
@@ -88,7 +91,7 @@ namespace ConsoleInterface
         {
             _logger.LogTrace("Generating a questionnaire template.");
 
-            var example = new Questionnaire
+            var example = new QuestionnaireEntity
             {
                 Question = "I said hey, what's going on?",
                 AnswerOptions = new string[]

@@ -1,11 +1,11 @@
 using System.Linq;
-using SlackLib.Messages;
+using CloudLib.Models;
 
 namespace AzureFunctions.Payloads
 {
     public static class BlockActionExtensions
     {
-        public static dynamic GetOpenQuestionnaireViewPayload(this BlockAction action, Questionnaire questionnaire)
+        public static dynamic GetOpenQuestionnaireViewPayload(this BlockAction action, QuestionnaireEntity questionnaire)
         {
             return new
             {
@@ -14,7 +14,7 @@ namespace AzureFunctions.Payloads
                 {
                     type = "modal",
                     callback_id = "open_questionnaire",
-                    private_metadata = questionnaire.QuestionId,
+                    private_metadata = questionnaire.QuestionnaireId,
                     title = new
                     {
                         type = "plain_text",

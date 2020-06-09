@@ -1,12 +1,12 @@
-using System;
 using System.Threading.Tasks;
+using CloudLib.Models;
 using SlackLib.Messages;
 
 namespace AskBotCore
 {
     public interface IAskBotControl
     {
-        Task CreateQuestionnaire(Questionnaire questionnaire, string channel, DateTime time);
+        Task CreateQuestionnaire(QuestionnaireEntity questionnaire);
         Task<QuestionnaireResult> GetQuestionnaireResult(string questionnaireId);
         Task DeleteAll();
         Task<string> DeleteQuestionnaireAndAnswers(string questionnaireId);

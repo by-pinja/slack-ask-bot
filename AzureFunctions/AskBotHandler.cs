@@ -13,7 +13,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using SlackLib;
-using SlackLib.Messages;
 
 namespace AzureFunctions
 {
@@ -72,7 +71,7 @@ namespace AzureFunctions
                         return new OkResult();
                     case "view_submission":
                         var viewSubmission = JsonSerializer.Deserialize<ViewSubmission>(payloadString, options);
-                        return await HandleViewSubmission(viewSubmission);
+                        return await HandleViewSubmission(viewSubmission, Guid.NewGuid().ToString(), DateTime.UtcNow);
                     default:
                         throw new NotImplementedException($"Unknown payload type {json.GetProperty("type").GetString()}.");
                 }
@@ -108,22 +107,15 @@ namespace AzureFunctions
                     break;
                 case "open_questionnaire":
                     _logger.LogInformation("Questionnaire open request received from {channel} by {answerer}", blockAction.Channel.Name, blockAction.User.Username);
-                    var dtoQuestionnaire = await _storage.GetQuestionnaire(actionToHandle.Value);
+                    var questionnaire = await _storage.GetQuestionnaire(actionToHandle.Value);
 
-                    if (dtoQuestionnaire is null)
+                    if (questionnaire is null)
                     {
                         _logger.LogDebug("Error retrieving the questionnaire for callback id: {callbackId}.", actionToHandle.Value);
                         viewPayload = blockAction.GetRemovedQuestionnaireViewPayload();
                     }
                     else
                     {
-                        var questionnaire = new Questionnaire()
-                        {
-                            QuestionId = dtoQuestionnaire.QuestionnaireId,
-                            Question = dtoQuestionnaire.Question,
-                            AnswerOptions = dtoQuestionnaire.AnswerOptions//.Split(";")
-                        };
-
                         viewPayload = blockAction.GetOpenQuestionnaireViewPayload(questionnaire);
                     }
 
@@ -172,7 +164,7 @@ namespace AzureFunctions
             await _slackClient.OpenModelView(payload);
         }
 
-        private async Task<IActionResult> HandleViewSubmission(ViewSubmission viewSubmission)
+        private async Task<IActionResult> HandleViewSubmission(ViewSubmission viewSubmission, string guid, DateTime dateTime)
         {
             _logger.LogInformation("View submission received.");
 
@@ -200,15 +192,17 @@ namespace AzureFunctions
                         throw new ArgumentException("View submission answer options are empty.", nameof(viewSubmission));
                     }
 
-                    var questionnaire = new Questionnaire
+                    var questionnaire = new QuestionnaireEntity
                     {
-                        QuestionId = Guid.NewGuid(),
+                        QuestionnaireId = guid,
                         Question = question,
-                        AnswerOptions = answerOptions
+                        AnswerOptions = answerOptions,
+                        Channel = channel,
+                        Created = dateTime
                     };
 
                     _logger.LogDebug("Questionnaire ready to be created.");
-                    await _control.CreateQuestionnaire(questionnaire, channel, DateTime.UtcNow).ConfigureAwait(false);
+                    await _control.CreateQuestionnaire(questionnaire).ConfigureAwait(false);
                     break;
                 case "open_questionnaire":
                     _logger.LogInformation("Answer received from {answerer}.", viewSubmission.User.Username);

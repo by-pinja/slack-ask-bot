@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AskBotCore;
 using CloudLib;
@@ -30,7 +31,7 @@ namespace ConsoleInterface
             await Parser.Default.ParseArguments<QuestionnairesOption, CreateQuestionnaireOption, AnswersOption, DeleteOption, GenerateQuestionnaireTemplateOption>(args)
                 .MapResult(
                     async (QuestionnairesOption option) => { await commandHandler.HandleGetQuestionnaires(option); },
-                    async (CreateQuestionnaireOption option) => { await commandHandler.HandleCreateQuestionnaire(option); },
+                    async (CreateQuestionnaireOption option) => { await commandHandler.HandleCreateQuestionnaire(option, Guid.NewGuid().ToString(), DateTime.UtcNow); },
                     async (AnswersOption option) => { await commandHandler.HandleGetAnswers(option); },
                     async (DeleteOption option) => { await commandHandler.HandleDelete(option); },
                     async (GenerateQuestionnaireTemplateOption option) => { await commandHandler.HandleGenerateTemplate(option); },

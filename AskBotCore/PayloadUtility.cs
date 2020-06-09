@@ -1,22 +1,23 @@
 using System.Linq;
+using CloudLib.Models;
 using SlackLib.Messages;
 
 namespace AskBotCore
 {
     public static class PayloadUtility
     {
-        public static dynamic GetQuestionnairePostPayload(Questionnaire questionnaire, string channel)
+        public static dynamic GetQuestionnairePostPayload(QuestionnaireEntity questionnaire)
         {
             return new
             {
-                channel,
+                questionnaire.Channel,
                 text = "PostQuestionnaire",
                 blocks = new object[]
                 {
                     new
                     {
                         type = "section",
-                        block_id = questionnaire.QuestionId,
+                        block_id = questionnaire.QuestionnaireId,
                         text = new
                         {
                             type = "mrkdwn",
@@ -32,7 +33,7 @@ namespace AskBotCore
                             {
                                 type = "button",
                                 action_id = "open_questionnaire",
-                                value = questionnaire.QuestionId,
+                                value = questionnaire.QuestionnaireId,
                                 text = new
                                 {
                                     type = "plain_text",
