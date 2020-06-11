@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,48 +37,75 @@ namespace CloudLib
 
         public async Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires()
         {
-            TableQuery<QuestionnaireEntity> query = new TableQuery<QuestionnaireEntity>();
+            var query = new TableQuery<QuestionnaireEntity>();
             return await _questionnaires.ExecuteQueryAsync(query);
         }
 
-        public async Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires(string questionnaireId)
+        private async Task<IEnumerable<AnswerEntity>> GetAnswers()
         {
-            TableQuery<QuestionnaireEntity> query = new TableQuery<QuestionnaireEntity>()
-                .Where(TableQuery.GenerateFilterCondition(nameof(QuestionnaireEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
-            return await _questionnaires.ExecuteQueryAsync(query);
+            var query = new TableQuery<AnswerEntity>();
+            return await _answers.ExecuteQueryAsync(query);
+        }
+
+        public async Task<QuestionnaireEntity> GetQuestionnaire(string questionnaireId)
+        {
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("Questionnaire id is empty", nameof(questionnaireId));
+
+            var query = new TableQuery<QuestionnaireEntity>().Where(TableQuery.GenerateFilterCondition(nameof(QuestionnaireEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
+            var questionnaires = await _questionnaires.ExecuteQueryAsync(query);
+            if (questionnaires.Count != 1)
+            {
+                _logger.LogDebug("{count} questionnaires found in query for questionnaire with id {questionnaireId}", questionnaires.Count, questionnaireId);
+                return null;
+            }
+
+            return questionnaires.First();
         }
 
         public async Task<IEnumerable<AnswerEntity>> GetAnswers(string questionnaireId)
         {
-            TableQuery<AnswerEntity> query = new TableQuery<AnswerEntity>();
-            if (!string.IsNullOrWhiteSpace(questionnaireId))
-            {
-                query.Where(TableQuery.GenerateFilterCondition(nameof(AnswerEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
-            }
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("Questionnaire id is empty.", nameof(questionnaireId));
+            var query = new TableQuery<AnswerEntity>().Where(TableQuery.GenerateFilterCondition(nameof(AnswerEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
             return await _answers.ExecuteQueryAsync(query);
         }
 
         public async Task InsertOrMerge(QuestionnaireEntity entity)
         {
             var insertOperation = TableOperation.InsertOrMerge(entity);
-            await _questionnaires.ExecuteAsync(insertOperation);
+            try
+            {
+                await _questionnaires.ExecuteAsync(insertOperation);
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical(e, "Failed to execute insert or merge function. Partition key: {Pkey}, row key: {RKey}. Message: {message}", entity.PartitionKey, entity.RowKey, e.Message);
+                throw;
+            }
         }
 
         public async Task InsertOrMerge(AnswerEntity entity)
         {
             var insertOperation = TableOperation.InsertOrMerge(entity);
-            await _answers.ExecuteAsync(insertOperation);
+            try
+            {
+                await _answers.ExecuteAsync(insertOperation);
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical(e, "Failed to execute insert or merge function. Partition key: {Pkey}, row key: {RKey}. Message: {message}", entity.PartitionKey, entity.RowKey, e.Message);
+                throw;
+            }
         }
 
         public async Task DeleteAll()
         {
             _logger.LogTrace("Clearing table {table}", _answers.Name);
-            var answers = await GetAnswers(null);
+            var answers = await GetAnswers();
             _logger.LogDebug("Found {count} items to delete.", answers.Count());
-            var asnwerBatchGroups = GroupedDeletes(answers);
+            var answerBatchGroups = GroupedDeletes(answers);
 
             _logger.LogDebug("Executing batches");
-            foreach (var batch in asnwerBatchGroups)
+            foreach (var batch in answerBatchGroups)
             {
                 _answers.ExecuteBatch(batch);
             }
@@ -92,6 +120,40 @@ namespace CloudLib
             {
                 _questionnaires.ExecuteBatch(batch);
             }
+        }
+
+        public async Task DeleteQuestionnaireAndAnswers(string questionnaireId)
+        {
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("Questionnaire id is empty", nameof(questionnaireId));
+
+            var questionnaire = await GetQuestionnaire(questionnaireId);
+            _logger.LogDebug("Found questionnaire to delete.");
+
+            var questionnaireBatch = new TableBatchOperation
+            {
+                TableOperation.Delete(questionnaire)
+            };
+            await _questionnaires.ExecuteBatchAsync(questionnaireBatch);
+            _logger.LogDebug("Deleted questionnaire.");
+
+            await DeleteAnswers(questionnaireId);
+        }
+
+        private async Task DeleteAnswers(string questionnaireId)
+        {
+            var answers = await GetAnswers(questionnaireId);
+            if (answers.Count() == 0)
+            {
+                return;
+            }
+            _logger.LogDebug("Found {count} answer item(s) to delete.", answers.Count());
+            var answerBatch = new TableBatchOperation();
+            foreach (var answer in answers)
+            {
+                answerBatch.Add(TableOperation.Delete(answer));
+            }
+            await _answers.ExecuteBatchAsync(answerBatch);
+            _logger.LogDebug("Deleted answer(s).");
         }
 
         private IEnumerable<TableBatchOperation> GroupedDeletes(IEnumerable<TableEntity> entities)

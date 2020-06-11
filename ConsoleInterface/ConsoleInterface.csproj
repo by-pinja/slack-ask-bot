@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SlackLib\SlackLib.csproj" />
     <ProjectReference Include="..\CloudLib\CloudLib.csproj" />
+    <ProjectReference Include="..\AskBotCore\AskBotCore.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

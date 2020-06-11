@@ -15,7 +15,6 @@ namespace CloudLib
 
             do
             {
-
                 TableQuerySegment<T> seg = await table.ExecuteQuerySegmentedAsync(query, token);
                 token = seg.ContinuationToken;
                 items.AddRange(seg);

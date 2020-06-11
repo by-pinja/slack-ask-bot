@@ -12,7 +12,12 @@ This is still a very much a work in progress so this shouldn't probably be used 
 ## Setup steps
 
 ### Creating application
-1. Create the environment. For example:
+1. Azure PowerShell needs to have an authenticated sessions. This can be done with Connect-AzAccount.
+```bash
+pwsh -c Connect-AzAccount
+```
+
+2. Create the environment. For example:
 
 ```bash
 pwsh ./Deployment/Prepare-Environment.ps1
@@ -34,14 +39,20 @@ Or the individual steps
    
 - Publish application
     The following will build and publish this application
+    ```bash
+    pwsh ./Deployment/Publish.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name"
+    ```
     ```
     .\Deployment\Publish.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name"
     ```
     
-2. Retrieve function url
+3. Retrieve function url
     Azure Functions Webhook URL can only be retrieved after the application is deployed.
+    ```bash
+   pwsh ./Deployment/Get-FunctionUri.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name" -FunctionName 'AskBotHook'"
    ```
-   .\Deployment\GetFunctionUri.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name"
+   ```
+   .\Deployment\Get-FunctionUri.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name" -FunctionName 'AskBotHook'"
    ```
 
    Note: This script may throw `The underlying connection was closed: An unexpected error occurred on a send.`
@@ -51,7 +62,7 @@ Or the individual steps
    ```
    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
    ```
-3. Change logic apps web hook uri at https://api.slack.com/apps "Interactive Components"
+4. Change logic apps web hook uri at https://api.slack.com/apps "Interactive Components"
 
 ## Usage
 Console interface of this software uses [CommandLineParser](https://github.com/commandlineparser/commandline).
@@ -83,7 +94,7 @@ Configurations are read from `appsettings.json` and `appsettings.Development.jso
 For actual usage, set connection string generated in [Create Application](#create-application) as
 ConnectionString under TableStorage-section in `appsettings.json`-file
 
-For development, create `appsettings.Delopment.json` and fill your
+For development, create `appsettings.Development.json` and fill your
 storage connections string generated earlier there.
 
 ### Creating new questionnaires
