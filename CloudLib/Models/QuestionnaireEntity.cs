@@ -14,8 +14,8 @@ namespace CloudLib.Models
             }
             set
             {
-                RowKey = value;
                 _questionnaireId = value;
+                RowKey = value;
             }
         }
         private string _channel;
@@ -27,8 +27,8 @@ namespace CloudLib.Models
             }
             set
             {
-                PartitionKey = value;
                 _channel = value;
+                PartitionKey = value;
             }
         }
         public DateTime Created { get; set; }

@@ -177,11 +177,13 @@ namespace AzureFunctions
                     var channel = viewSubmission.View.State.Values["ChannelBlock"]["channel"].Value;
                     if (string.IsNullOrWhiteSpace(channel))
                     {
+                        _logger.LogCritical("View submission channel is empty.");
                         throw new ArgumentException("View submission channel is empty", nameof(viewSubmission));
                     }
                     var question = viewSubmission.View.State.Values["TitleBlock"]["title"].Value;
                     if (string.IsNullOrWhiteSpace(question))
                     {
+                        _logger.LogCritical("View submission question is empty.");
                         throw new ArgumentException("View submission question is empty", nameof(viewSubmission));
                     }
 
@@ -190,6 +192,7 @@ namespace AzureFunctions
 
                     if (answerOptions.Count() == 0)
                     {
+                        _logger.LogCritical("View submission answer options are empty.");
                         throw new ArgumentException("View submission answer options are empty.", nameof(viewSubmission));
                     }
 

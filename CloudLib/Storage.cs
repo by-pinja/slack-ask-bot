@@ -69,12 +69,26 @@ namespace CloudLib
             return await _answers.ExecuteQueryAsync(query);
         }
 
-        public async Task InsertOrMerge(ITableEntity entity)
+        public async Task InsertOrMerge(QuestionnaireEntity entity)
         {
             var insertOperation = TableOperation.InsertOrMerge(entity);
             try
             {
                 await _questionnaires.ExecuteAsync(insertOperation);
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical(e, "Failed to execute insert or merge function. Partition key: {Pkey}, row key: {RKey}. Message: {message}", entity.PartitionKey, entity.RowKey, e.Message);
+                throw;
+            }
+        }
+
+        public async Task InsertOrMerge(AnswerEntity entity)
+        {
+            var insertOperation = TableOperation.InsertOrMerge(entity);
+            try
+            {
+                await _answers.ExecuteAsync(insertOperation);
             }
             catch (Exception e)
             {

@@ -10,7 +10,8 @@ namespace CloudLib
         Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires();
         Task<QuestionnaireEntity> GetQuestionnaire(string questionnaireId);
         Task<IEnumerable<AnswerEntity>> GetAnswers(string questionnaireId);
-        Task InsertOrMerge(ITableEntity entity);
+        Task InsertOrMerge(AnswerEntity entity);
+        Task InsertOrMerge(QuestionnaireEntity entity);
         Task DeleteAll();
         Task DeleteQuestionnaireAndAnswers(string questionnaireId);
     }
