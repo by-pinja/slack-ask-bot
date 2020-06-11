@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using SlackLib.Messages;
 using Microsoft.Extensions.Logging;
 
 namespace SlackLib
@@ -12,132 +10,64 @@ namespace SlackLib
     /// <summary>
     /// Wrapper for Slack API
     /// </summary>
-    public class SlackClient
+    public class SlackClient : ISlackClient
     {
         private readonly ILogger<SlackClient> _logger;
-        private readonly SlackClientSettings _slackClientSettings;
-        private readonly SlackResponseParser _slackResponseParser;
+        private readonly HttpClient _client;
 
-        public SlackClient(ILogger<SlackClient> logger, SlackClientSettings slackClientSettings, SlackResponseParser slackResponseParser)
+        public SlackClient(ILogger<SlackClient> logger, HttpClient client)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _slackClientSettings = slackClientSettings ?? throw new ArgumentNullException(nameof(slackClientSettings));
-            _slackResponseParser = slackResponseParser ?? throw new ArgumentNullException(nameof(slackResponseParser));
+            _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
-        private HttpClient CreateClient()
+        public async Task PostMessage(dynamic payload)
         {
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_slackClientSettings.BearerToken}");
-            return client;
+            await ExecuteSlackCall(payload, "chat.postMessage").ConfigureAwait(false);
         }
 
-        public async Task PostQuestionaire(string channel, Questionnaire questionnaire)
+        public async Task OpenModelView(dynamic payload)
         {
-            using (var client = CreateClient())
+            await ExecuteSlackCall(payload, "views.open").ConfigureAwait(false);
+        }
+        public async Task UpdateModelView(dynamic payload)
+        {
+            await ExecuteSlackCall(payload, "views.update").ConfigureAwait(false);
+        }
+
+        private async Task ExecuteSlackCall(dynamic payload, string address)
+        {
+            _logger.LogDebug("Executing slack request at {address}", address);
+
+            try
             {
-                var payload = new
+                string serializedPayload = JsonSerializer.Serialize(payload);
+                _logger.LogDebug("Serialised: {payload}.", serializedPayload);
+                using (var requestContent = new StringContent(serializedPayload, Encoding.UTF8, "application/json"))
                 {
-                    channel,
-                    text = "Question",
-                    blocks = new[]
-                    {
-                        Section(questionnaire),
-                        AnswerOptions(new string[]{"Vastaa"})
-                    }
-                };
-                var serializedPayload = JsonConvert.SerializeObject(payload);
-                var uri = new Uri("https://slack.com/api/chat.postMessage");
-                using (var response = await client.PostAsync(uri, new StringContent(serializedPayload, Encoding.UTF8, "application/json")))
-                {
+                    var response = await _client.PostAsync(address, requestContent).ConfigureAwait(false);
+                    response.EnsureSuccessStatusCode();
+
                     var content = await response.Content.ReadAsStringAsync();
-                    _logger.LogTrace("Content: {0}", content);
-                    var parsed = _slackResponseParser.Parse(content);
-                    if (response.StatusCode != System.Net.HttpStatusCode.OK || !parsed.Ok)
+
+                    _logger.LogDebug("Request successful, checking content. Content: {content}", content);
+                    var parsed = JsonSerializer.Deserialize<JsonElement>(content);
+                    if (!parsed.GetProperty("ok").GetBoolean())
                     {
-                        _logger.LogTrace("Status code: {0}. Error message: {0}", response.StatusCode, parsed?.Error);
-                        _logger.LogTrace("Content: {0}", content);
-                        throw new SlackLibException($"Something went wrong while creating questionnaire. Code was {response.StatusCode}");
+                        _logger.LogCritical("Request successful but SlackAPI error. Error message: {error_message}", parsed.GetProperty("error").GetString());
+                        throw new SlackLibException($"Error message: {parsed.GetProperty("error").GetString()}");
                     }
                 }
             }
-        }
-
-        private dynamic Section(Questionnaire questionnaire)
-        {
-            return new
+            catch (JsonException e)
             {
-                type = "section",
-                block_id = questionnaire.QuestionId,
-                text = new
-                {
-                    type = "mrkdwn",
-                    text = questionnaire.Question
-                }
-            };
-        }
-
-        private dynamic AnswerOptions(string[] options)
-        {
-            return new
+                _logger.LogCritical(e, "Failed to serialise the payload or deserialize the slack response.");
+                throw new SlackLibException("Json serialising error.", e);
+            }
+            catch (HttpRequestException e)
             {
-                type = "actions",
-                elements = options.Select(option => new
-                {
-                    type = "button",
-                    text = new
-                    {
-                        type = "plain_text",
-                        text = option,
-                        emoji = true
-                    }
-                }).ToArray()
-            };
-        }
-
-        public async Task OpenAnswerDialog(string triggerId, Questionnaire questionnaire)
-        {
-            using (var client = CreateClient())
-            {
-                _logger.LogInformation("Opening dialog");
-                var payload = new
-                {
-                    dialog = new
-                    {
-                        callback_id = questionnaire.QuestionId,
-                        title = "Kysely",
-                        elements = new[]
-                        {
-                            new
-                            {
-                                label = questionnaire.Question,
-                                type = "select",
-                                name = "answer",
-                                options = questionnaire.AnswerOptions.Select(option => {
-                                    return new
-                                    {
-                                        label = option,
-                                        value = option
-                                    };
-                                })
-                            }
-                    }
-                    },
-                    trigger_id = triggerId
-                };
-                var serializedPayload = JsonConvert.SerializeObject(payload);
-                var requestContent = new StringContent(serializedPayload, Encoding.UTF8, "application/json");
-                using (var response = await client.PostAsync(new Uri("https://slack.com/api/dialog.open"), requestContent))
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    _logger.LogTrace("Content: {0}", content);
-                    var parsed = _slackResponseParser.Parse(content);
-                    if (response.StatusCode != System.Net.HttpStatusCode.OK || !parsed.Ok)
-                    {
-                        _logger.LogTrace("Status code: {0}. Error message: {0}", response.StatusCode, parsed?.Error);
-                        throw new SlackLibException($"Something went wrong while responding to answer. Code was {response.StatusCode}");
-                    }
-                }
+                _logger.LogCritical(e, "Failed Http request to Slack API.");
+                throw new SlackLibException("Http request error.", e);
             }
         }
     }

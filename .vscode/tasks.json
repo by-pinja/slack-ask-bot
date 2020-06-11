@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/ConsoleTester/ConsoleTester.csproj"
+                "${workspaceFolder}/ConsoleInterface/ConsoleInterface.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -17,7 +17,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/ConsoleTester/ConsoleTester.csproj"
+                "${workspaceFolder}/ConsoleInterface/ConsoleInterface.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -28,7 +28,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/ConsoleTester/ConsoleTester.csproj"
+                "${workspaceFolder}/ConsoleInterface/ConsoleInterface.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -78,7 +78,7 @@
             "type": "func",
             "dependsOn": "build",
             "options": {
-                "cwd": "${workspaceFolder}/AzureFunctions/bin/Debug/netcoreapp2.0"
+                "cwd": "${workspaceFolder}/AzureFunctions/bin/Debug/netcoreapp3.1"
             },
             "command": "host start",
             "isBackground": true,

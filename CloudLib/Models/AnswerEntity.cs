@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Azure.Cosmos.Table;
 
 namespace CloudLib.Models
@@ -7,19 +6,17 @@ namespace CloudLib.Models
     {
         public string QuestionnaireId { get; set; }
         public string Question { get; set; }
-        public string Channel { get; set; }
         public string Answer { get; set; }
         public string Answerer { get; set; }
 
         public AnswerEntity()
         {
-
         }
 
-        public AnswerEntity(string triggerId, string channel)
+        public AnswerEntity(string questionnaireId, string username)
         {
-            RowKey = triggerId;
-            PartitionKey = channel;
+            RowKey = questionnaireId;
+            PartitionKey = username;
         }
     }
 }

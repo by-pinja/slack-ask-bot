@@ -1,6 +1,6 @@
 using CommandLine;
 
-namespace ConsoleTester.Options
+namespace ConsoleInterface.Options
 {
     [Verb("generateTemplate", HelpText = "Creates a new questionnaire template.")]
     public class GenerateQuestionnaireTemplateOption

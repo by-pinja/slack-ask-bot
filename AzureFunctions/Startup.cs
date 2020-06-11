@@ -2,15 +2,16 @@ using System.Diagnostics;
 using System.Reflection;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using AzureFunctions;
 using Microsoft.Extensions.Configuration;
 using CloudLib;
 using SlackLib;
+using AskBotCore;
+using System;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 
-[assembly: WebJobsStartup(typeof(Startup))]
+[assembly: FunctionsStartup(typeof(Startup))]
 namespace AzureFunctions
 {
     internal class CustomTelemetryInitializer : ITelemetryInitializer
@@ -19,8 +20,8 @@ namespace AzureFunctions
 
         public CustomTelemetryInitializer()
         {
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
+            var assembly = Assembly.GetExecutingAssembly();
+            var fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
             _version = fileVersionInfo.ProductVersion;
         }
 
@@ -30,25 +31,29 @@ namespace AzureFunctions
         }
     }
 
-    public class Startup : IWebJobsStartup
+    public class Startup : FunctionsStartup
     {
-        public void Configure(IWebJobsBuilder builder)
+        public override void Configure(IFunctionsHostBuilder builder)
         {
-            IConfiguration config = new ConfigurationBuilder()
+            var config = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
                 .Build();
 
             var tableStorageSettings = config.GetSection("TableStorage").Get<TableStorageSettings>();
             var slackClientSettings = config.GetSection("SlackClient").Get<SlackClientSettings>();
 
-            builder.Services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
-            builder.Services.AddSingleton(tableStorageSettings);
-            builder.Services.AddSingleton(slackClientSettings);
-            builder.Services.AddTransient<PayloadParser>();
-            builder.Services.AddSingleton<IStorage, Storage>();
-            builder.Services.AddTransient<SlackResponseParser>();
-            builder.Services.AddTransient<SlackClient>();
-            builder.Services.AddLogging();
+            builder.Services.AddHttpClient<ISlackClient, SlackClient>(c =>
+            {
+                c.BaseAddress = new Uri("https://slack.com/api/");
+                c.DefaultRequestHeaders.Add("Authorization", $"Bearer {slackClientSettings.BearerToken}");
+            });
+
+            builder.Services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>()
+            .AddSingleton(tableStorageSettings)
+            .AddSingleton(slackClientSettings)
+            .AddTransient<IStorage, Storage>()
+            .AddTransient<IAskBotControl, AskBotControl>()
+            .AddLogging();
         }
     }
 }

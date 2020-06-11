@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace CloudLib
         private readonly ILogger<Storage> _logger;
         private readonly TableStorageSettings _settings;
 
-        private readonly CloudTable _questionaires;
+        private readonly CloudTable _questionnaires;
         private readonly CloudTable _answers;
 
         public Storage(ILogger<Storage> logger, TableStorageSettings settings)
@@ -22,8 +23,8 @@ namespace CloudLib
 
             var storageAccount = CloudStorageAccount.Parse(_settings.ConnectionString);
             var client = storageAccount.CreateCloudTableClient();
-            _questionaires = client.GetTableReference(_settings.QuestionTable);
-            if (_questionaires.CreateIfNotExists())
+            _questionnaires = client.GetTableReference(_settings.QuestionTable);
+            if (_questionnaires.CreateIfNotExists())
             {
                 _logger.LogTrace("Table {table} doesn't exist, created.", _settings.QuestionTable);
             }
@@ -36,53 +37,80 @@ namespace CloudLib
 
         public async Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires()
         {
-            TableQuery<QuestionnaireEntity> query = new TableQuery<QuestionnaireEntity>();
-            return await _questionaires.ExecuteQueryAsync(query);
+            var query = new TableQuery<QuestionnaireEntity>();
+            return await _questionnaires.ExecuteQueryAsync(query);
         }
 
-        public async Task<IEnumerable<QuestionnaireEntity>> GetQuestionnaires(string questionnaireId)
+        private async Task<IEnumerable<AnswerEntity>> GetAnswers()
         {
-            TableQuery<QuestionnaireEntity> query = new TableQuery<QuestionnaireEntity>()
-                .Where(TableQuery.GenerateFilterCondition(nameof(QuestionnaireEntity.QuestionaireId), QueryComparisons.Equal, questionnaireId));
-            return await _questionaires.ExecuteQueryAsync(query);
+            var query = new TableQuery<AnswerEntity>();
+            return await _answers.ExecuteQueryAsync(query);
+        }
+
+        public async Task<QuestionnaireEntity> GetQuestionnaire(string questionnaireId)
+        {
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("Questionnaire id is empty", nameof(questionnaireId));
+
+            var query = new TableQuery<QuestionnaireEntity>().Where(TableQuery.GenerateFilterCondition(nameof(QuestionnaireEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
+            var questionnaires = await _questionnaires.ExecuteQueryAsync(query);
+            if (questionnaires.Count != 1)
+            {
+                _logger.LogDebug("{count} questionnaires found in query for questionnaire with id {questionnaireId}", questionnaires.Count, questionnaireId);
+                return null;
+            }
+
+            return questionnaires.First();
         }
 
         public async Task<IEnumerable<AnswerEntity>> GetAnswers(string questionnaireId)
         {
-            TableQuery<AnswerEntity> query = new TableQuery<AnswerEntity>();
-            if (!string.IsNullOrWhiteSpace(questionnaireId))
-            {
-                query.Where(TableQuery.GenerateFilterCondition(nameof(AnswerEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
-            }
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("Questionnaire id is empty.", nameof(questionnaireId));
+            var query = new TableQuery<AnswerEntity>().Where(TableQuery.GenerateFilterCondition(nameof(AnswerEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId));
             return await _answers.ExecuteQueryAsync(query);
         }
 
         public async Task InsertOrMerge(QuestionnaireEntity entity)
         {
             var insertOperation = TableOperation.InsertOrMerge(entity);
-            await _questionaires.ExecuteAsync(insertOperation);
+            try
+            {
+                await _questionnaires.ExecuteAsync(insertOperation);
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical(e, "Failed to execute insert or merge function. Partition key: {Pkey}, row key: {RKey}. Message: {message}", entity.PartitionKey, entity.RowKey, e.Message);
+                throw;
+            }
         }
 
         public async Task InsertOrMerge(AnswerEntity entity)
         {
             var insertOperation = TableOperation.InsertOrMerge(entity);
-            await _answers.ExecuteAsync(insertOperation);
+            try
+            {
+                await _answers.ExecuteAsync(insertOperation);
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical(e, "Failed to execute insert or merge function. Partition key: {Pkey}, row key: {RKey}. Message: {message}", entity.PartitionKey, entity.RowKey, e.Message);
+                throw;
+            }
         }
 
         public async Task DeleteAll()
         {
             _logger.LogTrace("Clearing table {table}", _answers.Name);
-            var answers = await GetAnswers(null);
+            var answers = await GetAnswers();
             _logger.LogDebug("Found {count} items to delete.", answers.Count());
-            var asnwerBatchGroups = GroupedDeletes(answers);
+            var answerBatchGroups = GroupedDeletes(answers);
 
             _logger.LogDebug("Executing batches");
-            foreach (var batch in asnwerBatchGroups)
+            foreach (var batch in answerBatchGroups)
             {
                 _answers.ExecuteBatch(batch);
             }
 
-            _logger.LogTrace("Clearing table {table}", _questionaires.Name);
+            _logger.LogTrace("Clearing table {table}", _questionnaires.Name);
             var questionnaires = await GetQuestionnaires();
             _logger.LogDebug("Found {count} items to delete.", questionnaires.Count());
             var questionnaireBatchGroups = GroupedDeletes(questionnaires);
@@ -90,8 +118,42 @@ namespace CloudLib
             _logger.LogDebug("Executing batch");
             foreach (var batch in questionnaireBatchGroups)
             {
-                _questionaires.ExecuteBatch(batch);
+                _questionnaires.ExecuteBatch(batch);
             }
+        }
+
+        public async Task DeleteQuestionnaireAndAnswers(string questionnaireId)
+        {
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("Questionnaire id is empty", nameof(questionnaireId));
+
+            var questionnaire = await GetQuestionnaire(questionnaireId);
+            _logger.LogDebug("Found questionnaire to delete.");
+
+            var questionnaireBatch = new TableBatchOperation
+            {
+                TableOperation.Delete(questionnaire)
+            };
+            await _questionnaires.ExecuteBatchAsync(questionnaireBatch);
+            _logger.LogDebug("Deleted questionnaire.");
+
+            await DeleteAnswers(questionnaireId);
+        }
+
+        private async Task DeleteAnswers(string questionnaireId)
+        {
+            var answers = await GetAnswers(questionnaireId);
+            if (answers.Count() == 0)
+            {
+                return;
+            }
+            _logger.LogDebug("Found {count} answer item(s) to delete.", answers.Count());
+            var answerBatch = new TableBatchOperation();
+            foreach (var answer in answers)
+            {
+                answerBatch.Add(TableOperation.Delete(answer));
+            }
+            await _answers.ExecuteBatchAsync(answerBatch);
+            _logger.LogDebug("Deleted answer(s).");
         }
 
         private IEnumerable<TableBatchOperation> GroupedDeletes(IEnumerable<TableEntity> entities)
