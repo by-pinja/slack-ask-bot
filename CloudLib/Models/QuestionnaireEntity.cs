@@ -5,8 +5,32 @@ namespace CloudLib.Models
 {
     public class QuestionnaireEntity : TableEntity
     {
-        public string QuestionnaireId { get; set; }
-        public string Channel { get; set; }
+        private string _questionnaireId;
+        public string QuestionnaireId
+        {
+            get
+            {
+                return _questionnaireId;
+            }
+            set
+            {
+                RowKey = value;
+                _questionnaireId = value;
+            }
+        }
+        private string _channel;
+        public string Channel
+        {
+            get
+            {
+                return _channel;
+            }
+            set
+            {
+                PartitionKey = value;
+                _channel = value;
+            }
+        }
         public DateTime Created { get; set; }
         public string Question { get; set; }
 
@@ -41,8 +65,11 @@ namespace CloudLib.Models
 
         public QuestionnaireEntity(string questionnaireId, string channel)
         {
-            RowKey = questionnaireId;
-            PartitionKey = channel;
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("questionnaire id is empty", nameof(questionnaireId));
+            if (string.IsNullOrWhiteSpace(channel)) throw new ArgumentException("channel is empty", nameof(questionnaireId));
+
+            QuestionnaireId = questionnaireId;
+            Channel = channel;
         }
     }
 }

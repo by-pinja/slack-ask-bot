@@ -12,7 +12,12 @@ This is still a very much a work in progress so this shouldn't probably be used 
 ## Setup steps
 
 ### Creating application
-1. Create the environment. For example:
+1. Azure PowerShell needs to have an authenticated sessions. This can be done with Connect-AzAccount.
+```bash
+pwsh -c Connect-AzAccount
+```
+
+2. Create the environment. For example:
 
 ```bash
 pwsh ./Deployment/Prepare-Environment.ps1
@@ -41,7 +46,7 @@ Or the individual steps
     .\Deployment\Publish.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name"
     ```
     
-2. Retrieve function url
+3. Retrieve function url
     Azure Functions Webhook URL can only be retrieved after the application is deployed.
     ```bash
    pwsh ./Deployment/Get-FunctionUri.ps1 -ResourceGroup "my-resource-group" -WebAppName "my-function-app-name" -FunctionName 'AskBotHook'"
@@ -57,7 +62,7 @@ Or the individual steps
    ```
    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
    ```
-3. Change logic apps web hook uri at https://api.slack.com/apps "Interactive Components"
+4. Change logic apps web hook uri at https://api.slack.com/apps "Interactive Components"
 
 ## Usage
 Console interface of this software uses [CommandLineParser](https://github.com/commandlineparser/commandline).

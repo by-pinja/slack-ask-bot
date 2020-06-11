@@ -10,7 +10,7 @@ namespace AskBotCore
         {
             return new
             {
-                questionnaire.Channel,
+                channel = questionnaire.Channel,
                 text = "PostQuestionnaire",
                 blocks = new object[]
                 {

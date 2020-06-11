@@ -143,6 +143,7 @@ namespace AzureFunctions
                 case "delete_a_questionnaire":
                     _logger.LogInformation("Fetching questionnaires.");
                     var questionnaires = await _storage.GetQuestionnaires().ConfigureAwait(false);
+                    _logger.LogDebug("Found {results} questionnaires.", questionnaires.Count());
                     if (questionnaires is null || questionnaires.Count() == 0)
                     {
                         payload = shortcut.GetNoQuestionnairesAvailablePayload();
@@ -192,12 +193,10 @@ namespace AzureFunctions
                         throw new ArgumentException("View submission answer options are empty.", nameof(viewSubmission));
                     }
 
-                    var questionnaire = new QuestionnaireEntity
+                    var questionnaire = new QuestionnaireEntity(guid, channel)
                     {
-                        QuestionnaireId = guid,
                         Question = question,
                         AnswerOptions = answerOptions,
-                        Channel = channel,
                         Created = dateTime
                     };
 

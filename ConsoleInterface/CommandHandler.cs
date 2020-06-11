@@ -35,7 +35,7 @@ namespace ConsoleInterface
             await _storage.GetQuestionnaires().ConfigureAwait(false);
         }
 
-        public async Task HandleCreateQuestionnaire(CreateQuestionnaireOption option, string guid, DateTime dateTime)
+        public async Task HandleCreateQuestionnaire(CreateQuestionnaireOption option, DateTime dateTime)
         {
             try
             {
@@ -44,8 +44,6 @@ namespace ConsoleInterface
                 var json = await File.ReadAllTextAsync(option.QuestionnaireFile);
                 var questionnaire = JsonSerializer.Deserialize<QuestionnaireEntity>(json);
                 _logger.LogDebug("Questionnaire deserialized, question {0}", questionnaire.Question);
-                questionnaire.QuestionnaireId = guid;
-                questionnaire.Channel = option.Channel;
                 questionnaire.Created = dateTime;
 
                 await _control.CreateQuestionnaire(questionnaire).ConfigureAwait(false);
@@ -87,19 +85,19 @@ namespace ConsoleInterface
             await _control.DeleteAll().ConfigureAwait(false);
         }
 
-        public async Task HandleGenerateTemplate(GenerateQuestionnaireTemplateOption option)
+        public async Task HandleGenerateTemplate(GenerateQuestionnaireTemplateOption option, string guid)
         {
             _logger.LogTrace("Generating a questionnaire template.");
 
-            var example = new QuestionnaireEntity
+            var example = new QuestionnaireEntity(guid, "This is the channel where questionnaire will be sent to.")
             {
-                Question = "I said hey, what's going on?",
+                Question = "What is the question?",
                 AnswerOptions = new string[]
                 {
-                    "I try all the time",
-                    "in this institution",
-                    "hey yeah yeah",
-                    ":partyparrot:"
+                    "Option 1",
+                    "Option 2",
+                    "Option 3",
+                    "Option 4"
                 }
             };
             var json = JsonSerializer.Serialize(example, new JsonSerializerOptions
