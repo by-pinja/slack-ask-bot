@@ -57,34 +57,21 @@ namespace AzureFunctions
                 PropertyNameCaseInsensitive = true
             };
 
-            try
+            switch (json.GetProperty("type").GetString())
             {
-                switch (json.GetProperty("type").GetString())
-                {
-                    case "block_actions":
-                        var blockAction = JsonSerializer.Deserialize<BlockAction>(payloadString, options);
-                        await HandleBlockAction(blockAction);
-                        return new OkResult();
-                    case "shortcut":
-                        var shortcut = JsonSerializer.Deserialize<Shortcut>(payloadString, options);
-                        await HandleShortcut(shortcut);
-                        return new OkResult();
-                    case "view_submission":
-                        var viewSubmission = JsonSerializer.Deserialize<ViewSubmission>(payloadString, options);
-                        return await HandleViewSubmission(viewSubmission, Guid.NewGuid().ToString(), DateTime.UtcNow);
-                    default:
-                        throw new NotImplementedException($"Unknown payload type {json.GetProperty("type").GetString()}.");
-                }
-            }
-            catch (SlackLibException e)
-            {
-                _logger.LogCritical("Slack lib exception, returning error result. Message: {message}", e.Message);
-                return new StatusCodeResult(500);
-            }
-            catch (NotImplementedException e)
-            {
-                _logger.LogCritical("Not implemented exception, returning bad result. Message: {message}", e.Message);
-                return new BadRequestResult();
+                case "block_actions":
+                    var blockAction = JsonSerializer.Deserialize<BlockAction>(payloadString, options);
+                    await HandleBlockAction(blockAction);
+                    return new OkResult();
+                case "shortcut":
+                    var shortcut = JsonSerializer.Deserialize<Shortcut>(payloadString, options);
+                    await HandleShortcut(shortcut);
+                    return new OkResult();
+                case "view_submission":
+                    var viewSubmission = JsonSerializer.Deserialize<ViewSubmission>(payloadString, options);
+                    return await HandleViewSubmission(viewSubmission, Guid.NewGuid().ToString(), DateTime.UtcNow);
+                default:
+                    throw new NotImplementedException($"Unknown payload type {json.GetProperty("type").GetString()}.");
             }
         }
 
@@ -205,7 +192,7 @@ namespace AzureFunctions
 
                     _logger.LogDebug("Questionnaire ready to be created.");
                     await _control.CreateQuestionnaire(questionnaire).ConfigureAwait(false);
-                    break;
+                    return new OkResult();
                 case "open_questionnaire":
                     _logger.LogInformation("Answer received from {answerer}.", viewSubmission.User.Username);
                     var answer = viewSubmission.View.State.Values.First().Value.First().Value.SelectedOption.Value;
@@ -242,8 +229,6 @@ namespace AzureFunctions
                 default:
                     throw new NotImplementedException($"Unknown view callback id: {viewSubmission.View.CallbackId}.");
             }
-
-            return new OkResult();
         }
     }
 }

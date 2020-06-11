@@ -61,12 +61,12 @@ namespace SlackLib
             }
             catch (JsonException e)
             {
-                _logger.LogCritical("Failed to serialise the payload or deserialize the slack response.");
+                _logger.LogCritical(e, "Failed to serialise the payload or deserialize the slack response.");
                 throw new SlackLibException("Json serialising error.", e);
             }
             catch (HttpRequestException e)
             {
-                _logger.LogCritical("Failed Http request to Slack API.");
+                _logger.LogCritical(e, "Failed Http request to Slack API.");
                 throw new SlackLibException("Http request error.", e);
             }
         }

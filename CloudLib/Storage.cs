@@ -41,7 +41,7 @@ namespace CloudLib
             return await _questionnaires.ExecuteQueryAsync(query);
         }
 
-        public async Task<IEnumerable<AnswerEntity>> GetAnswers()
+        private async Task<IEnumerable<AnswerEntity>> GetAnswers()
         {
             var query = new TableQuery<AnswerEntity>();
             return await _answers.ExecuteQueryAsync(query);
@@ -129,11 +129,18 @@ namespace CloudLib
             var questionnaire = await GetQuestionnaire(questionnaireId);
             _logger.LogDebug("Found questionnaire to delete.");
 
-            var questionnaireBatch = new TableBatchOperation();
-            questionnaireBatch.Add(TableOperation.Delete(questionnaire));
-            _questionnaires.ExecuteBatch(questionnaireBatch);
+            var questionnaireBatch = new TableBatchOperation
+            {
+                TableOperation.Delete(questionnaire)
+            };
+            await _questionnaires.ExecuteBatchAsync(questionnaireBatch);
             _logger.LogDebug("Deleted questionnaire.");
 
+            await DeleteAnswers(questionnaireId);
+        }
+
+        private async Task DeleteAnswers(string questionnaireId)
+        {
             var answers = await GetAnswers(questionnaireId);
             if (answers.Count() == 0)
             {
@@ -145,7 +152,7 @@ namespace CloudLib
             {
                 answerBatch.Add(TableOperation.Delete(answer));
             }
-            _answers.ExecuteBatch(answerBatch);
+            await _answers.ExecuteBatchAsync(answerBatch);
             _logger.LogDebug("Deleted answer(s).");
         }
 

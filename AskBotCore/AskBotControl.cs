@@ -47,7 +47,7 @@ namespace AskBotCore
             if (questionnaire is null)
             {
                 _logger.LogError("Could not find questionnaire with id {questionnaireId}.", questionnaireId);
-                throw new Exception("Could not find questionnaire.");
+                throw new ArgumentException("Could not find questionnaire.", nameof(questionnaireId));
             }
             _logger.LogTrace("Getting {questionnaireId} answers.", questionnaire.Question);
 

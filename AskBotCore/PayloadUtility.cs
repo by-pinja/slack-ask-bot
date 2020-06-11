@@ -37,7 +37,7 @@ namespace AskBotCore
                                 text = new
                                 {
                                     type = "plain_text",
-                                    text = "Vastaa"
+                                    text = "Answer"
                                 }
                             }
                         }
@@ -62,17 +62,17 @@ namespace AskBotCore
             };
 
             var answers = questionnaireResult.Answers.Select(kvp =>
+                {
+                    return (object)new
+                    {
+                        type = "section",
+                        text = new
                         {
-                            return (object)new
-                            {
-                                type = "section",
-                                text = new
-                                {
-                                    type = "plain_text",
-                                    text = $"\"{kvp.Key}\": {kvp.Value} votes.",
-                                }
-                            };
-                        });
+                            type = "plain_text",
+                            text = $"\"{kvp.Key}\": {kvp.Value} votes.",
+                        }
+                    };
+                });
 
             return new
             {
@@ -289,7 +289,7 @@ namespace AskBotCore
                                 type = "plain_text",
                                 text = "Add another option"
                             },
-                            value = numberOfOptions >= 8 ? "8" : $"{numberOfOptions + 1}"
+                            value = $"{numberOfOptions + 1}"
                         },
                         new
                         {
