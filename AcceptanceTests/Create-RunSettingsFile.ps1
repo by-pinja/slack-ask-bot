@@ -9,29 +9,16 @@
     .PARAMETER WebAppName
     Name of the target web app. If not set, resource group name is used.
 #>
-# param(
-#     [Parameter(Mandatory)][string]$ResourceGroup,
-#     [Parameter()][string]$WebAppName = $ResourceGroup
-# )
-# $ErrorActionPreference = "Stop"
-# Set-StrictMode -Version Latest
-
-# . "./Deployment/FunctionUtil.ps1"
-
-# Write-Host "Fetch credentials..."
-# $kuduCreds = Get-KuduCredentials $WebAppName $ResourceGroup
-# $code = Get-DefaultKey $WebAppName $kuduCreds
 param(
-    [Parameter()][string]$SettingsFile = 'developer-settings.json'
+    [Parameter(Mandatory)][string]$ResourceGroup,
+    [Parameter()][string]$WebAppName = $ResourceGroup
 )
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-Write-Host "Reading settings from file $SettingsFile"
-$settingsJson = Get-Content -Raw -Path $SettingsFile | ConvertFrom-Json
-
 $address = ./Deployment/Get-FunctionUri.ps1 `
-    -ResourceGroup $settingsJson.ResourceGroupName `
+    -ResourceGroup $ResourceGroup `
+    -WebAppName $WebAppName `
     -FunctionName 'AskBotHook'
 
 [xml]$document = New-Object System.Xml.XmlDocument
@@ -47,11 +34,6 @@ $appNameNode = $document.CreateElement('Parameter')
 $appNameNode.SetAttribute('name', 'FunctionAppUrl')
 $appNameNode.SetAttribute('value', $address)
 $parameters.AppendChild($appNameNode);
-
-# $codeNode = $document.CreateElement('Parameter')
-# $codeNode.SetAttribute('name', 'FunctionAppCode')
-# $codeNode.SetAttribute('value', $code)
-# $parameters.AppendChild($codeNode);
 
 Write-Host "Create settings..."
 $document.save("AcceptanceTests/.runsettings")
