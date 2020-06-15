@@ -2,6 +2,7 @@ library 'jenkins-ptcs-library@3.0.0'
 
 def isDependabot(branchName) { return branchName.toString().startsWith("dependabot/nuget") }
 def isTest(branchName) { return branchName == "test" }
+def isMaster(branchName) { return branchName == "master" }
 
 podTemplate(label: pod.label,
   containers: pod.templates + [
@@ -50,11 +51,11 @@ podTemplate(label: pod.label,
                             """
                         }
                         withCredentials([
-                            string(credentialsId: 'hjni_github_token', variable: 'GH_TOKEN')
+                            string(credentialsId: 'hjni_slack_bearer_token', variable: 'SL_TOKEN')
                         ]) {
                             stage('Create test environment'){
                                 sh """
-                                    pwsh -command "New-AzResourceGroupDeployment -Name slack-askbot -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $ciRg -appName $ciAppName -environment $environment -gitHubToken (ConvertTo-SecureString -String $GH_TOKEN -AsPlainText -Force)"
+                                    pwsh -command "New-AzResourceGroupDeployment -Name slack-askbot -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $ciRg -appName $ciAppName -environment $environment -slackBearerToken (ConvertTo-SecureString -String $SL_TOKEN -AsPlainText -Force)"
                                 """
                             }
                         }
