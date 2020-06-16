@@ -42,24 +42,20 @@ podTemplate(label: pod.label,
                 if (isTest(branch) || isDependabot(branch)){
                     toAzureTestEnv {
                         def now = new Date().getTime()
-                        def ciRg = 'repo-ci-' + now
-                        def ciAppName = 'repo-ci-' + now
+                        def ciRg = 'slack-askbot-ci-' + now
+                        def ciAppName = 'slack-askbot-ci-' + now
 
-                        stage('Create temporary Resource Group'){
+                        try {
+                            stage('Create temporary Resource Group'){
                             sh """
                                 pwsh -command "New-AzResourceGroup -Name '$ciRg' -Location 'North Europe' -Tag @{subproject='2026956'; Description='Continuous Integration'}"
                             """
-                        }
-                        withCredentials([
-                            string(credentialsId: 'hjni_slack_bearer_token', variable: 'SL_TOKEN')
-                        ]) {
+                            }
                             stage('Create test environment'){
                                 sh """
                                     pwsh -command "New-AzResourceGroupDeployment -Name slack-askbot -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $ciRg -appName $ciAppName -environment $environment -slackBearerToken (ConvertTo-SecureString -String $SL_TOKEN -AsPlainText -Force)"
                                 """
                             }
-                        }
-                        try {
                             stage('Publish to test environment') {
                                 sh """
                                     pwsh -command "Publish-AzWebApp -ResourceGroupName $ciRg -Name $ciAppName -ArchivePath $zipName -Force"
