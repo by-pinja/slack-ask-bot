@@ -6,7 +6,8 @@ def isMaster(branchName) { return branchName == "master" }
 
 podTemplate(label: pod.label,
   containers: pod.templates + [
-    containerTemplate(name: 'dotnet', image: 'ptcos/multi-netcore-sdk:0.0.2', ttyEnabled: true, command: '/bin/sh -c', args: 'cat')
+    containerTemplate(name: 'dotnet', image: 'ptcos/multi-netcore-sdk:0.0.2', ttyEnabled: true, command: '/bin/sh -c', args: 'cat'),
+    containerTemplate(name: 'powershell', image: 'azuresdk/azure-powershell-core:master', ttyEnabled: true, command: '/bin/sh -c', args: 'cat')
   ]
 ) {
     def branch = (env.BRANCH_NAME)
