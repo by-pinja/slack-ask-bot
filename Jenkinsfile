@@ -44,29 +44,29 @@ podTemplate(label: pod.label,
                 if (isTest(branch) || isDependabot(branch)){
                     toAzureTestEnv {
                         def now = new Date().getTime()
-                        def ciRg = 'askbot-ci-' + now
-                        def ciAppName = 'askbot-ci-' + now
+                        def ciRg = 'askbot-ci-'
+                        def ciAppName = 'askbot-ci-'
                         def mockToken = 'unused'
 
                         try {
                             stage('Create temporary Resource Group'){
                                 sh """
-                                    pwsh -command "New-AzResourceGroup -Name '$ciRg' -Location 'North Europe' -Tag @{subproject='2026956'; Description='Continuous Integration'}"
+                                    pwsh -c "New-AzResourceGroup -Name '$ciRg' -Location 'North Europe' -Tag @{subproject='2026956'; Description='Continuous Integration'}"
                                 """
                             }
                             stage('Create test environment'){
                                 sh """
-                                    pwsh -command "New-AzResourceGroupDeployment -Name slack-askbot -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $ciRg -appName $ciAppName -environment $environment -slackBearerToken (ConvertTo-SecureString -String $mockToken -AsPlainText -Force)"
+                                    pwsh -c "New-AzResourceGroupDeployment -Name slack-askbot -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $ciRg -appName $ciAppName -environment $environment -slackBearerToken (ConvertTo-SecureString -String $mockToken -AsPlainText -Force)"
                                 """
                             }
                             stage('Publish to test environment') {
                                 sh """
-                                    pwsh -command "Publish-AzWebApp -ResourceGroupName $ciRg -Name $ciAppName -ArchivePath $zipName -Force"
+                                    pwsh -c "Publish-AzWebApp -ResourceGroupName $ciRg -Name $ciAppName -ArchivePath $zipName -Force"
                                 """
                             }
                             stage('Create .runsettings-file acceptance tests') {
                                 sh """
-                                    pwsh -command "&./AcceptanceTests/Create-RunSettingsFile.ps1 -ResourceGroup $ciRg -WebAppName $ciAppName"
+                                    pwsh -c "&./AcceptanceTests/Create-RunSettingsFile.ps1 -ResourceGroup $ciRg -WebAppName $ciAppName"
                                 """
                             }
                             container('dotnet') {
