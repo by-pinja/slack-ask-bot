@@ -32,7 +32,7 @@ podTemplate(label: pod.label,
                 """
             }
         }
-           if (isTest(branch) || isDependabot(branch)){
+        if (isTest(branch) || isDependabot(branch)) {
             container('powershell') {
                 stage('Package') {
                     sh """
@@ -87,6 +87,6 @@ podTemplate(label: pod.label,
                     }
                 }
             }
-           }
+        }
     }
-  }
+}
