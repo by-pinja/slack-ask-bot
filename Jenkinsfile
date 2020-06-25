@@ -44,8 +44,8 @@ podTemplate(label: pod.label,
                 if (isTest(branch) || isDependabot(branch)){
                     toAzureTestEnv {
                         def now = new Date().getTime()
-                        def ciRg = 'slack-askbot-ci-' + now
-                        def ciAppName = 'slack-askbot-ci-' + now
+                        def ciRg = 'sl-askbot-ci-' + now
+                        def ciAppName = 'sl-askbot-ci-' + now
                         def mockToken = 'unused'
 
                         try {
