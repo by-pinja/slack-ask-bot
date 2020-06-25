@@ -23,7 +23,8 @@ podTemplate(label: pod.label,
         container('dotnet') {
             stage('Build') {
                 sh """
-                    dotnet build
+                    cd $functionsProject
+                    dotnet publish -c Release -o $publishFolder --version-suffix ${env.BUILD_NUMBER}
                 """
             }
             stage('Test') {
@@ -36,7 +37,7 @@ podTemplate(label: pod.label,
             container('powershell') {
                 stage('Package') {
                     sh """
-                        pwsh -command "Compress-Archive -DestinationPath $zipName -Path $functionsProject/$publishFolder/*"
+                        pwsh -c "Compress-Archive -Path $functionsProject/$publishFolder/* -DestinationPath $zipName"
                     """
                 }
 
@@ -50,7 +51,7 @@ podTemplate(label: pod.label,
                         try {
                             stage('Create temporary Resource Group'){
                                 sh """
-                                    pwsh -command "New-AzResourceGroup -Name '$ciRg' -Location 'North Europe' -Tag @{subproject='2026956'; Description='Continuous Integration'}"
+                                    pwsh -command "New-AzResourceGroup -Name '$ciRg' -Location 'North Europe'"
                                 """
                             }
                             stage('Create test environment'){
