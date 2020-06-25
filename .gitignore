@@ -335,3 +335,6 @@ ASALocalRun/
 example.json
 developer-settings.json
 publish.zip
+
+# Test settings for continuous integration
+.runsettings

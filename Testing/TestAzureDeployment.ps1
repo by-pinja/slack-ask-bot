@@ -21,7 +21,7 @@ $settingsJson = Get-Content -Raw -Path $SettingsFile | ConvertFrom-Json
 
 $address = ./Deployment/Get-FunctionUri.ps1 `
     -ResourceGroup $settingsJson.ResourceGroupName `
-    -FunctionName 'AnswerHandlerHook'
+    -FunctionName 'AskBotHook'
 
 # Minimum required to get a response
 $json = @{
