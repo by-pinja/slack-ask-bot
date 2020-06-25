@@ -1,7 +1,7 @@
 library 'jenkins-ptcs-library@3.0.0'
 
 def isDependabot(branchName) { return branchName.toString().startsWith("dependabot/nuget") }
-def isTest(branchName) { return branchName == "feature/add-acceptance-tests" }
+def isTest(branchName) { return branchName == "test" }
 def isMaster(branchName) { return branchName == "master" }
 
 podTemplate(label: pod.label,
@@ -43,7 +43,6 @@ podTemplate(label: pod.label,
 
                 if (isTest(branch) || isDependabot(branch)){
                     toAzureTestEnv {
-                        def now = new Date().getTime()
                         def ciRg = 'askbot-ci'
                         def ciAppName = 'askbot-ci'
                         def mockToken = 'unused'
