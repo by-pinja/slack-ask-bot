@@ -80,10 +80,35 @@ podTemplate(label: pod.label,
                         finally {
                             stage('Delete test environment'){
                                 sh """
-                                    pwsh -command "Remove-AzResourceGroup -Name '$ciRg' -Force"
+                                    pwsh -c "Remove-AzResourceGroup -Name '$ciRg' -Force"
                                 """
                             }
                         }
+                    }
+                }
+                if (isMaster(branch)){
+                    def resourceGroup = 'pinja-slack-bot'
+
+                    withCredentials([azureServicePrincipal('PTCG_Azure_SP')]){
+                        stage('Login to production'){
+                            sh """
+                                pwsh -c "./Deployment/Login.ps1 -ApplicationId '$AZURE_CLIENT_ID' -ApplicationKey '$AZURE_CLIENT_SECRET' -TenantId '$AZURE_TENANT_ID' -SubscriptionId $AZURE_SUBSCRIPTION_ID"
+                            """
+                        }
+                    }
+                    withCredentials([
+                        string(credentialsId: 'PinjaAskBotSlackToken', variable: 'SLACK_TOKEN')
+                    ]){
+                        stage('Create production environment') {
+                            sh """
+                                pwsh -c "New-AzResourceGroupDeployment -Name slack-ask-bot -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $resourceGroup -environment Production -slackBearerToken (ConvertTo-SecureString -String $SLACK_TOKEN -AsPlainText -Force)"
+                            """
+                        }
+                    }
+                    stage('Publish to production environment') {
+                        sh """
+                            pwsh -c "Publish-AzWebApp -ResourceGroupName $resourceGroup -Name $resourceGroup -ArchivePath $zipName -Force"
+                        """
                     }
                 }
             }
