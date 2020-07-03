@@ -2,7 +2,7 @@ library 'jenkins-ptcs-library@3.0.0'
 
 def isDependabot(branchName) { return branchName.toString().startsWith("dependabot/nuget") }
 def isTest(branchName) { return branchName == "test" }
-def isMaster(branchName) { return branchName == "master" }
+def isMaster(branchName) { return branchName == "feature/prod-deployment" }
 
 podTemplate(label: pod.label,
   containers: pod.templates + [
@@ -33,7 +33,7 @@ podTemplate(label: pod.label,
                 """
             }
         }
-        if (isTest(branch) || isDependabot(branch)) {
+        if (isTest(branch) || isDependabot(branch) || isMaster(branch)) {
             container('powershell') {
                 stage('Package') {
                     sh """
@@ -87,7 +87,7 @@ podTemplate(label: pod.label,
                     }
                 }
                 if (isMaster(branch)){
-                    def resourceGroup = 'pinja-slack-bot'
+                    def resourceGroup = 'pinja-slack-ask-bot'
 
                     withCredentials([azureServicePrincipal('PTCG_Azure_SP')]){
                         stage('Login to production'){
