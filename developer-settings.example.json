@@ -1,7 +1,7 @@
 {
-    "ResourceGroupName": "Keep below 20 characters excluding -. E.g. slackaskbot-dev-name",
+    "ResourceGroupName": "Replace: keep below 20 characters excluding the character '-'. E.g. slackaskbot-dev-name",
     "Location": "North Europe",
-    "SlackBearerToken": "Slack OAuth Access Token used for messaging",
+    "SlackBearerToken": "Replace: Slack OAuth Access Token used for messaging",
     "Tags": {
         "subproject": "subprojectid for billing",
         "example3": "example"
