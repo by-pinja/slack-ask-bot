@@ -233,7 +233,7 @@ namespace AskBotCore
                 block_id = "ChannelBlock",
                 element = new
                 {
-                    type = "channels_select",//"conversations_select",
+                    type = "conversations_select",
                     action_id = "channel",
                     placeholder = new
                     {

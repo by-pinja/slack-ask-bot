@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 using Microsoft.Azure.Cosmos.Table;
 
 namespace CloudLib.Models
@@ -34,9 +35,6 @@ namespace CloudLib.Models
         public DateTime Created { get; set; }
         public string Question { get; set; }
 
-        /// <summary>
-        /// ';' separated answer options
-        /// </summary>
         private string _answerOptionsString;
         public string AnswerOptionsString
         {
@@ -44,8 +42,8 @@ namespace CloudLib.Models
             set
             {
                 _answerOptionsString = value;
-                _answerOptions = value.Split(';');
-            }// string.Join(";", questionnaire.AnswerOptions);} //JsonSerializer.Deserialize<string[]>(value); }
+                _answerOptions = JsonSerializer.Deserialize<string[]>(value);
+            }
         }
 
         private string[] _answerOptions;
@@ -55,8 +53,8 @@ namespace CloudLib.Models
             set
             {
                 _answerOptions = value;
-                _answerOptionsString = string.Join(";", value);
-            }//JsonSerializer.Serialize(_answerOptions); }
+                _answerOptionsString = JsonSerializer.Serialize(_answerOptions);
+            }
         }
 
         public QuestionnaireEntity()

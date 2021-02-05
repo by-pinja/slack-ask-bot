@@ -36,7 +36,7 @@ namespace AzureFunctions.Payloads
         [JsonPropertyName("selected_option")]
         public SelectedOption SelectedOption { get; set; }
 
-        [JsonPropertyName("selected_channel")]
+        [JsonPropertyName("selected_conversation")]
         public string SelectedChannel { set { this.Value = value; } }
     }
 
