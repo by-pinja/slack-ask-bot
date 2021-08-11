@@ -75,7 +75,7 @@ Or the individual steps
    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
    ```
 
-4. Change web hook uri at https://api.slack.com/apps "Interactive Components"
+4. Change functions web hook uri at https://api.slack.com/apps "Interactive Components"
 
 ## Usage
 
