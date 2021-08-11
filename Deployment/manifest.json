@@ -1,0 +1,64 @@
+{
+    "_metadata": {
+        "major_version": 1,
+        "minor_version": 1
+    },
+    "display_information": {
+        "name": "Pinja Slack Ask Bot"
+    },
+    "features": {
+        "app_home": {
+            "home_tab_enabled": false,
+            "messages_tab_enabled": true,
+            "messages_tab_read_only_enabled": true
+        },
+        "bot_user": {
+            "display_name": "Pinja Slack Ask Bot",
+            "always_online": false
+        },
+        "shortcuts": [
+            {
+                "name": "Delete a questionnaire",
+                "type": "global",
+                "callback_id": "delete_a_questionnaire",
+                "description": "Delete a questionnaire"
+            },
+            {
+                "name": "Get answers",
+                "type": "global",
+                "callback_id": "get_answers",
+                "description": "Get answers"
+            },
+            {
+                "name": "Delete questionnaires",
+                "type": "global",
+                "callback_id": "delete_questionnaires",
+                "description": "Delete questionnaires"
+            },
+            {
+                "name": "Create Questionnaire",
+                "type": "global",
+                "callback_id": "create_questionnaire",
+                "description": "Create Questionnaire"
+            }
+        ]
+    },
+    "oauth_config": {
+        "scopes": {
+            "bot": [
+                "chat:write",
+                "commands",
+                "chat:write.public"
+            ]
+        }
+    },
+    "settings": {
+        "interactivity": {
+            "is_enabled": true,
+            "request_url": "[Replace this with correct azure function uri. Retrieve from Azure Portal or use Get-FunctionUri.ps1]"
+        },
+        "org_deploy_enabled": false,
+        "socket_mode_enabled": false,
+        "token_rotation_enabled": false
+    }
+}

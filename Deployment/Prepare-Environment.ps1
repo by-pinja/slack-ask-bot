@@ -41,3 +41,6 @@ New-AzResourceGroupDeployment `
 
 Write-Host 'Publishing...'
 .\Deployment\Publish.ps1 -ResourceGroup $settingsJson.ResourceGroupName
+
+Write-Host 'Getting hook...'
+.\Deployment\Get-FunctionUri.ps1 -ResourceGroup $settingsJson.ResourceGroupName -FunctionName AskBotHook
