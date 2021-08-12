@@ -95,7 +95,7 @@ podTemplate(label: pod.label,
                         ]){
                             stage('Create production environment') {
                                 sh """
-                                    pwsh -command "New-AzResourceGroupDeployment -Name slack-ask-bot -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $prodResourceGroup -appName $prodResourceGroup -environment Production -slackBearerToken (ConvertTo-SecureString -String 'mocktoken' -AsPlainText -Force)"
+                                    pwsh -command "New-AzResourceGroupDeployment -Name slack-ask-bot -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $prodResourceGroup -appName $prodResourceGroup -environment Production -slackBearerToken (ConvertTo-SecureString -String '$SLACK_TOKEN' -AsPlainText -Force)"
                                 """
                             }
                         }
