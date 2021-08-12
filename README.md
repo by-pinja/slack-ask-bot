@@ -1,4 +1,5 @@
 # Slack AskBot
+[![Build Status](https://jenkins.protacon.cloud/buildStatus/icon?job=www.github.com%2Fslack-ask-bot%2Fmaster)](https://jenkins.protacon.cloud/job/www.github.com/job/slack-ask-bot/job/master/)
 
 A bot to perform small questionnaires in Slack
 
