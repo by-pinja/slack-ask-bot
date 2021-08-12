@@ -33,11 +33,11 @@ podTemplate(label: pod.label,
                 """
             }
         }
-        if (isTest(branch) || isDependabot(branch)) {
+        if (isTest(branch) || isDependabot(branch) || isMaster(branch)) {
             container('powershell') {
                 stage('Package') {
                     sh """
-                        pwsh -c "Compress-Archive -Path $functionsProject/$publishFolder/* -DestinationPath $zipName"
+                        pwsh -command "Compress-Archive -Path $functionsProject/$publishFolder/* -DestinationPath $zipName"
                     """
                 }
 
@@ -51,22 +51,22 @@ podTemplate(label: pod.label,
                         try {
                             stage('Create temporary Resource Group'){
                                 sh """
-                                    pwsh -c "New-AzResourceGroup -Name '$ciRg' -Location 'North Europe' -Tag @{subproject='2026956'; Description='Continuous Integration'}"
+                                    pwsh -command "New-AzResourceGroup -Name '$ciRg' -Location 'North Europe' -Tag @{subproject='2026956'; Description='Continuous Integration'}"
                                 """
                             }
                             stage('Create test environment'){
                                 sh """
-                                    pwsh -c "New-AzResourceGroupDeployment -Name slack-askbot -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $ciRg -appName $ciAppName -environment $environment -slackBearerToken (ConvertTo-SecureString -String $mockToken -AsPlainText -Force)"
+                                    pwsh -command "New-AzResourceGroupDeployment -Name slack-askbot -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $ciRg -appName $ciAppName -environment $environment -slackBearerToken (ConvertTo-SecureString -String $mockToken -AsPlainText -Force)"
                                 """
                             }
                             stage('Publish to test environment') {
                                 sh """
-                                    pwsh -c "Publish-AzWebApp -ResourceGroupName $ciRg -Name $ciAppName -ArchivePath $zipName -Force"
+                                    pwsh -command "Publish-AzWebApp -ResourceGroupName $ciRg -Name $ciAppName -ArchivePath $zipName -Force"
                                 """
                             }
                             stage('Create .runsettings-file acceptance tests') {
                                 sh """
-                                    pwsh -c "&./AcceptanceTests/Create-RunSettingsFile.ps1 -ResourceGroup $ciRg -WebAppName $ciAppName"
+                                    pwsh -command "&./AcceptanceTests/Create-RunSettingsFile.ps1 -ResourceGroup $ciRg -WebAppName $ciAppName"
                                 """
                             }
                             container('dotnet') {
@@ -84,6 +84,25 @@ podTemplate(label: pod.label,
                                     pwsh -command "Remove-AzResourceGroup -Name '$ciRg' -Force"
                                 """
                             }
+                        }
+                    }
+                }
+                if (isMaster(branch)){
+                    toAzureEnv("PTCG_Azure_SP") {
+                        def prodResourceGroup = 'pinja-slack-ask-bot'
+                        withCredentials([
+                            string(credentialsId: 'PinjaAskBotSlackToken', variable: 'SLACK_TOKEN')
+                        ]){
+                            stage('Create production environment') {
+                                sh """
+                                    pwsh -command "New-AzResourceGroupDeployment -Name slack-ask-bot -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $prodResourceGroup -appName $prodResourceGroup -environment Production -slackBearerToken (ConvertTo-SecureString -String 'mocktoken' -AsPlainText -Force)"
+                                """
+                            }
+                        }
+                        stage('Publish to production environment') {
+                            sh """
+                                pwsh -command "Publish-AzWebApp -ResourceGroupName $prodResourceGroup -Name $prodResourceGroup -ArchivePath $zipName -Force"
+                            """
                         }
                     }
                 }
