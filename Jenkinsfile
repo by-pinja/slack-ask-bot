@@ -88,18 +88,19 @@ podTemplate(label: pod.label,
                 }
                 if (isMaster(branch)){
                     toAzureEnv("PTCG_Azure_SP") {
+                        def prodResourceGroup = 'pinja-slack-ask-bot'
                         withCredentials([
                             string(credentialsId: 'PinjaAskBotSlackToken', variable: 'SLACK_TOKEN')
                         ]){
                             stage('Create production environment') {
                                 sh """
-                                    pwsh -command "New-AzResourceGroupDeployment -Name slack-ask-bot -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $resourceGroup -appName $resourceGroup -environment Production -slackBearerToken (ConvertTo-SecureString -String $SLACK_TOKEN -AsPlainText -Force)"
+                                    pwsh -command "New-AzResourceGroupDeployment -Name slack-ask-bot -TemplateFile Deployment/azuredeploy.json -ResourceGroupName $prodResourceGroup -appName $prodResourceGroup -environment Production -slackBearerToken (ConvertTo-SecureString -String 'mocktoken' -AsPlainText -Force)"
                                 """
                             }
                         }
                         stage('Publish to production environment') {
                             sh """
-                                pwsh -command "Publish-AzWebApp -ResourceGroupName $resourceGroup -Name $resourceGroup -ArchivePath $zipName -Force"
+                                pwsh -command "Publish-AzWebApp -ResourceGroupName $prodResourceGroup -Name $prodResourceGroup -ArchivePath $zipName -Force"
                             """
                         }
                     }
