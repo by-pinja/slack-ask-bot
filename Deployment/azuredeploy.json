@@ -36,9 +36,9 @@
         "functionAppName": "[parameters('appName')]",
         "hostingPlanName": "[parameters('appName')]",
         "applicationInsightsName": "[parameters('appName')]",
-        "storageAccountName": "[replace(parameters('appName'), '-', '')]",
+        "storageAccountName": "[uniqueString(resourceGroup().id)]",
         "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-        "tableStorageName": "[concat(replace(parameters('appName'), '-', ''), 'table')]",
+        "tableStorageName": "[concat(uniqueString(resourceGroup().id), 'table')]",
         "tableStorageId": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('tableStorageName'))]"
     },
     "resources": [
