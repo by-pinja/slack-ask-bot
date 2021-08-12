@@ -5,8 +5,10 @@ namespace AzureFunctions.Payloads
 {
     public static class BlockActionExtensions
     {
-        public static dynamic GetOpenQuestionnaireViewPayload(this BlockAction action, QuestionnaireEntity questionnaire)
+        public static dynamic GetOpenQuestionnaireViewPayload(this BlockAction action, QuestionnaireEntity questionnaire, string? previousAnswer)
         {
+            var topicText = previousAnswer is null ? string.Empty : $" Previous answer was: {previousAnswer}";
+
             return new
             {
                 trigger_id = action.TriggerId,
@@ -30,8 +32,16 @@ namespace AzureFunctions.Payloads
                         type = "plain_text",
                         text = "Cancel",
                     },
-                    blocks = new[]
+                    blocks = new dynamic[]
                     {
+                        new
+                        {
+                            type = "section",
+                            text = new {
+                                type = "mrkdwn",
+                                text = $"A new answer will replace your previous one.{topicText}"
+                            }
+                        },
                         new
                         {
                             type = "input",

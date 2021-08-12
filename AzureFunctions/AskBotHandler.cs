@@ -103,7 +103,8 @@ namespace AzureFunctions
                     }
                     else
                     {
-                        viewPayload = blockAction.GetOpenQuestionnaireViewPayload(questionnaire);
+                        var previousAnswer = (await _storage.GetAnswers(actionToHandle.Value, blockAction.User.Username)).FirstOrDefault();
+                        viewPayload = blockAction.GetOpenQuestionnaireViewPayload(questionnaire, previousAnswer?.Answer);
                     }
 
                     _logger.LogInformation("Opening slack model to answer the questionnaire.");
