@@ -26,6 +26,14 @@ the output of `Prepare-Environment.ps1`. See
 **SlackClient.BearerToken** can be retrieved from
 [Slack Application](SlackApp.md)
 
+## Usage
+
+For up to date help
+
+```bash
+dotnet run -- help 
+```
+
 ### Creating new questionnaires
 
 Questionnaires are created by reading JSON file.
