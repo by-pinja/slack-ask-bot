@@ -69,6 +69,21 @@ namespace CloudLib
             return await _answers.ExecuteQueryAsync(query);
         }
 
+        public async Task<IEnumerable<AnswerEntity>> GetAnswers(string questionnaireId, string answerer)
+        {
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("Questionnaire id is empty.", nameof(questionnaireId));
+            if (string.IsNullOrWhiteSpace(answerer)) throw new ArgumentException($"'{nameof(answerer)}' cannot be null or whitespace.", nameof(answerer));
+
+            var query = new TableQuery<AnswerEntity>()
+                .Where(
+                    TableQuery.CombineFilters(
+                        TableQuery.GenerateFilterCondition(nameof(AnswerEntity.QuestionnaireId), QueryComparisons.Equal, questionnaireId),
+                        TableOperators.And,
+                        TableQuery.GenerateFilterCondition(nameof(AnswerEntity.Answerer), QueryComparisons.Equal, answerer))
+                    );
+            return await _answers.ExecuteQueryAsync(query);
+        }
+
         public async Task InsertOrMerge(QuestionnaireEntity entity)
         {
             var insertOperation = TableOperation.InsertOrMerge(entity);
