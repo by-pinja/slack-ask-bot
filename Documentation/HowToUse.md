@@ -11,13 +11,13 @@ name `Pinja Slack Ask Bot`.
 Questionnaires can be created with Shortcuts-button in slack. This button is on
 the left side of the message field.
 
-![Shortcut button](/images/message_box.png?raw.jpg "Shortcut button")
+![Shortcut button](images/message_box.png "Shortcut button")
 
 This button shows a list of shortcuts provided by different applications and
 each workspace may have different application. Select `Pinja Slack Ask Bot`
 from the list. This shows all options available for the Slack Ask Bot.
 
-![List of options](/images/shortcut_options?raw.jpg "List of options")
+![List of options](images/shortcut_options.png "List of options")
 
 Choosing `Create questionnaire` will open a dialog which allows user to define
 the question, available options and to which channel the questionnaire is sent
@@ -35,7 +35,7 @@ in the message. This shows the dialog where user can choose their answer and
 submit it. It also shows previous answer given by user if user has already
 answerred this questionnaire.
 
-![Answer button](/images/answer_button?raw.jpg "Answer button")
+![Answer button](images/answer_button.png "Answer button")
 
 If user answers twice, the second answer replaces the old answer given by user.
 The old answer is shown in answer dialog.
