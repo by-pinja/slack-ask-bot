@@ -6,6 +6,8 @@ A bot to perform small questionnaires in Slack
 This is still a very much a work in progress so this shouldn't probably be used
 by anyone.
 
+**[How to use](Documentation/HowtoUser.md)**
+
 ## Requirements
 
 * For building: .Net Core 3.1
