@@ -6,7 +6,7 @@ A bot to perform small questionnaires in Slack
 This is still a very much a work in progress so this shouldn't probably be used
 by anyone.
 
-**[How to use](Documentation/HowtoUser.md)**
+**[How to use](Documentation/HowtoUse.md)**
 
 ## Requirements
 
