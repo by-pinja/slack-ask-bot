@@ -7,7 +7,7 @@ namespace AzureFunctions.Payloads
     {
         public static dynamic GetOpenQuestionnaireViewPayload(this BlockAction action, QuestionnaireEntity questionnaire, string? previousAnswer)
         {
-            var topicText = previousAnswer is null ? string.Empty : $" Previous answer was: {previousAnswer}";
+            var previousAnswerExplanation = previousAnswer is null ? string.Empty : $" Previous answer was: {previousAnswer}";
 
             return new
             {
@@ -39,7 +39,7 @@ namespace AzureFunctions.Payloads
                             type = "section",
                             text = new {
                                 type = "mrkdwn",
-                                text = $"A new answer will replace your previous one.{topicText}"
+                                text = $"A new answer will replace your previous one.{previousAnswerExplanation}"
                             }
                         },
                         new

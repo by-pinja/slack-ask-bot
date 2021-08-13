@@ -103,7 +103,8 @@ namespace AzureFunctions
                     }
                     else
                     {
-                        var previousAnswer = (await _storage.GetAnswers(actionToHandle.Value, blockAction.User.Username)).FirstOrDefault();
+                        var previousAnswers = await _storage.GetAnswers(actionToHandle.Value, blockAction.User.Username);
+                        var previousAnswer = previousAnswers.FirstOrDefault();
                         viewPayload = blockAction.GetOpenQuestionnaireViewPayload(questionnaire, previousAnswer?.Answer);
                     }
 
