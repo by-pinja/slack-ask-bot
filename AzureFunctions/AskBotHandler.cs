@@ -209,7 +209,7 @@ namespace AzureFunctions
                     };
                     await _storage.InsertOrMerge(answerEntity);
 
-                    var answeredPayload = PayloadUtility.GetConfirmAnsweredPayload();
+                    var answeredPayload = PayloadUtility.GetConfirmAnsweredPayload(answer);
                     return new JsonResult(answeredPayload);
                 case "get_answers":
                     var selectedQuestionnaireId = viewSubmission.View.State.Values.First().Value.First().Value.SelectedOption.Value;
