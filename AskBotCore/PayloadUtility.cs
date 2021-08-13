@@ -168,7 +168,7 @@ namespace AskBotCore
             };
         }
 
-        public static dynamic GetConfirmAnsweredPayload()
+        public static dynamic GetConfirmAnsweredPayload(string answer)
         {
             return new
             {
@@ -195,7 +195,7 @@ namespace AskBotCore
                             text = new
                             {
                                 type = "plain_text",
-                                text = ":partyparrot: Your answer has been successfully submitted.",
+                                text = $":partyparrot: Your answer '{answer}' has been successfully submitted.",
                                 emoji = true
                             }
                         }

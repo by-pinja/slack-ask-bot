@@ -103,7 +103,9 @@ namespace AzureFunctions
                     }
                     else
                     {
-                        viewPayload = blockAction.GetOpenQuestionnaireViewPayload(questionnaire);
+                        var previousAnswers = await _storage.GetAnswers(actionToHandle.Value, blockAction.User.Username);
+                        var previousAnswer = previousAnswers.FirstOrDefault();
+                        viewPayload = blockAction.GetOpenQuestionnaireViewPayload(questionnaire, previousAnswer?.Answer);
                     }
 
                     _logger.LogInformation("Opening slack model to answer the questionnaire.");
@@ -207,7 +209,7 @@ namespace AzureFunctions
                     };
                     await _storage.InsertOrMerge(answerEntity);
 
-                    var answeredPayload = PayloadUtility.GetConfirmAnsweredPayload();
+                    var answeredPayload = PayloadUtility.GetConfirmAnsweredPayload(answer);
                     return new JsonResult(answeredPayload);
                 case "get_answers":
                     var selectedQuestionnaireId = viewSubmission.View.State.Values.First().Value.First().Value.SelectedOption.Value;
