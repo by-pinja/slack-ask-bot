@@ -27,13 +27,13 @@ namespace AskBotCore
         /// </summary>
         /// <param name="questionnaire"></param>
         /// <returns></returns>
-        public static dynamic GetQuestionnaireUpdatePostPayload(string channel, string timestamp, QuestionnaireEntity questionnaire)
+        public static ChatUpdateRequest GetQuestionnaireUpdatePostPayload(string channel, string timestamp, QuestionnaireEntity questionnaire)
         {
-            return new
+            return new ChatUpdateRequest
             {
-                channel = channel,
-                ts = timestamp,
-                blocks = new object[]
+                Channel = channel,
+                Timestamp = timestamp,
+                Blocks = new object[]
                 {
                     new
                     {

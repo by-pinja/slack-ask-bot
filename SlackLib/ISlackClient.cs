@@ -7,7 +7,7 @@ namespace SlackLib
     public interface ISlackClient
     {
         Task<ChatPostMessageResponse> PostMessage(ChatPostMessageRequest payload);
-        Task ChatUpdate(dynamic payload);
+        Task ChatUpdate(ChatUpdateRequest payload);
         Task OpenModelView(dynamic payload);
         Task UpdateModelView(dynamic payload);
     }

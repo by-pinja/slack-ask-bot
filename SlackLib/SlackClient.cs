@@ -28,7 +28,7 @@ namespace SlackLib
             return await ExecuteSlackCall<ChatPostMessageResponse>(payload, "chat.postMessage").ConfigureAwait(false);
         }
 
-        public async Task ChatUpdate(dynamic payload)
+        public async Task ChatUpdate(ChatUpdateRequest payload)
         {
             await ExecuteSlackCall<ChatPostMessageResponse>(payload, "chat.update").ConfigureAwait(false);
         }

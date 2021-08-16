@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using CloudLib;
 using CloudLib.Models;
@@ -43,7 +44,20 @@ namespace AskBotCore.Tests
 
             await _mockStorage.Received().InsertOrMerge(entity);
             await _mockSlackClient.Received().PostMessage(Arg.Is<ChatPostMessageRequest>(cpmr => cpmr.Channel == channel));
-            //await _mockSlackClient.Received().UpdateModelView(Arg.Is<ChatPostMessageRequest>(cpmr => cpmr.Channel == channel));
+            await _mockSlackClient.Received().ChatUpdate(Arg.Is<ChatUpdateRequest>(cur => cur.Channel == responseChannel && cur.Timestamp == responseTimestamp));
+        }
+
+        [Test]
+        public async Task CreateQuestionnaire_DoesnAddQuestionnaireIfPostingFails()
+        {
+            var channel = "mockchannel";
+            var entity = new QuestionnaireEntity("id", channel);
+            _mockSlackClient.When(x => x.PostMessage(Arg.Any<ChatPostMessageRequest>())).Do(x => { throw new Exception(); });
+
+            Assert.ThrowsAsync<Exception>(async () => await _control.CreateQuestionnaire(entity));
+
+            await _mockStorage.DidNotReceiveWithAnyArgs().InsertOrMerge(Arg.Any<QuestionnaireEntity>());
+            await _mockSlackClient.DidNotReceiveWithAnyArgs().ChatUpdate(Arg.Any<ChatUpdateRequest>());
         }
     }
 }
