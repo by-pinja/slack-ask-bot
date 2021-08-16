@@ -6,6 +6,13 @@ usage, see [Usage](ConsoleApp.md#usage) in console application help.
 Note: This guide assumes that the Slack App is installed to the workspace with
 name `Pinja Slack Ask Bot`.
 
+Note: Slack Ask Bot can't send questionnaires to private channels before bot
+is invited to the channel. This can be done by writing `@Pinja Slack Ask Bot`
+(bot name prefixed with @-character) and pressing invite button which should
+appear if bot is not already in channel and can ne invited.
+
+![Invite bot](images/invite_bot.png "Invite bot")
+
 ## Creating questionnaires
 
 Questionnaires can be created with Shortcuts-button in slack. This button is on
