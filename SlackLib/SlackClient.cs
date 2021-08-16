@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using SlackLib.Responses;
 
 namespace SlackLib
 {
@@ -21,21 +22,26 @@ namespace SlackLib
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
-        public async Task PostMessage(dynamic payload)
+        public async Task<ChatPostMessageResponse> PostMessage(dynamic payload)
         {
-            await ExecuteSlackCall(payload, "chat.postMessage").ConfigureAwait(false);
+            return await ExecuteSlackCall<ChatPostMessageResponse>(payload, "chat.postMessage").ConfigureAwait(false);
+        }
+
+        public async Task ChatUpdate(dynamic payload)
+        {
+            await ExecuteSlackCall<ChatPostMessageResponse>(payload, "chat.update").ConfigureAwait(false);
         }
 
         public async Task OpenModelView(dynamic payload)
         {
-            await ExecuteSlackCall(payload, "views.open").ConfigureAwait(false);
+            await ExecuteSlackCall<object>(payload, "views.open").ConfigureAwait(false);
         }
         public async Task UpdateModelView(dynamic payload)
         {
-            await ExecuteSlackCall(payload, "views.update").ConfigureAwait(false);
+            await ExecuteSlackCall<object>(payload, "views.update").ConfigureAwait(false);
         }
 
-        private async Task ExecuteSlackCall(dynamic payload, string address)
+        private async Task<T> ExecuteSlackCall<T>(dynamic payload, string address)
         {
             _logger.LogDebug("Executing slack request at {address}", address);
 
@@ -57,6 +63,7 @@ namespace SlackLib
                         _logger.LogCritical("Request successful but SlackAPI error. Error message: {error_message}", parsed.GetProperty("error").GetString());
                         throw new SlackLibException($"Error message: {parsed.GetProperty("error").GetString()}");
                     }
+                    return JsonSerializer.Deserialize<T>(content);
                 }
             }
             catch (JsonException e)

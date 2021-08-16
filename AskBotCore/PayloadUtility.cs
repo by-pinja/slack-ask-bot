@@ -6,12 +6,32 @@ namespace AskBotCore
 {
     public static class PayloadUtility
     {
-        public static dynamic GetQuestionnairePostPayload(QuestionnaireEntity questionnaire)
+
+        public static dynamic PlainMessagePayload(string channel, string message)
         {
             return new
             {
-                channel = questionnaire.Channel,
-                text = "PostQuestionnaire",
+                channel = channel,
+                text = message
+            };
+        }
+
+        /// <summary>
+        /// Payload for message which updates chat message to host questionnaire.
+        /// This is done after posting to assure that questionnaire can be posted before
+        /// actually creating the questionniare.
+        /// 
+        /// Questionnaire posting can fail if bot doesnt have correct permission or
+        /// is not in correct (private) channel.
+        /// </summary>
+        /// <param name="questionnaire"></param>
+        /// <returns></returns>
+        public static dynamic GetQuestionnaireUpdatePostPayload(string channel, string timestamp, QuestionnaireEntity questionnaire)
+        {
+            return new
+            {
+                channel = channel,
+                ts = timestamp,
                 blocks = new object[]
                 {
                     new
