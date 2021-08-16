@@ -33,7 +33,7 @@ namespace SlackLib
             await ExecuteSlackCall<ChatPostMessageResponse>(payload, "chat.update").ConfigureAwait(false);
         }
 
-        public async Task OpenModelView(dynamic payload)
+        public async Task OpenModelView(ViewsOpenRequest payload)
         {
             await ExecuteSlackCall<object>(payload, "views.open").ConfigureAwait(false);
         }

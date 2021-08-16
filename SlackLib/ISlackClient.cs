@@ -8,7 +8,7 @@ namespace SlackLib
     {
         Task<ChatPostMessageResponse> PostMessage(ChatPostMessageRequest payload);
         Task ChatUpdate(ChatUpdateRequest payload);
-        Task OpenModelView(dynamic payload);
+        Task OpenModelView(ViewsOpenRequest payload);
         Task UpdateModelView(dynamic payload);
     }
 }

@@ -1,18 +1,19 @@
 using System.Linq;
 using CloudLib.Models;
+using SlackLib.Requests;
 
 namespace AzureFunctions.Payloads
 {
     public static class BlockActionExtensions
     {
-        public static dynamic GetOpenQuestionnaireViewPayload(this BlockAction action, QuestionnaireEntity questionnaire, string? previousAnswer)
+        public static ViewsOpenRequest GetOpenQuestionnaireViewPayload(this BlockAction action, QuestionnaireEntity questionnaire, string? previousAnswer)
         {
             var previousAnswerExplanation = previousAnswer is null ? string.Empty : $" Previous answer was: {previousAnswer}";
 
-            return new
+            return new ViewsOpenRequest
             {
-                trigger_id = action.TriggerId,
-                view = new
+                TriggerId = action.TriggerId,
+                View = new
                 {
                     type = "modal",
                     callback_id = "open_questionnaire",
