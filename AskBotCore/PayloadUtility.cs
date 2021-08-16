@@ -244,7 +244,7 @@ namespace AskBotCore
                 label = new
                 {
                     type = "plain_text",
-                    text = "Channel(s)"
+                    text = "Channel(s). If channel is private, bot must be invited to the channel before creating the questionnaire."
                 }
             }};
 
