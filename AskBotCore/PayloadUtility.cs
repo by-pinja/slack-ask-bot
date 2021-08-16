@@ -1,18 +1,19 @@
 using System.Linq;
 using CloudLib.Models;
 using SlackLib.Messages;
+using SlackLib.Requests;
 
 namespace AskBotCore
 {
     public static class PayloadUtility
     {
 
-        public static dynamic PlainMessagePayload(string channel, string message)
+        public static ChatPostMessageRequest PlainMessagePayload(string channel, string message)
         {
-            return new
+            return new ChatPostMessageRequest
             {
-                channel = channel,
-                text = message
+                Channel = channel,
+                Text = message
             };
         }
 

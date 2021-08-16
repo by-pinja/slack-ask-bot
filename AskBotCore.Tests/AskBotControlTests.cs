@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
 using SlackLib;
+using SlackLib.Requests;
 using SlackLib.Responses;
 
 namespace AskBotCore.Tests
@@ -28,13 +29,21 @@ namespace AskBotCore.Tests
         [Test]
         public async Task CreateQuestionnaire_InsertsQuestionnaireAndSendMessage()
         {
-            var entity = new QuestionnaireEntity("id", "mockchannel");
-            _mockSlackClient.PostMessage(Arg.Any<object>()).Returns(Task.FromResult<ChatPostMessageResponse>(new ChatPostMessageResponse()));
+            var channel = "mockchannel";
+            var responseChannel = "123123";
+            var responseTimestamp = "timestampyes";
+            var entity = new QuestionnaireEntity("id", channel);
+            _mockSlackClient.PostMessage(Arg.Any<ChatPostMessageRequest>()).Returns(Task.FromResult(new ChatPostMessageResponse()
+            {
+                Channel = responseChannel,
+                Timestamp = responseTimestamp
+            }));
 
             await _control.CreateQuestionnaire(entity);
 
             await _mockStorage.Received().InsertOrMerge(entity);
-            _mockSlackClient.Received().PostMessage(Arg.Any<dynamic>());
+            await _mockSlackClient.Received().PostMessage(Arg.Is<ChatPostMessageRequest>(cpmr => cpmr.Channel == channel));
+            //await _mockSlackClient.Received().UpdateModelView(Arg.Is<ChatPostMessageRequest>(cpmr => cpmr.Channel == channel));
         }
     }
 }

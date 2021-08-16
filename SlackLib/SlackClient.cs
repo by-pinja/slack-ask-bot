@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using SlackLib.Requests;
 using SlackLib.Responses;
 
 namespace SlackLib
@@ -22,7 +23,7 @@ namespace SlackLib
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
-        public async Task<ChatPostMessageResponse> PostMessage(dynamic payload)
+        public async Task<ChatPostMessageResponse> PostMessage(ChatPostMessageRequest payload)
         {
             return await ExecuteSlackCall<ChatPostMessageResponse>(payload, "chat.postMessage").ConfigureAwait(false);
         }
