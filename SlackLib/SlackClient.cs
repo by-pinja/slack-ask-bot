@@ -14,6 +14,11 @@ namespace SlackLib
     /// </summary>
     public class SlackClient : ISlackClient
     {
+        private readonly JsonSerializerOptions _serializationOptions = new JsonSerializerOptions
+        {
+            IgnoreNullValues = true
+        };
+
         private readonly ILogger<SlackClient> _logger;
         private readonly HttpClient _client;
 
@@ -48,7 +53,7 @@ namespace SlackLib
 
             try
             {
-                string serializedPayload = JsonSerializer.Serialize(payload);
+                string serializedPayload = JsonSerializer.Serialize(payload, _serializationOptions);
                 _logger.LogDebug("Serialised: {payload}.", serializedPayload);
                 using (var requestContent = new StringContent(serializedPayload, Encoding.UTF8, "application/json"))
                 {
