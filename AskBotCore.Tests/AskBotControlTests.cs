@@ -90,9 +90,7 @@ namespace AskBotCore.Tests
                 Question = "How it's going?",
                 AnswerOptions = new[] { "a", "b" }
             };
-
             _mockStorage.GetQuestionnaire(questionnaireId).Returns(Task.FromResult(questionnaire));
-
 
             var result = await _control.GetQuestionnaireResult(questionnaireId);
 
@@ -102,6 +100,36 @@ namespace AskBotCore.Tests
             {
                 result.Answers[expectedAnswer].Should().Be(0, "Answer count should be 0 because there were no answers.");
             }
+        }
+
+        [Test]
+        public void PostResultsToThread_ThrowsArgumentExceptionForEmtpyId()
+        {
+            Assert.ThrowsAsync<ArgumentException>(async () => await _control.PostResultsToThread(null));
+        }
+
+        [Test]
+        public void PostResultsToThread_ThrowsArgumentExceptionForMissingQuestionnaire()
+        {
+            Assert.ThrowsAsync<ArgumentException>(async () => await _control.PostResultsToThread("not_exists"));
+        }
+
+
+        [Test]
+        public async Task PostResultsToThread_PostsAnswersToThread()
+        {
+            var questionnaireId = "id";
+            var questionnaire = new QuestionnaireEntity(questionnaireId, "mockchannel")
+            {
+                Question = "How it's going?",
+                AnswerOptions = new[] { "a", "b" },
+                MessageTimestamp = "messagethread.timestamp"
+            };
+            _mockStorage.GetQuestionnaire(questionnaireId).Returns(Task.FromResult(questionnaire));
+
+            await _control.PostResultsToThread(questionnaireId);
+
+            await _mockSlackClient.Received().PostMessage(Arg.Is<ChatPostMessageRequest>(cpmr => cpmr.ThreadTimestamp == questionnaire.MessageTimestamp));
         }
     }
 }

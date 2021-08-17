@@ -1,7 +1,6 @@
-using System.Linq;
+using System.Collections.Generic;
 using System.Text;
 using CloudLib.Models;
-using SlackLib.Messages;
 using SlackLib.Objects;
 using SlackLib.Requests;
 
@@ -70,65 +69,15 @@ namespace AskBotCore
             };
         }
 
-        public static string AnswersPostText(QuestionnaireResult result)
+        public static string AnswersPostText(Dictionary<string, int> result)
         {
             var builder = new StringBuilder();
             builder.AppendLine("Current answers:");
-            foreach (var answer in result.Answers)
+            foreach (var answer in result)
             {
                 builder.AppendLine($"{answer.Key}: {answer.Value}");
             }
             return builder.ToString();
-        }
-
-        public static dynamic GetUpdateModelWithAnswersPayload(QuestionnaireResult questionnaireResult)
-        {
-            var blockSection = new object[] {
-                new
-                {
-                    type = "section",
-                    text = new
-                    {
-                        type = "plain_text",
-                        text = $":wave: The votes are in. {questionnaireResult.Question}",
-                        emoji = true
-                    }
-                }
-            };
-
-            var answers = questionnaireResult.Answers.Select(kvp =>
-                {
-                    return (object)new
-                    {
-                        type = "section",
-                        text = new
-                        {
-                            type = "plain_text",
-                            text = $"\"{kvp.Key}\": {kvp.Value} votes.",
-                        }
-                    };
-                });
-
-            return new
-            {
-                response_action = "update",
-                view = new
-                {
-                    type = "modal",
-                    callback_id = "display_answers",
-                    title = new
-                    {
-                        type = "plain_text",
-                        text = "Results",
-                    },
-                    close = new
-                    {
-                        type = "plain_text",
-                        text = "Close",
-                    },
-                    blocks = blockSection.Concat(answers)
-                }
-            };
         }
 
         public static dynamic GetDeletedQuestionnairePayload(string questionnaireTitle)

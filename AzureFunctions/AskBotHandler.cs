@@ -115,7 +115,7 @@ namespace AzureFunctions
                     break;
                 case "get_answers":
                     _logger.LogInformation("Sending answers to questionnaire: {questionnaireId}", actionToHandle.Value);
-                    await _control.GetQuestionnaireResult(actionToHandle.Value).ConfigureAwait(false);
+                    await _control.PostResultsToThread(actionToHandle.Value).ConfigureAwait(false);
                     break;
                 default:
                     throw new NotImplementedException($"Unknown blockAction callback id: {actionToHandle.ActionId}.");
