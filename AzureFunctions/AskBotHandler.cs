@@ -13,6 +13,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using SlackLib;
+using SlackLib.Requests;
 
 namespace AzureFunctions
 {
@@ -120,7 +121,7 @@ namespace AzureFunctions
         {
             _logger.LogInformation("Shortcut request received from {user} with callback ID: {callback}", shortcut.User.Username, shortcut.CallbackId);
 
-            dynamic payload;
+            ViewsOpenRequest payload;
             switch (shortcut.CallbackId)
             {
                 case "create_questionnaire":

@@ -4,6 +4,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using SlackLib.Requests;
+using SlackLib.Responses;
 
 namespace SlackLib
 {
@@ -12,6 +14,11 @@ namespace SlackLib
     /// </summary>
     public class SlackClient : ISlackClient
     {
+        private readonly JsonSerializerOptions _serializationOptions = new JsonSerializerOptions
+        {
+            IgnoreNullValues = true
+        };
+
         private readonly ILogger<SlackClient> _logger;
         private readonly HttpClient _client;
 
@@ -21,27 +28,32 @@ namespace SlackLib
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
-        public async Task PostMessage(dynamic payload)
+        public async Task<ChatPostMessageResponse> PostMessage(ChatPostMessageRequest payload)
         {
-            await ExecuteSlackCall(payload, "chat.postMessage").ConfigureAwait(false);
+            return await ExecuteSlackCall<ChatPostMessageResponse>(payload, "chat.postMessage").ConfigureAwait(false);
         }
 
-        public async Task OpenModelView(dynamic payload)
+        public async Task ChatUpdate(ChatUpdateRequest payload)
         {
-            await ExecuteSlackCall(payload, "views.open").ConfigureAwait(false);
-        }
-        public async Task UpdateModelView(dynamic payload)
-        {
-            await ExecuteSlackCall(payload, "views.update").ConfigureAwait(false);
+            await ExecuteSlackCall<ChatPostMessageResponse>(payload, "chat.update").ConfigureAwait(false);
         }
 
-        private async Task ExecuteSlackCall(dynamic payload, string address)
+        public async Task OpenModelView(ViewsOpenRequest payload)
+        {
+            await ExecuteSlackCall<object>(payload, "views.open").ConfigureAwait(false);
+        }
+        public async Task UpdateModelView(ViewsUpdateRequest payload)
+        {
+            await ExecuteSlackCall<object>(payload, "views.update").ConfigureAwait(false);
+        }
+
+        private async Task<T> ExecuteSlackCall<T>(dynamic payload, string address)
         {
             _logger.LogDebug("Executing slack request at {address}", address);
 
             try
             {
-                string serializedPayload = JsonSerializer.Serialize(payload);
+                string serializedPayload = JsonSerializer.Serialize(payload, _serializationOptions);
                 _logger.LogDebug("Serialised: {payload}.", serializedPayload);
                 using (var requestContent = new StringContent(serializedPayload, Encoding.UTF8, "application/json"))
                 {
@@ -57,6 +69,7 @@ namespace SlackLib
                         _logger.LogCritical("Request successful but SlackAPI error. Error message: {error_message}", parsed.GetProperty("error").GetString());
                         throw new SlackLibException($"Error message: {parsed.GetProperty("error").GetString()}");
                     }
+                    return JsonSerializer.Deserialize<T>(content);
                 }
             }
             catch (JsonException e)

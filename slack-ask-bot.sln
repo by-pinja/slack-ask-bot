@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AskBotCore", "AskBotCore\As
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcceptanceTests", "AcceptanceTests\AcceptanceTests.csproj", "{CD72BC34-200E-4AE6-8FF5-13D2253BB97D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AskBotCore.Tests", "AskBotCore.Tests\AskBotCore.Tests.csproj", "{941AEB03-1960-4C82-BC4B-B887CF581848}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -114,5 +116,17 @@ Global
 		{CD72BC34-200E-4AE6-8FF5-13D2253BB97D}.Release|x64.Build.0 = Release|Any CPU
 		{CD72BC34-200E-4AE6-8FF5-13D2253BB97D}.Release|x86.ActiveCfg = Release|Any CPU
 		{CD72BC34-200E-4AE6-8FF5-13D2253BB97D}.Release|x86.Build.0 = Release|Any CPU
+		{941AEB03-1960-4C82-BC4B-B887CF581848}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{941AEB03-1960-4C82-BC4B-B887CF581848}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{941AEB03-1960-4C82-BC4B-B887CF581848}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{941AEB03-1960-4C82-BC4B-B887CF581848}.Debug|x64.Build.0 = Debug|Any CPU
+		{941AEB03-1960-4C82-BC4B-B887CF581848}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{941AEB03-1960-4C82-BC4B-B887CF581848}.Debug|x86.Build.0 = Debug|Any CPU
+		{941AEB03-1960-4C82-BC4B-B887CF581848}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{941AEB03-1960-4C82-BC4B-B887CF581848}.Release|Any CPU.Build.0 = Release|Any CPU
+		{941AEB03-1960-4C82-BC4B-B887CF581848}.Release|x64.ActiveCfg = Release|Any CPU
+		{941AEB03-1960-4C82-BC4B-B887CF581848}.Release|x64.Build.0 = Release|Any CPU
+		{941AEB03-1960-4C82-BC4B-B887CF581848}.Release|x86.ActiveCfg = Release|Any CPU
+		{941AEB03-1960-4C82-BC4B-B887CF581848}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

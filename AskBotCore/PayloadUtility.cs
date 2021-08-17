@@ -1,18 +1,39 @@
 using System.Linq;
 using CloudLib.Models;
 using SlackLib.Messages;
+using SlackLib.Requests;
 
 namespace AskBotCore
 {
     public static class PayloadUtility
     {
-        public static dynamic GetQuestionnairePostPayload(QuestionnaireEntity questionnaire)
+
+        public static ChatPostMessageRequest PlainMessagePayload(string channel, string message)
         {
-            return new
+            return new ChatPostMessageRequest
             {
-                channel = questionnaire.Channel,
-                text = "PostQuestionnaire",
-                blocks = new object[]
+                Channel = channel,
+                Text = message
+            };
+        }
+
+        /// <summary>
+        /// Payload for message which updates chat message to host questionnaire.
+        /// This is done after posting to assure that questionnaire can be posted before
+        /// actually creating the questionniare.
+        /// 
+        /// Questionnaire posting can fail if bot doesnt have correct permission or
+        /// is not in correct (private) channel.
+        /// </summary>
+        /// <param name="questionnaire"></param>
+        /// <returns></returns>
+        public static ChatUpdateRequest GetQuestionnaireUpdatePostPayload(string channel, string timestamp, QuestionnaireEntity questionnaire)
+        {
+            return new ChatUpdateRequest
+            {
+                Channel = channel,
+                Timestamp = timestamp,
+                Blocks = new object[]
                 {
                     new
                     {
@@ -244,7 +265,7 @@ namespace AskBotCore
                 label = new
                 {
                     type = "plain_text",
-                    text = "Channel(s)"
+                    text = "Channel(s). If channel is private, bot must be invited to the channel before creating the questionnaire."
                 }
             }};
 

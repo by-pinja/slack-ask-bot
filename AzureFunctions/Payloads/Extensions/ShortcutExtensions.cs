@@ -1,17 +1,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using CloudLib.Models;
+using SlackLib.Requests;
 
 namespace AzureFunctions.Payloads
 {
     public static class ShortcutExtensions
     {
-        public static dynamic GetOpenListOfQuestionnairesPayload(this Shortcut shortcut, IEnumerable<QuestionnaireEntity> questionnaires, string callbackId)
+        public static ViewsOpenRequest GetOpenListOfQuestionnairesPayload(this Shortcut shortcut, IEnumerable<QuestionnaireEntity> questionnaires, string callbackId)
         {
-            return new
+            return new ViewsOpenRequest
             {
-                trigger_id = shortcut.TriggerId,
-                view = new
+                TriggerId = shortcut.TriggerId,
+                View = new
                 {
                     type = "modal",
                     callback_id = callbackId,
@@ -69,12 +70,12 @@ namespace AzureFunctions.Payloads
             };
         }
 
-        public static dynamic GetNoQuestionnairesAvailablePayload(this Shortcut shortcut)
+        public static ViewsOpenRequest GetNoQuestionnairesAvailablePayload(this Shortcut shortcut)
         {
-            return new
+            return new ViewsOpenRequest
             {
-                trigger_id = shortcut.TriggerId,
-                view = new
+                TriggerId = shortcut.TriggerId,
+                View = new
                 {
                     type = "modal",
                     callback_id = "no_available_questionnaires",
@@ -105,12 +106,12 @@ namespace AzureFunctions.Payloads
             };
         }
 
-        public static dynamic GetConfirmDeleteAllPayload(this Shortcut shortcut)
+        public static ViewsOpenRequest GetConfirmDeleteAllPayload(this Shortcut shortcut)
         {
-            return new
+            return new ViewsOpenRequest
             {
-                trigger_id = shortcut.TriggerId,
-                view = new
+                TriggerId = shortcut.TriggerId,
+                View = new
                 {
                     type = "modal",
                     callback_id = "delete_questionnaires",
@@ -146,12 +147,12 @@ namespace AzureFunctions.Payloads
             };
         }
 
-        public static dynamic GetOpenCreateQuestionnairesPayload(this Shortcut shortcut, dynamic mainViewPayload)
+        public static ViewsOpenRequest GetOpenCreateQuestionnairesPayload(this Shortcut shortcut, dynamic mainViewPayload)
         {
-            return new
+            return new ViewsOpenRequest
             {
-                trigger_id = shortcut.TriggerId,
-                view = mainViewPayload
+                TriggerId = shortcut.TriggerId,
+                View = mainViewPayload
             };
         }
     }

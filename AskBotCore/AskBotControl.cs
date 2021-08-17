@@ -7,6 +7,7 @@ using CloudLib.Models;
 using Microsoft.Extensions.Logging;
 using SlackLib;
 using SlackLib.Messages;
+using SlackLib.Responses;
 
 namespace AskBotCore
 {
@@ -32,11 +33,16 @@ namespace AskBotCore
             if (string.IsNullOrWhiteSpace(questionnaire.Channel)) throw new ArgumentException("Channel is empty", nameof(questionnaire.Channel));
             _logger.LogTrace("Creating questionnaire: {questionnaire}. Channel: {channel}", questionnaire.Question, questionnaire.Channel);
 
+            var preMessage = PayloadUtility.PlainMessagePayload(questionnaire.Channel, "This is a message which verifies that the bot is able to message to this channel.");
+            ChatPostMessageResponse result = await _slackClient.PostMessage(preMessage).ConfigureAwait(false);
+
             await _storage.InsertOrMerge(questionnaire).ConfigureAwait(false);
             _logger.LogTrace("Questionnaire stored.");
-            var payload = PayloadUtility.GetQuestionnairePostPayload(questionnaire);
-            await _slackClient.PostMessage(payload).ConfigureAwait(false);
-            _logger.LogInformation("Questionnaire created.");
+
+            var payload = PayloadUtility.GetQuestionnaireUpdatePostPayload(result.Channel, result.Timestamp, questionnaire);
+            await _slackClient.ChatUpdate(payload).ConfigureAwait(false);
+
+            _logger.LogInformation("Questionnaire created channel {channel}, ts: {timestamp}.", result.Channel, result.Timestamp);
         }
 
         public async Task<QuestionnaireResult> GetQuestionnaireResult(string questionnaireId)
@@ -60,7 +66,7 @@ namespace AskBotCore
             }
 
             var answersDictionary = new Dictionary<string, int>();
-            foreach (var availableAnswer in questionnaire.AnswerOptions)//.Split(';'))
+            foreach (var availableAnswer in questionnaire.AnswerOptions)
             {
                 answersDictionary[availableAnswer] = 0;
             }
