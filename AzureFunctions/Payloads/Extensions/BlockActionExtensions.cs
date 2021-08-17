@@ -1,5 +1,6 @@
 using System.Linq;
 using CloudLib.Models;
+using SlackLib.Objects;
 using SlackLib.Requests;
 
 namespace AzureFunctions.Payloads
@@ -13,27 +14,27 @@ namespace AzureFunctions.Payloads
             return new ViewsOpenRequest
             {
                 TriggerId = action.TriggerId,
-                View = new
+                View = new ViewObject
                 {
-                    type = "modal",
-                    callback_id = "open_questionnaire",
-                    private_metadata = questionnaire.QuestionnaireId,
-                    title = new
+                    Type = "modal",
+                    CallbackId = "open_questionnaire",
+                    PrivateMetadata = questionnaire.QuestionnaireId,
+                    Title = new
                     {
                         type = "plain_text",
                         text = "Submit answer",
                     },
-                    submit = new
+                    Submit = new
                     {
                         type = "plain_text",
                         text = "Submit",
                     },
-                    close = new
+                    Close = new
                     {
                         type = "plain_text",
                         text = "Cancel",
                     },
-                    blocks = new dynamic[]
+                    Blocks = new dynamic[]
                     {
                         new
                         {
@@ -85,21 +86,21 @@ namespace AzureFunctions.Payloads
             return new ViewsOpenRequest
             {
                 TriggerId = action.TriggerId,
-                View = new
+                View = new ViewObject
                 {
-                    type = "modal",
-                    callback_id = "questionnaire_not_found",
-                    title = new
+                    Type = "modal",
+                    CallbackId = "questionnaire_not_found",
+                    Title = new
                     {
                         type = "plain_text",
                         text = "Unavailable",
                     },
-                    close = new
+                    Close = new
                     {
                         type = "plain_text",
                         text = "Close",
                     },
-                    blocks = new[]
+                    Blocks = new[]
                     {
                         new
                         {
@@ -116,7 +117,7 @@ namespace AzureFunctions.Payloads
             };
         }
 
-        public static ViewsUpdateRequest GetAddOptionToQuestionnairePayload(this BlockAction action, dynamic mainViewPayload)
+        public static ViewsUpdateRequest GetAddOptionToQuestionnairePayload(this BlockAction action, ViewObject mainViewPayload)
         {
             return new ViewsUpdateRequest
             {

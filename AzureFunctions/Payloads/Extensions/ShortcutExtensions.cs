@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CloudLib.Models;
+using SlackLib.Objects;
 using SlackLib.Requests;
 
 namespace AzureFunctions.Payloads
@@ -12,26 +13,26 @@ namespace AzureFunctions.Payloads
             return new ViewsOpenRequest
             {
                 TriggerId = shortcut.TriggerId,
-                View = new
+                View = new ViewObject
                 {
-                    type = "modal",
-                    callback_id = callbackId,
-                    title = new
+                    Type = "modal",
+                    CallbackId = callbackId,
+                    Title = new
                     {
                         type = "plain_text",
                         text = callbackId == "get_answers" ? "Get answers" : "Delete a questionnaire",
                     },
-                    submit = new
+                    Submit = new
                     {
                         type = "plain_text",
                         text = "Submit",
                     },
-                    close = new
+                    Close = new
                     {
                         type = "plain_text",
                         text = "Cancel",
                     },
-                    blocks = new[]
+                    Blocks = new[]
                     {
                         new
                         {
@@ -75,21 +76,21 @@ namespace AzureFunctions.Payloads
             return new ViewsOpenRequest
             {
                 TriggerId = shortcut.TriggerId,
-                View = new
+                View = new ViewObject
                 {
-                    type = "modal",
-                    callback_id = "no_available_questionnaires",
-                    title = new
+                    Type = "modal",
+                    CallbackId = "no_available_questionnaires",
+                    Title = new
                     {
                         type = "plain_text",
                         text = $"Unavailable",
                     },
-                    close = new
+                    Close = new
                     {
                         type = "plain_text",
                         text = "Close",
                     },
-                    blocks = new[]
+                    Blocks = new[]
                     {
                         new
                         {
@@ -111,26 +112,26 @@ namespace AzureFunctions.Payloads
             return new ViewsOpenRequest
             {
                 TriggerId = shortcut.TriggerId,
-                View = new
+                View = new ViewObject
                 {
-                    type = "modal",
-                    callback_id = "delete_questionnaires",
-                    title = new
+                    Type = "modal",
+                    CallbackId = "delete_questionnaires",
+                    Title = new
                     {
                         type = "plain_text",
-                        text = $"Delete all data",
+                        text = "Delete all data",
                     },
-                    submit = new
+                    Submit = new
                     {
                         type = "plain_text",
                         text = "Yes",
                     },
-                    close = new
+                    Close = new
                     {
                         type = "plain_text",
                         text = "Close",
                     },
-                    blocks = new[]
+                    Blocks = new[]
                     {
                         new
                         {
@@ -147,7 +148,7 @@ namespace AzureFunctions.Payloads
             };
         }
 
-        public static ViewsOpenRequest GetOpenCreateQuestionnairesPayload(this Shortcut shortcut, dynamic mainViewPayload)
+        public static ViewsOpenRequest GetOpenCreateQuestionnairesPayload(this Shortcut shortcut, ViewObject mainViewPayload)
         {
             return new ViewsOpenRequest
             {

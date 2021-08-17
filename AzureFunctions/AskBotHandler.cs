@@ -81,14 +81,13 @@ namespace AzureFunctions
             if (blockAction.Actions.Count() != 1) throw new ArgumentException("The block action list did not have 1 element in", nameof(blockAction));
 
             var actionToHandle = blockAction.Actions.First();
-            dynamic viewPayload;
             switch (actionToHandle.ActionId)
             {
                 case "add_option":
                 case "delete_option":
                     _logger.LogInformation("Adding/deleting option to questionnaire.");
                     var mainPayload = PayloadUtility.GetCreateQuestionnaireMainPayload(int.Parse(actionToHandle.Value));
-                    viewPayload = blockAction.GetAddOptionToQuestionnairePayload(mainPayload);
+                    var viewPayload = blockAction.GetAddOptionToQuestionnairePayload(mainPayload);
 
                     _logger.LogDebug("Updating slack model with new available options.");
                     await _slackClient.UpdateModelView(viewPayload);
@@ -97,20 +96,21 @@ namespace AzureFunctions
                     _logger.LogInformation("Questionnaire open request received from {channel} by {answerer}", blockAction.Channel.Name, blockAction.User.Username);
                     var questionnaire = await _storage.GetQuestionnaire(actionToHandle.Value);
 
+                    ViewsOpenRequest questionnairePayload;
                     if (questionnaire is null)
                     {
                         _logger.LogDebug("Error retrieving the questionnaire for callback id: {callbackId}.", actionToHandle.Value);
-                        viewPayload = blockAction.GetRemovedQuestionnaireViewPayload();
+                        questionnairePayload = blockAction.GetRemovedQuestionnaireViewPayload();
                     }
                     else
                     {
                         var previousAnswers = await _storage.GetAnswers(actionToHandle.Value, blockAction.User.Username);
                         var previousAnswer = previousAnswers.FirstOrDefault();
-                        viewPayload = blockAction.GetOpenQuestionnaireViewPayload(questionnaire, previousAnswer?.Answer);
+                        questionnairePayload = blockAction.GetOpenQuestionnaireViewPayload(questionnaire, previousAnswer?.Answer);
                     }
 
                     _logger.LogInformation("Opening slack model to answer the questionnaire.");
-                    await _slackClient.OpenModelView(viewPayload);
+                    await _slackClient.OpenModelView(questionnairePayload);
                     break;
                 default:
                     throw new NotImplementedException($"Unknown blockAction callback id: {actionToHandle.ActionId}.");

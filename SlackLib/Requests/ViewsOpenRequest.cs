@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using SlackLib.Objects;
 
 namespace SlackLib.Requests
 {
@@ -11,6 +12,6 @@ namespace SlackLib.Requests
         public string TriggerId { get; set; }
 
         [JsonPropertyName("view")]
-        public object View { get; set; }
+        public ViewObject View { get; set; }
     }
 }

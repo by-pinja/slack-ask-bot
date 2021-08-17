@@ -1,6 +1,7 @@
 using System.Linq;
 using CloudLib.Models;
 using SlackLib.Messages;
+using SlackLib.Objects;
 using SlackLib.Requests;
 
 namespace AskBotCore
@@ -225,7 +226,7 @@ namespace AskBotCore
             };
         }
 
-        public static object GetCreateQuestionnaireMainPayload(int numberOfOptions = 2)
+        public static ViewObject GetCreateQuestionnaireMainPayload(int numberOfOptions = 2)
         {
             var titleAndChannelBlocks = new object[]{ new
             {
@@ -332,26 +333,26 @@ namespace AskBotCore
             answerBlocks.CopyTo(blocks, titleAndChannelBlocks.Length);
             buttonBlocks.CopyTo(blocks, titleAndChannelBlocks.Length + answerBlocks.Length);
 
-            return new
+            return new ViewObject
             {
-                type = "modal",
-                callback_id = "create_questionnaire",
-                title = new
+                Type = "modal",
+                CallbackId = "create_questionnaire",
+                Title = new
                 {
                     type = "plain_text",
                     text = "Create questionnaire",
                 },
-                submit = new
+                Submit = new
                 {
                     type = "plain_text",
                     text = "Submit",
                 },
-                close = new
+                Close = new
                 {
                     type = "plain_text",
                     text = "Cancel",
                 },
-                blocks
+                Blocks = blocks
             };
         }
     }

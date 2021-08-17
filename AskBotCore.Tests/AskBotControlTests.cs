@@ -59,5 +59,13 @@ namespace AskBotCore.Tests
             await _mockStorage.DidNotReceiveWithAnyArgs().InsertOrMerge(Arg.Any<QuestionnaireEntity>());
             await _mockSlackClient.DidNotReceiveWithAnyArgs().ChatUpdate(Arg.Any<ChatUpdateRequest>());
         }
+
+        [Test]
+        public async Task DeleteAll_DeletesAllQuestionnaires()
+        {
+            await _control.DeleteAll();
+
+            await _mockStorage.Received().DeleteAll();
+        }
     }
 }
