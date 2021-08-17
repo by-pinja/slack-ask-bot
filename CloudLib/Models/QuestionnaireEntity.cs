@@ -35,6 +35,11 @@ namespace CloudLib.Models
         public DateTime Created { get; set; }
         public string Question { get; set; }
 
+        /// <summary>
+        /// Message timestamp is used to send replies to the message thread
+        /// </summary>
+        public string MessageTimestamp { get; set; }
+
         private string _answerOptionsString;
         public string AnswerOptionsString
         {

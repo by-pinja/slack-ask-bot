@@ -94,23 +94,28 @@ namespace AzureFunctions
                     break;
                 case "open_questionnaire":
                     _logger.LogInformation("Questionnaire open request received from {channel} by {answerer}", blockAction.Channel.Name, blockAction.User.Username);
-                    var questionnaire = await _storage.GetQuestionnaire(actionToHandle.Value);
+                    var questionnaireId = actionToHandle.Value;
+                    var questionnaire = await _storage.GetQuestionnaire(questionnaireId);
 
                     ViewsOpenRequest questionnairePayload;
                     if (questionnaire is null)
                     {
-                        _logger.LogDebug("Error retrieving the questionnaire for callback id: {callbackId}.", actionToHandle.Value);
+                        _logger.LogDebug("Did not found questionnaire: {questionnaireId}.", questionnaireId);
                         questionnairePayload = blockAction.GetRemovedQuestionnaireViewPayload();
                     }
                     else
                     {
-                        var previousAnswers = await _storage.GetAnswers(actionToHandle.Value, blockAction.User.Username);
+                        var previousAnswers = await _storage.GetAnswers(questionnaireId, blockAction.User.Username);
                         var previousAnswer = previousAnswers.FirstOrDefault();
                         questionnairePayload = blockAction.GetOpenQuestionnaireViewPayload(questionnaire, previousAnswer?.Answer);
                     }
 
                     _logger.LogInformation("Opening slack model to answer the questionnaire.");
                     await _slackClient.OpenModelView(questionnairePayload);
+                    break;
+                case "get_answers":
+                    _logger.LogInformation("Sending answers to questionnaire: {questionnaireId}", actionToHandle.Value);
+                    await _control.GetQuestionnaireResult(actionToHandle.Value).ConfigureAwait(false);
                     break;
                 default:
                     throw new NotImplementedException($"Unknown blockAction callback id: {actionToHandle.ActionId}.");
@@ -129,7 +134,6 @@ namespace AzureFunctions
 
                     _logger.LogInformation("Opening slack model to create questionnaire.");
                     break;
-                case "get_answers":
                 case "delete_a_questionnaire":
                     _logger.LogInformation("Fetching questionnaires.");
                     var questionnaires = await _storage.GetQuestionnaires().ConfigureAwait(false);
@@ -212,12 +216,6 @@ namespace AzureFunctions
 
                     var answeredPayload = PayloadUtility.GetConfirmAnsweredPayload(answer);
                     return new JsonResult(answeredPayload);
-                case "get_answers":
-                    var selectedQuestionnaireId = viewSubmission.View.State.Values.First().Value.First().Value.SelectedOption.Value;
-                    _logger.LogInformation("Getting answers for questionnaire with ID: {questionnaire}.", selectedQuestionnaireId);
-                    var questionnaireResult = await _control.GetQuestionnaireResult(selectedQuestionnaireId).ConfigureAwait(false);
-                    var withAnswersPayload = PayloadUtility.GetUpdateModelWithAnswersPayload(questionnaireResult);
-                    return new JsonResult(withAnswersPayload);
                 case "delete_a_questionnaire":
                     var questionnaireId = viewSubmission.View.State.Values.First().Value.First().Value.SelectedOption.Value;
                     _logger.LogInformation("Deleting questionnaire with ID: {questionnaire}.", questionnaireId);

@@ -41,6 +41,7 @@ namespace AskBotCore
             };
             ChatPostMessageResponse result = await _slackClient.PostMessage(preMessage).ConfigureAwait(false);
 
+            questionnaire.MessageTimestamp = result.Timestamp;
             await _storage.InsertOrMerge(questionnaire).ConfigureAwait(false);
             _logger.LogTrace("Questionnaire stored.");
 
@@ -86,6 +87,14 @@ namespace AskBotCore
                 Question = questionnaire.Question,
                 Answers = answersDictionary
             };
+
+            var preMessage = new ChatPostMessageRequest
+            {
+                Channel = questionnaire.Channel,
+                Text = PayloadUtility.AnswersPostText(questionnaireResult),
+                ThreadTimestamp = questionnaire.MessageTimestamp
+            };
+            await _slackClient.PostMessage(preMessage).ConfigureAwait(false);
 
             return questionnaireResult;
         }

@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Text;
 using CloudLib.Models;
 using SlackLib.Messages;
 using SlackLib.Objects;
@@ -51,11 +52,33 @@ namespace AskBotCore
                                     type = "plain_text",
                                     text = "Answer"
                                 }
+                            },
+                            new
+                            {
+                                type = "button",
+                                action_id = "get_answers",
+                                value = questionnaire.QuestionnaireId,
+                                text = new
+                                {
+                                    type = "plain_text",
+                                    text = "Results"
+                                }
                             }
                         }
                     }
                 }
             };
+        }
+
+        public static string AnswersPostText(QuestionnaireResult result)
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine("Current answers:");
+            foreach (var answer in result.Answers)
+            {
+                builder.AppendLine($"{answer.Key}: {answer.Value}");
+            }
+            return builder.ToString();
         }
 
         public static dynamic GetUpdateModelWithAnswersPayload(QuestionnaireResult questionnaireResult)

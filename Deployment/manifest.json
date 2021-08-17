@@ -24,12 +24,6 @@
                 "description": "Delete a questionnaire"
             },
             {
-                "name": "Get answers",
-                "type": "global",
-                "callback_id": "get_answers",
-                "description": "Get answers"
-            },
-            {
                 "name": "Delete questionnaires",
                 "type": "global",
                 "callback_id": "delete_questionnaires",

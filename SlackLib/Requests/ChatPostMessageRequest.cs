@@ -12,5 +12,8 @@ namespace SlackLib.Requests
 
         [JsonPropertyName("text")]
         public string Text { get; set; }
+
+        [JsonPropertyName("thread_ts")]
+        public string ThreadTimestamp { get; set; }
     }
 }
