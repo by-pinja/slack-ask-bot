@@ -37,7 +37,7 @@ namespace SlackLib
         {
             await ExecuteSlackCall<object>(payload, "views.open").ConfigureAwait(false);
         }
-        public async Task UpdateModelView(dynamic payload)
+        public async Task UpdateModelView(ViewsUpdateRequest payload)
         {
             await ExecuteSlackCall<object>(payload, "views.update").ConfigureAwait(false);
         }
