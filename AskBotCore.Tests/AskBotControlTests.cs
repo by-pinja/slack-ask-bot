@@ -2,10 +2,12 @@ using System;
 using System.Threading.Tasks;
 using CloudLib;
 using CloudLib.Models;
+using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
 using SlackLib;
+using SlackLib.Messages;
 using SlackLib.Requests;
 using SlackLib.Responses;
 
@@ -66,6 +68,40 @@ namespace AskBotCore.Tests
             await _control.DeleteAll();
 
             await _mockStorage.Received().DeleteAll();
+        }
+
+        [Test]
+        public async Task DeleteQuestionnaireAndAnswers_DeletesChosenQuestionnaire()
+        {
+            var questionnaireId = "id";
+            _mockStorage.GetQuestionnaire(questionnaireId).Returns(Task.FromResult(new QuestionnaireEntity(questionnaireId, "mockChannel")));
+
+            await _control.DeleteQuestionnaireAndAnswers(questionnaireId);
+
+            await _mockStorage.Received().DeleteQuestionnaireAndAnswers(questionnaireId);
+        }
+
+        [Test]
+        public async Task GetQuestionnaireResult_ReturnsQuestionnaireResultNoAnswers()
+        {
+            var questionnaireId = "id";
+            var questionnaire = new QuestionnaireEntity(questionnaireId, "mockchannel")
+            {
+                Question = "How it's going?",
+                AnswerOptions = new[] { "a", "b" }
+            };
+
+            _mockStorage.GetQuestionnaire(questionnaireId).Returns(Task.FromResult(questionnaire));
+
+
+            var result = await _control.GetQuestionnaireResult(questionnaireId);
+
+            result.Question.Should().Be(questionnaire.Question, "Question should be same as in storage.");
+            result.Answers.Count.Should().Be(questionnaire.AnswerOptions.Length, "All answer options should be present even without answers.");
+            foreach (var expectedAnswer in questionnaire.AnswerOptions)
+            {
+                result.Answers[expectedAnswer].Should().Be(0, "Answer count should be 0 because there were no answers.");
+            }
         }
     }
 }

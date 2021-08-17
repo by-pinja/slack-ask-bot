@@ -8,16 +8,6 @@ namespace AskBotCore
 {
     public static class PayloadUtility
     {
-
-        public static ChatPostMessageRequest PlainMessagePayload(string channel, string message)
-        {
-            return new ChatPostMessageRequest
-            {
-                Channel = channel,
-                Text = message
-            };
-        }
-
         /// <summary>
         /// Payload for message which updates chat message to host questionnaire.
         /// This is done after posting to assure that questionnaire can be posted before
