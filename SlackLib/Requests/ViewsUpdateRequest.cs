@@ -10,9 +10,6 @@ namespace SlackLib.Requests
         [JsonPropertyName("view_id")]
         public string ViewId { get; set; }
 
-        [JsonPropertyName("external_id")]
-        public string ExternalId { get; set; }
-
         [JsonPropertyName("hash")]
         public string Hash { get; set; }
 
