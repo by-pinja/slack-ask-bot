@@ -13,6 +13,10 @@ appear if bot is not already in channel and can ne invited.
 
 ![Invite bot](images/invite_bot.png "Invite bot")
 
+Important: Don't use `Pinja Slack Ask Bot` to for confidental questionnairies.
+With current implementation, the questions and answers are visible to all
+workspace participants. Also, the data is easily available in Azure.
+
 ## Creating questionnaires
 
 Questionnaires can be created with Shortcuts-button in slack. This button is on
