@@ -67,5 +67,10 @@ menu. This will show all questionnaires and user can choose any
 questionnaire. After questionnaire is selected and `Submit` is pressed, the
 questionnaire is deleted!
 
-Shortuct also provide `Deletete questionnaires` option which will remove all
-questionnaires!
+When question is deleted:
+
+* Final results are posted to the thread, same as `Results` would be pressed.
+* Closing message is posted indicating that questionnaire can no longer be
+answered.
+* `Answer` and  `Results` -buttons are removed from the message.
+* Questionnaire and answers are deleted from storage.
