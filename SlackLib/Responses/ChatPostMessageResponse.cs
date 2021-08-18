@@ -1,13 +1,13 @@
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SlackLib.Responses
 {
     public class ChatPostMessageResponse
     {
-        [JsonPropertyName("channel")]
+        [JsonProperty("channel")]
         public string Channel { get; set; }
 
-        [JsonPropertyName("ts")]
+        [JsonProperty("ts")]
         public string Timestamp { get; set; }
     }
 }

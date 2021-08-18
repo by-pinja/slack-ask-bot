@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 using AskBotCore;
@@ -14,6 +13,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SlackLib;
+using SlackLib.Interactions;
 using SlackLib.Requests;
 
 namespace AzureFunctions
@@ -57,28 +57,23 @@ namespace AzureFunctions
             }
 
             _logger.LogDebug("Deserializing payload: {payload}", payloadString);
-            var json = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(payloadString);
+            var baseObject = JsonConvert.DeserializeObject<InteractionBase>(payloadString);
 
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-
-            switch (json.GetProperty("type").GetString())
+            switch (baseObject.Type)
             {
                 case "block_actions":
-                    var blockAction = System.Text.Json.JsonSerializer.Deserialize<BlockAction>(payloadString, options);
+                    var blockAction = JsonConvert.DeserializeObject<BlockAction>(payloadString, _serializationSettings);
                     await HandleBlockAction(blockAction);
                     return new OkResult();
                 case "shortcut":
-                    var shortcut = System.Text.Json.JsonSerializer.Deserialize<Shortcut>(payloadString, options);
+                    var shortcut = JsonConvert.DeserializeObject<Shortcut>(payloadString, _serializationSettings);
                     await HandleShortcut(shortcut);
                     return new OkResult();
                 case "view_submission":
-                    var viewSubmission = System.Text.Json.JsonSerializer.Deserialize<ViewSubmission>(payloadString, options);
+                    var viewSubmission = JsonConvert.DeserializeObject<ViewSubmission>(payloadString, _serializationSettings);
                     return await HandleViewSubmission(viewSubmission, Guid.NewGuid().ToString(), DateTime.UtcNow);
                 default:
-                    throw new NotImplementedException($"Unknown payload type {json.GetProperty("type").GetString()}.");
+                    throw new NotImplementedException($"Unknown payload type {baseObject.Type}.");
             }
         }
 

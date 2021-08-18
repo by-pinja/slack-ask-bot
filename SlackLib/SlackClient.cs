@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Net.Http;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using SlackLib.Requests;
 using SlackLib.Responses;
 
@@ -14,9 +14,9 @@ namespace SlackLib
     /// </summary>
     public class SlackClient : ISlackClient
     {
-        private readonly JsonSerializerOptions _serializationOptions = new JsonSerializerOptions
+        private readonly JsonSerializerSettings _serializationSettings = new JsonSerializerSettings
         {
-            IgnoreNullValues = true
+            NullValueHandling = NullValueHandling.Ignore
         };
 
         private readonly ILogger<SlackClient> _logger;
@@ -53,7 +53,8 @@ namespace SlackLib
 
             try
             {
-                string serializedPayload = JsonSerializer.Serialize(payload, _serializationOptions);
+
+                string serializedPayload = JsonConvert.SerializeObject(payload, _serializationSettings);
                 _logger.LogInformation("Serialised: {payload}.", serializedPayload);
                 using (var requestContent = new StringContent(serializedPayload, Encoding.UTF8, "application/json"))
                 {
@@ -63,13 +64,13 @@ namespace SlackLib
                     var content = await response.Content.ReadAsStringAsync();
 
                     _logger.LogDebug("Request successful, checking content. Content: {content}", content);
-                    var parsed = JsonSerializer.Deserialize<JsonElement>(content);
-                    if (!parsed.GetProperty("ok").GetBoolean())
+                    var parsed = JsonConvert.DeserializeObject<GenericReponse>(content);
+                    if (!parsed.Ok)
                     {
-                        _logger.LogCritical("Request successful but SlackAPI error. Error message: {error_message}", parsed.GetProperty("error").GetString());
-                        throw new SlackLibException($"Error message: {parsed.GetProperty("error").GetString()}");
+                        _logger.LogCritical("Request successful but SlackAPI error. Error message: {error_message}", parsed.Error);
+                        throw new SlackLibException($"Error message: {parsed.Error}");
                     }
-                    return JsonSerializer.Deserialize<T>(content);
+                    return JsonConvert.DeserializeObject<T>(content);
                 }
             }
             catch (JsonException e)

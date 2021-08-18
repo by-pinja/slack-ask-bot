@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SlackLib.Objects
 {
@@ -10,10 +10,10 @@ namespace SlackLib.Objects
     /// </summary>
     public class MarkdownTextObject : TextObject
     {
-        [JsonPropertyName("type")]
+        [JsonProperty("type")]
         public override string Type { get; } = "mrkdwn";
 
-        [JsonPropertyName("text")]
+        [JsonProperty("text")]
         public override string Text { get; set; }
     }
 }

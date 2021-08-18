@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SlackLib.Objects
 {
@@ -7,25 +7,25 @@ namespace SlackLib.Objects
     /// </summary>
     public class ViewObject
     {
-        [JsonPropertyName("type")]
+        [JsonProperty("type")]
         public string Type { get; set; }
 
-        [JsonPropertyName("title")]
+        [JsonProperty("title")]
         public PlainTextObject Title { get; set; }
 
-        [JsonPropertyName("callback_id")]
+        [JsonProperty("callback_id")]
         public string CallbackId { get; set; }
 
-        [JsonPropertyName("private_metadata")]
+        [JsonProperty("private_metadata")]
         public string PrivateMetadata { get; set; }
 
-        [JsonPropertyName("submit")]
+        [JsonProperty("submit")]
         public PlainTextObject Submit { get; set; }
 
-        [JsonPropertyName("close")]
+        [JsonProperty("close")]
         public PlainTextObject Close { get; set; }
 
-        [JsonPropertyName("blocks")]
+        [JsonProperty("blocks")]
         public dynamic Blocks { get; set; }
     }
 }

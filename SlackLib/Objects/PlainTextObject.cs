@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
 namespace SlackLib.Objects
@@ -12,15 +11,12 @@ namespace SlackLib.Objects
     public class PlainTextObject : TextObject
     {
         [JsonProperty("type")]
-        [JsonPropertyName("type")]
         public override string Type { get; } = "plain_text";
 
         [JsonProperty("text")]
-        [JsonPropertyName("text")]
         public override string Text { get; set; }
 
         [JsonProperty("emoji")]
-        [JsonPropertyName("emoji")]
         public bool Emoji { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 using System.Linq;
 using CloudLib.Models;
+using SlackLib.Interactions;
 using SlackLib.Objects;
 using SlackLib.Requests;
 
