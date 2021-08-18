@@ -24,12 +24,6 @@
                 "description": "Delete a questionnaire"
             },
             {
-                "name": "Delete questionnaires",
-                "type": "global",
-                "callback_id": "delete_questionnaires",
-                "description": "Delete questionnaires"
-            },
-            {
                 "name": "Create Questionnaire",
                 "type": "global",
                 "callback_id": "create_questionnaire",
