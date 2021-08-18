@@ -53,7 +53,6 @@ namespace SlackLib
 
             try
             {
-
                 string serializedPayload = JsonConvert.SerializeObject(payload, _serializationSettings);
                 _logger.LogInformation("Serialised: {payload}.", serializedPayload);
                 using (var requestContent = new StringContent(serializedPayload, Encoding.UTF8, "application/json"))
