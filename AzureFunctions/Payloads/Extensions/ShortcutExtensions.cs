@@ -101,42 +101,6 @@ namespace AzureFunctions.Payloads
             };
         }
 
-        public static ViewsOpenRequest GetConfirmDeleteAllPayload(this Shortcut shortcut)
-        {
-            return new ViewsOpenRequest
-            {
-                TriggerId = shortcut.TriggerId,
-                View = new ViewObject
-                {
-                    Type = "modal",
-                    CallbackId = "delete_questionnaires",
-                    Title = new PlainTextObject
-                    {
-                        Text = "Delete all data"
-                    },
-                    Submit = new PlainTextObject
-                    {
-                        Text = "Yes"
-                    },
-                    Close = new PlainTextObject
-                    {
-                        Text = "Close"
-                    },
-                    Blocks = new[]
-                    {
-                        new SectionObject
-                        {
-                            Text = new PlainTextObject
-                            {
-                                Text = ":warning: Are you sure you would like to delete all questionnaires and answers?",
-                                Emoji = true
-                            }
-                        }
-                    }
-                }
-            };
-        }
-
         public static ViewsOpenRequest GetOpenCreateQuestionnairesPayload(this Shortcut shortcut, ViewObject mainViewPayload)
         {
             return new ViewsOpenRequest

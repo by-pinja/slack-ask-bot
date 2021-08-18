@@ -150,10 +150,6 @@ namespace AzureFunctions
 
                     _logger.LogInformation("Opening slack model to list the questionnaires available.");
                     break;
-                case "delete_questionnaires":
-                    _logger.LogInformation("Send cornfirmation view.");
-                    payload = shortcut.GetConfirmDeleteAllPayload();
-                    break;
                 default:
                     throw new NotImplementedException($"Unknown shortcut callback id: {shortcut.CallbackId}.");
             }

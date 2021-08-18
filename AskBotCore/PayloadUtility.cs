@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 using CloudLib.Models;
+using SlackLib.Interactions;
 using SlackLib.Objects;
 using SlackLib.Requests;
 
@@ -16,8 +17,6 @@ namespace AskBotCore
         /// Questionnaire posting can fail if bot doesnt have correct permission or
         /// is not in correct (private) channel.
         /// </summary>
-        /// <param name="questionnaire"></param>
-        /// <returns></returns>
         public static ChatUpdateRequest GetQuestionnaireUpdatePostPayload(string channel, string timestamp, QuestionnaireEntity questionnaire)
         {
             return new ChatUpdateRequest
@@ -96,26 +95,24 @@ namespace AskBotCore
             return builder.ToString();
         }
 
-        public static dynamic GetDeletedQuestionnairePayload(string questionnaireTitle)
+        public static ViewSubmissionResponse GetDeletedQuestionnairePayload(string questionnaireTitle)
         {
-            return new
+            return new ViewSubmissionResponse
             {
-                response_action = "update",
-                view = new
+                ResponseAction = "update",
+                View = new ViewObject
                 {
-                    type = "modal",
-                    callback_id = "deleted_questionnaire",
-                    title = new
+                    Type = "modal",
+                    CallbackId = "deleted_questionnaire",
+                    Title = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Questionnaire deleted",
+                        Text = "Questionnaire deleted"
                     },
-                    close = new
+                    Close = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Close",
+                        Text = "Close"
                     },
-                    blocks = new[]
+                    Blocks = new[]
                     {
                         new SectionObject
                         {
@@ -130,26 +127,24 @@ namespace AskBotCore
             };
         }
 
-        public static dynamic GetConfirmAnsweredPayload(string answer)
+        public static ViewSubmissionResponse GetConfirmAnsweredPayload(string answer)
         {
-            return new
+            return new ViewSubmissionResponse
             {
-                response_action = "update",
-                view = new
+                ResponseAction = "update",
+                View = new ViewObject
                 {
-                    type = "modal",
-                    callback_id = "confirm_answered",
-                    title = new
+                    Type = "modal",
+                    CallbackId = "confirm_answered",
+                    Title = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Answer Submitted",
+                        Text = "Answer Submitted"
                     },
-                    close = new
+                    Close = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Close",
+                        Text = "Close"
                     },
-                    blocks = new[]
+                    Blocks = new[]
                     {
                         new SectionObject
                         {
