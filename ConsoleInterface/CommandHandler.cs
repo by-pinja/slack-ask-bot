@@ -78,13 +78,6 @@ namespace ConsoleInterface
             }
         }
 
-        public async Task HandleDelete(DeleteOption option)
-        {
-            _logger.LogTrace("Delete all questionnaires and answers activated from console interface.");
-
-            await _control.DeleteAll().ConfigureAwait(false);
-        }
-
         public async Task HandleGenerateTemplate(GenerateQuestionnaireTemplateOption option, string guid)
         {
             _logger.LogTrace("Generating a questionnaire template.");

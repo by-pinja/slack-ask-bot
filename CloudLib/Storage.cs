@@ -112,31 +112,6 @@ namespace CloudLib
             }
         }
 
-        public async Task DeleteAll()
-        {
-            _logger.LogTrace("Clearing table {table}", _answers.Name);
-            var answers = await GetAnswers();
-            _logger.LogDebug("Found {count} items to delete.", answers.Count());
-            var answerBatchGroups = GroupedDeletes(answers);
-
-            _logger.LogDebug("Executing batches");
-            foreach (var batch in answerBatchGroups)
-            {
-                _answers.ExecuteBatch(batch);
-            }
-
-            _logger.LogTrace("Clearing table {table}", _questionnaires.Name);
-            var questionnaires = await GetQuestionnaires();
-            _logger.LogDebug("Found {count} items to delete.", questionnaires.Count());
-            var questionnaireBatchGroups = GroupedDeletes(questionnaires);
-
-            _logger.LogDebug("Executing batch");
-            foreach (var batch in questionnaireBatchGroups)
-            {
-                _questionnaires.ExecuteBatch(batch);
-            }
-        }
-
         public async Task DeleteQuestionnaireAndAnswers(string questionnaireId)
         {
             if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("Questionnaire id is empty", nameof(questionnaireId));

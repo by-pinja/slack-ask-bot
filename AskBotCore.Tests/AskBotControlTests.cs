@@ -63,22 +63,20 @@ namespace AskBotCore.Tests
         }
 
         [Test]
-        public async Task DeleteAll_DeletesAllQuestionnaires()
+        public async Task DeleteQuestionnaireAndAnswers_DeletesChosenQuestionnaireAndPerformsClosing()
         {
-            await _control.DeleteAll();
+            var entity = new QuestionnaireEntity("id", "mockchannel")
+            {
+                AnswerOptions = new[] { "a", "b" },
+                MessageTimestamp = "messageid"
+            };
+            _mockStorage.GetQuestionnaire(entity.QuestionnaireId).Returns(Task.FromResult(entity));
 
-            await _mockStorage.Received().DeleteAll();
-        }
+            await _control.DeleteQuestionnaireAndAnswers(entity.QuestionnaireId);
 
-        [Test]
-        public async Task DeleteQuestionnaireAndAnswers_DeletesChosenQuestionnaire()
-        {
-            var questionnaireId = "id";
-            _mockStorage.GetQuestionnaire(questionnaireId).Returns(Task.FromResult(new QuestionnaireEntity(questionnaireId, "mockChannel")));
-
-            await _control.DeleteQuestionnaireAndAnswers(questionnaireId);
-
-            await _mockStorage.Received().DeleteQuestionnaireAndAnswers(questionnaireId);
+            await _mockStorage.Received().DeleteQuestionnaireAndAnswers(entity.QuestionnaireId);
+            await _mockSlackClient.Received().ChatUpdate(Arg.Is<ChatUpdateRequest>(cur => cur.Timestamp == entity.MessageTimestamp && cur.Channel == entity.Channel));
+            await _mockSlackClient.Received().PostMessage(Arg.Is<ChatPostMessageRequest>(cpmr => cpmr.ThreadTimestamp == entity.MessageTimestamp && cpmr.Channel == entity.Channel));
         }
 
         [Test]

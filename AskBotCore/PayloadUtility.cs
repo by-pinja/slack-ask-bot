@@ -69,6 +69,28 @@ namespace AskBotCore
             };
         }
 
+        public static ChatUpdateRequest GetQuestionnaireClosedPostUpdatePayload(string channel, string timestamp, QuestionnaireEntity questionnaire)
+        {
+            return new ChatUpdateRequest
+            {
+                Channel = channel,
+                Timestamp = timestamp,
+                Blocks = new object[]
+                {
+                    new
+                    {
+                        type = "section",
+                        block_id = questionnaire.QuestionnaireId,
+                        text = new
+                        {
+                            type = "mrkdwn",
+                            text = $"{questionnaire.Question}\r\n*Questionnaire is now closed.*"
+                        }
+                    }
+                 }
+            };
+        }
+
         public static string AnswersPostText(Dictionary<string, int> result)
         {
             var builder = new StringBuilder();
@@ -108,42 +130,6 @@ namespace AskBotCore
                             {
                                 type = "plain_text",
                                 text = $":+1: The questionnaire \"{questionnaireTitle}\" and the answers have been deleted.",
-                                emoji = true
-                            }
-                        }
-                    }
-                }
-            };
-        }
-
-        public static dynamic GetDeletedQuestionnairesPayload()
-        {
-            return new
-            {
-                response_action = "update",
-                view = new
-                {
-                    type = "modal",
-                    callback_id = "delete_questionnaires",
-                    title = new
-                    {
-                        type = "plain_text",
-                        text = $"Deleted all data",
-                    },
-                    close = new
-                    {
-                        type = "plain_text",
-                        text = "Close",
-                    },
-                    blocks = new[]
-                    {
-                        new
-                        {
-                            type = "section",
-                            text = new
-                            {
-                                type = "plain_text",
-                                text = ":+1: All questionnaires and answers have been deleted.",
                                 emoji = true
                             }
                         }

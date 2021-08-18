@@ -222,11 +222,6 @@ namespace AzureFunctions
                     var questionnaireTitle = await _control.DeleteQuestionnaireAndAnswers(questionnaireId).ConfigureAwait(false);
                     var deletedQuestionnairePayload = PayloadUtility.GetDeletedQuestionnairePayload(questionnaireTitle);
                     return new JsonResult(deletedQuestionnairePayload);
-                case "delete_questionnaires":
-                    _logger.LogInformation("Deleting all questionnaires and answers.");
-                    await _control.DeleteAll();
-                    var deletedQuestionnairesPayload = PayloadUtility.GetDeletedQuestionnairesPayload();
-                    return new JsonResult(deletedQuestionnairesPayload);
                 default:
                     throw new NotImplementedException($"Unknown view callback id: {viewSubmission.View.CallbackId}.");
             }

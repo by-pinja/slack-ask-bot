@@ -9,7 +9,6 @@ namespace AskBotCore
         Task CreateQuestionnaire(QuestionnaireEntity questionnaire);
         Task PostResultsToThread(string questionnaireId);
         Task<QuestionnaireResult> GetQuestionnaireResult(string questionnaireId);
-        Task DeleteAll();
         Task<string> DeleteQuestionnaireAndAnswers(string questionnaireId);
     }
 }

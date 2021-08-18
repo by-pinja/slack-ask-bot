@@ -28,12 +28,11 @@ namespace ConsoleInterface
 
         private static async Task Run(string[] args, CommandHandler commandHandler, ILogger<Program> logger)
         {
-            await Parser.Default.ParseArguments<QuestionnairesOption, CreateQuestionnaireOption, AnswersOption, DeleteOption, GenerateQuestionnaireTemplateOption>(args)
+            await Parser.Default.ParseArguments<QuestionnairesOption, CreateQuestionnaireOption, AnswersOption, GenerateQuestionnaireTemplateOption>(args)
                 .MapResult(
                     async (QuestionnairesOption option) => { await commandHandler.HandleGetQuestionnaires(option); },
                     async (CreateQuestionnaireOption option) => { await commandHandler.HandleCreateQuestionnaire(option, DateTime.UtcNow); },
                     async (AnswersOption option) => { await commandHandler.HandleGetAnswers(option); },
-                    async (DeleteOption option) => { await commandHandler.HandleDelete(option); },
                     async (GenerateQuestionnaireTemplateOption option) => { await commandHandler.HandleGenerateTemplate(option, Guid.NewGuid().ToString()); },
                     errors =>
                     {
