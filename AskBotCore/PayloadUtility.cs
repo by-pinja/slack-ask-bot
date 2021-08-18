@@ -23,7 +23,7 @@ namespace AskBotCore
             {
                 Channel = channel,
                 Timestamp = timestamp,
-                Blocks = new object[]
+                Blocks = new BlockObject[]
                 {
                     new SectionObject
                     {
@@ -33,27 +33,24 @@ namespace AskBotCore
                             Text = questionnaire.Question
                         }
                     },
-                    new
+                    new ActionBlock
                     {
-                        type = "actions",
-                        elements = new[]
+                        Elements = new BlockElement[]
                         {
-                            new
+                            new ButtonElement
                             {
-                                type = "button",
-                                action_id = "open_questionnaire",
-                                value = questionnaire.QuestionnaireId,
-                                text = new PlainTextObject
+                                ActionId = "open_questionnaire",
+                                Value = questionnaire.QuestionnaireId,
+                                Text = new PlainTextObject
                                 {
                                     Text = "Answer"
                                 }
                             },
-                            new
+                            new ButtonElement
                             {
-                                type = "button",
-                                action_id = "get_answers",
-                                value = questionnaire.QuestionnaireId,
-                                text = new PlainTextObject
+                                ActionId = "get_answers",
+                                Value = questionnaire.QuestionnaireId,
+                                Text = new PlainTextObject
                                 {
                                     Text = "Results"
                                 }
@@ -70,7 +67,7 @@ namespace AskBotCore
             {
                 Channel = channel,
                 Timestamp = timestamp,
-                Blocks = new object[]
+                Blocks = new[]
                 {
                     new SectionObject
                     {
@@ -161,107 +158,90 @@ namespace AskBotCore
 
         public static ViewObject GetCreateQuestionnaireMainPayload(int numberOfOptions = 2)
         {
-            var titleAndChannelBlocks = new object[]{ new
+            var titleAndChannelBlocks = new object[]{ new InputObject
             {
-                type = "input",
-                block_id = "TitleBlock",
-                element = new
+                BlockId = "TitleBlock",
+                Element = new PlainTextInputElement
                 {
-                    type = "plain_text_input",
-                    action_id = "title",
-                    placeholder = new
+                    ActionId = "title",
+                    Placeholder = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "What is your question?"
+                        Text = "What is your question?"
                     },
-                    max_length = 75
+                    MaxLength = 75
                 },
-                label = new
+                Label = new PlainTextObject
                 {
-                    type = "plain_text",
-                    text = "Title"
+                    Text = "Title"
                 }
             },
-            new
+            new InputObject
             {
-                type = "input",
-                block_id = "ChannelBlock",
-                element = new
+                BlockId = "ChannelBlock",
+                Element = new ConversationsListElement
                 {
-                    type = "conversations_select",
-                    action_id = "channel",
-                    placeholder = new
+                    ActionId = "channel",
+                    Placeholder = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Where should the poll be sent?"
-                    },
+                        Text = "Where should the poll be sent?"
+                    }
                 },
-                label = new
+                Label = new PlainTextObject
                 {
-                    type = "plain_text",
-                    text = "Channel(s). If channel is private, bot must be invited to the channel before creating the questionnaire."
+                    Text = "Channel(s). If channel is private, bot must be invited to the channel before creating the questionnaire."
                 }
             }};
 
             var answerBlocks = new object[numberOfOptions];
             for (var i = 0; i < numberOfOptions; i++)
             {
-                answerBlocks[i] = new
+                answerBlocks[i] = new InputObject
                 {
-                    type = "input",
-                    block_id = $"AnswerBlock{i + 1}",
-                    element = new
+                    BlockId = $"AnswerBlock{i + 1}",
+                    Element = new PlainTextInputElement
                     {
-                        type = "plain_text_input",
-                        action_id = $"option_{i + 1}",
-                        placeholder = new
+                        ActionId = $"option_{i + 1}",
+                        Placeholder = new PlainTextObject
                         {
-                            type = "plain_text",
-                            text = "Available option"
+                            Text = "Available option"
                         },
-                        max_length = 75
+                        MaxLength = 75
                     },
-                    label = new
+                    Label = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = $"Option {i + 1}"
+                        Text = $"Option {i + 1}"
                     }
                 };
             }
 
-            var buttonBlocks = new object[1] {
-                new
+            var buttonBlocks = new ActionBlock[1] {
+                new ActionBlock
                 {
-                    type = "actions",
-                    elements = new[]
+                    Elements = new BlockElement[]
                     {
-                        new
+                        new ButtonElement
                         {
-                            type = "button",
-                            action_id = "add_option",
-                            text = new
+                            ActionId = "add_option",
+                            Text = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = "Add another option"
+                                Text = "Add another option"
                             },
-                            value = $"{numberOfOptions + 1}"
+                            Value = $"{numberOfOptions + 1}"
                         },
-                        new
+                        new ButtonElement
                         {
-                            type = "button",
-                            action_id = "delete_option",
-                            text = new
+                            ActionId = "delete_option",
+                            Text = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = "Delete option"
+                                Text = "Delete option"
                             },
-                            value = numberOfOptions <= 2 ? "2" : $"{numberOfOptions - 1}"
+                            Value = numberOfOptions <= 2 ? "2" : $"{numberOfOptions - 1}"
                         }
                     }
                 }
             };
 
-            var blocks = new object[titleAndChannelBlocks.Length + answerBlocks.Length + buttonBlocks.Length];
+            var blocks = new BlockObject[titleAndChannelBlocks.Length + answerBlocks.Length + buttonBlocks.Length];
             titleAndChannelBlocks.CopyTo(blocks, 0);
             answerBlocks.CopyTo(blocks, titleAndChannelBlocks.Length);
             buttonBlocks.CopyTo(blocks, titleAndChannelBlocks.Length + answerBlocks.Length);

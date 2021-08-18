@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using SlackLib.Objects;
 
 namespace SlackLib.Requests
 {
@@ -14,6 +15,6 @@ namespace SlackLib.Requests
         public string Timestamp { get; set; }
 
         [JsonProperty("blocks")]
-        public object[] Blocks { get; set; }
+        public BlockObject[] Blocks { get; set; }
     }
 }

@@ -26,6 +26,6 @@ namespace SlackLib.Objects
         public PlainTextObject Close { get; set; }
 
         [JsonProperty("blocks")]
-        public dynamic Blocks { get; set; }
+        public BlockObject[] Blocks { get; set; }
     }
 }

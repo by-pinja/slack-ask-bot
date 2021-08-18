@@ -32,46 +32,40 @@ namespace AzureFunctions.Payloads
                     {
                         Text = "Cancel"
                     },
-                    Blocks = new dynamic[]
+                    Blocks = new BlockObject[]
                     {
-                        new
+                        new SectionObject
                         {
-                            type = "section",
-                            text = new {
-                                type = "mrkdwn",
-                                text = $"A new answer will replace your previous one.{previousAnswerExplanation}"
+                            Text = new MarkdownTextObject
+                            {
+                                Text = $"A new answer will replace your previous one.{previousAnswerExplanation}"
                             }
                         },
-                        new
+                        new InputObject
                         {
-                            type = "input",
-                            block_id = "AnswerBlock",
-                            element = new
+                            BlockId = "AnswerBlock",
+                            Element = new StaticSelectElement
                             {
-                                type = "static_select",
-                                action_id = "title",
-                                placeholder = new
+                                ActionId = "title",
+                                Placeholder = new PlainTextObject
                                 {
-                                    type = "plain_text",
-                                    text = "Select an option"
+                                    Text = "Select an option"
                                 },
-                                options = questionnaire.AnswerOptions.Select(option =>
+                                Options = questionnaire.AnswerOptions.Select(option =>
                                 {
-                                    return new
+                                    return new OptionObject
                                     {
-                                        text = new
+                                        Text = new PlainTextObject
                                         {
-                                            type = "plain_text",
-                                            text = option
+                                            Text = option
                                         },
-                                        value = option
+                                        Value = option
                                     };
-                                })
+                                }).ToArray()
                             },
-                            label = new
+                            Label = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = questionnaire.Question
+                                Text = questionnaire.Question
                             }
                         }
                     }
@@ -96,16 +90,14 @@ namespace AzureFunctions.Payloads
                     {
                         Text = "Close"
                     },
-                    Blocks = new[]
+                    Blocks = new BlockObject[]
                     {
-                        new
+                        new SectionObject
                         {
-                            type = "section",
-                            text = new
+                            Text = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = ":disappointed: The questionnaire you are attempting to answer has closed.",
-                                emoji = true
+                                Text = ":disappointed: The questionnaire you are attempting to answer has closed.",
+                                Emoji = true
                             }
                         }
                     }

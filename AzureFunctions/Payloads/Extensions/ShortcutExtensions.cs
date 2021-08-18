@@ -30,38 +30,33 @@ namespace AzureFunctions.Payloads
                     {
                         Text = "Cancel"
                     },
-                    Blocks = new[]
+                    Blocks = new BlockObject[]
                     {
-                        new
+                        new InputObject
                         {
-                            type = "input",
-                            block_id = "SelectBlock",
-                            element = new
+                            BlockId = "SelectBlock",
+                            Element = new StaticSelectElement
                             {
-                                type = "static_select",
-                                action_id = "questionnaires",
-                                placeholder = new
+                                ActionId = "questionnaires",
+                                Placeholder = new PlainTextObject
                                 {
-                                    type = "plain_text",
-                                    text = "Select a questionnaire"
+                                    Text = "Select a questionnaire"
                                 },
-                                options = questionnaires.Select(option =>
+                                Options = questionnaires.Select(option =>
                                 {
-                                    return new
+                                    return new OptionObject
                                     {
-                                        text = new
+                                        Text = new PlainTextObject
                                         {
-                                            type = "plain_text",
-                                            text = option.Question
+                                            Text = option.Question
                                         },
-                                        value = option.QuestionnaireId
+                                        Value = option.QuestionnaireId
                                     };
-                                })
+                                }).ToArray()
                             },
-                            label = new
+                            Label = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = "Questionnaire"
+                                Text = "Questionnaire"
                             }
                         }
                     }
