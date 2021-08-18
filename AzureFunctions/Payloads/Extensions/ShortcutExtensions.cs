@@ -17,20 +17,17 @@ namespace AzureFunctions.Payloads
                 {
                     Type = "modal",
                     CallbackId = callbackId,
-                    Title = new
+                    Title = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = callbackId == "get_answers" ? "Get answers" : "Delete a questionnaire",
+                        Text = callbackId == "get_answers" ? "Get answers" : "Delete a questionnaire"
                     },
-                    Submit = new
+                    Submit = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Submit",
+                        Text = "Submit"
                     },
-                    Close = new
+                    Close = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Cancel",
+                        Text = "Cancel"
                     },
                     Blocks = new[]
                     {
@@ -80,26 +77,22 @@ namespace AzureFunctions.Payloads
                 {
                     Type = "modal",
                     CallbackId = "no_available_questionnaires",
-                    Title = new
+                    Title = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = $"Unavailable",
+                        Text = "Unavailable"
                     },
-                    Close = new
+                    Close = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Close",
+                        Text = "Close"
                     },
                     Blocks = new[]
                     {
-                        new
+                        new SectionObject
                         {
-                            type = "section",
-                            text = new
+                            Text = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = ":desert_island: There are no available questionnaires.",
-                                emoji = true
+                                Text = ":desert_island: There are no available questionnaires.",
+                                Emoji = true
                             }
                         }
                     }
@@ -116,31 +109,26 @@ namespace AzureFunctions.Payloads
                 {
                     Type = "modal",
                     CallbackId = "delete_questionnaires",
-                    Title = new
+                    Title = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Delete all data",
+                        Text = "Delete all data"
                     },
-                    Submit = new
+                    Submit = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Yes",
+                        Text = "Yes"
                     },
-                    Close = new
+                    Close = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Close",
+                        Text = "Close"
                     },
                     Blocks = new[]
                     {
-                        new
+                        new SectionObject
                         {
-                            type = "section",
-                            text = new
+                            Text = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = ":warning: Are you sure you would like to delete all questionnaires and answers?",
-                                emoji = true
+                                Text = ":warning: Are you sure you would like to delete all questionnaires and answers?",
+                                Emoji = true
                             }
                         }
                     }

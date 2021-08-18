@@ -54,7 +54,7 @@ namespace SlackLib
             try
             {
                 string serializedPayload = JsonSerializer.Serialize(payload, _serializationOptions);
-                _logger.LogDebug("Serialised: {payload}.", serializedPayload);
+                _logger.LogInformation("Serialised: {payload}.", serializedPayload);
                 using (var requestContent = new StringContent(serializedPayload, Encoding.UTF8, "application/json"))
                 {
                     var response = await _client.PostAsync(address, requestContent).ConfigureAwait(false);

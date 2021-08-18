@@ -26,14 +26,12 @@ namespace AskBotCore
                 Timestamp = timestamp,
                 Blocks = new object[]
                 {
-                    new
+                    new SectionObject
                     {
-                        type = "section",
-                        block_id = questionnaire.QuestionnaireId,
-                        text = new
+                        BlockId = questionnaire.QuestionnaireId,
+                        Text = new MarkdownTextObject
                         {
-                            type = "mrkdwn",
-                            text = questionnaire.Question
+                            Text = questionnaire.Question
                         }
                     },
                     new
@@ -46,10 +44,9 @@ namespace AskBotCore
                                 type = "button",
                                 action_id = "open_questionnaire",
                                 value = questionnaire.QuestionnaireId,
-                                text = new
+                                text = new PlainTextObject
                                 {
-                                    type = "plain_text",
-                                    text = "Answer"
+                                    Text = "Answer"
                                 }
                             },
                             new
@@ -57,10 +54,9 @@ namespace AskBotCore
                                 type = "button",
                                 action_id = "get_answers",
                                 value = questionnaire.QuestionnaireId,
-                                text = new
+                                text = new PlainTextObject
                                 {
-                                    type = "plain_text",
-                                    text = "Results"
+                                    Text = "Results"
                                 }
                             }
                         }
@@ -77,14 +73,12 @@ namespace AskBotCore
                 Timestamp = timestamp,
                 Blocks = new object[]
                 {
-                    new
+                    new SectionObject
                     {
-                        type = "section",
-                        block_id = questionnaire.QuestionnaireId,
-                        text = new
+                        BlockId = questionnaire.QuestionnaireId,
+                        Text = new MarkdownTextObject
                         {
-                            type = "mrkdwn",
-                            text = $"{questionnaire.Question}\r\n*Questionnaire is now closed.*"
+                            Text = $"{questionnaire.Question}\r\n*Questionnaire is now closed.*"
                         }
                     }
                  }
@@ -123,14 +117,12 @@ namespace AskBotCore
                     },
                     blocks = new[]
                     {
-                        new
+                        new SectionObject
                         {
-                            type = "section",
-                            text = new
+                            Text = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = $":+1: The questionnaire \"{questionnaireTitle}\" and the answers have been deleted.",
-                                emoji = true
+                                Text = $":+1: The questionnaire \"{questionnaireTitle}\" and the answers have been deleted.",
+                                Emoji = true
                             }
                         }
                     }
@@ -159,14 +151,12 @@ namespace AskBotCore
                     },
                     blocks = new[]
                     {
-                        new
+                        new SectionObject
                         {
-                            type = "section",
-                            text = new
+                            Text = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = $":partyparrot: Your answer '{answer}' has been successfully submitted.",
-                                emoji = true
+                                Text = $":partyparrot: Your answer '{answer}' has been successfully submitted.",
+                                Emoji = true
                             }
                         }
                     }
@@ -285,20 +275,17 @@ namespace AskBotCore
             {
                 Type = "modal",
                 CallbackId = "create_questionnaire",
-                Title = new
+                Title = new PlainTextObject
                 {
-                    type = "plain_text",
-                    text = "Create questionnaire",
+                    Text = "Create questionnaire"
                 },
-                Submit = new
+                Submit = new PlainTextObject
                 {
-                    type = "plain_text",
-                    text = "Submit",
+                    Text = "Submit"
                 },
-                Close = new
+                Close = new PlainTextObject
                 {
-                    type = "plain_text",
-                    text = "Cancel",
+                    Text = "Cancel"
                 },
                 Blocks = blocks
             };

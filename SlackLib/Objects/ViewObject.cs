@@ -11,7 +11,7 @@ namespace SlackLib.Objects
         public string Type { get; set; }
 
         [JsonPropertyName("title")]
-        public dynamic Title { get; set; }
+        public PlainTextObject Title { get; set; }
 
         [JsonPropertyName("callback_id")]
         public string CallbackId { get; set; }
@@ -20,10 +20,10 @@ namespace SlackLib.Objects
         public string PrivateMetadata { get; set; }
 
         [JsonPropertyName("submit")]
-        public dynamic Submit { get; set; }
+        public PlainTextObject Submit { get; set; }
 
         [JsonPropertyName("close")]
-        public dynamic Close { get; set; }
+        public PlainTextObject Close { get; set; }
 
         [JsonPropertyName("blocks")]
         public dynamic Blocks { get; set; }

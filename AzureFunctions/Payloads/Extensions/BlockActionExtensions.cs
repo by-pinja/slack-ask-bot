@@ -19,20 +19,17 @@ namespace AzureFunctions.Payloads
                     Type = "modal",
                     CallbackId = "open_questionnaire",
                     PrivateMetadata = questionnaire.QuestionnaireId,
-                    Title = new
+                    Title = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Submit answer",
+                        Text = "Submit answer"
                     },
-                    Submit = new
+                    Submit = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Submit",
+                        Text = "Submit"
                     },
-                    Close = new
+                    Close = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Cancel",
+                        Text = "Cancel"
                     },
                     Blocks = new dynamic[]
                     {
@@ -90,15 +87,13 @@ namespace AzureFunctions.Payloads
                 {
                     Type = "modal",
                     CallbackId = "questionnaire_not_found",
-                    Title = new
+                    Title = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Unavailable",
+                        Text = "Unavailable"
                     },
-                    Close = new
+                    Close = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Close",
+                        Text = "Close"
                     },
                     Blocks = new[]
                     {

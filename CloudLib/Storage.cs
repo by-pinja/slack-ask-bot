@@ -41,12 +41,6 @@ namespace CloudLib
             return await _questionnaires.ExecuteQueryAsync(query);
         }
 
-        private async Task<IEnumerable<AnswerEntity>> GetAnswers()
-        {
-            var query = new TableQuery<AnswerEntity>();
-            return await _answers.ExecuteQueryAsync(query);
-        }
-
         public async Task<QuestionnaireEntity> GetQuestionnaire(string questionnaireId)
         {
             if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("Questionnaire id is empty", nameof(questionnaireId));
@@ -144,19 +138,6 @@ namespace CloudLib
             }
             await _answers.ExecuteBatchAsync(answerBatch);
             _logger.LogDebug("Deleted answer(s).");
-        }
-
-        private IEnumerable<TableBatchOperation> GroupedDeletes(IEnumerable<TableEntity> entities)
-        {
-            return entities.GroupBy(entity => entity.PartitionKey).Select(group =>
-            {
-                var batch = new TableBatchOperation();
-                foreach (var answer in group)
-                {
-                    batch.Add(TableOperation.Delete(answer));
-                }
-                return batch;
-            });
         }
     }
 }

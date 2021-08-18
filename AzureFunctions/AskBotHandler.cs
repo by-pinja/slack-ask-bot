@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using SlackLib;
 using SlackLib.Requests;
 
@@ -19,6 +20,11 @@ namespace AzureFunctions
 {
     public class AskBotHandler
     {
+        private readonly JsonSerializerSettings _serializationSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
         private readonly ILogger<AskBotHandler> _logger;
         private readonly IStorage _storage;
         private readonly ISlackClient _slackClient;
@@ -51,7 +57,7 @@ namespace AzureFunctions
             }
 
             _logger.LogDebug("Deserializing payload: {payload}", payloadString);
-            var json = JsonSerializer.Deserialize<JsonElement>(payloadString);
+            var json = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(payloadString);
 
             var options = new JsonSerializerOptions
             {
@@ -61,15 +67,15 @@ namespace AzureFunctions
             switch (json.GetProperty("type").GetString())
             {
                 case "block_actions":
-                    var blockAction = JsonSerializer.Deserialize<BlockAction>(payloadString, options);
+                    var blockAction = System.Text.Json.JsonSerializer.Deserialize<BlockAction>(payloadString, options);
                     await HandleBlockAction(blockAction);
                     return new OkResult();
                 case "shortcut":
-                    var shortcut = JsonSerializer.Deserialize<Shortcut>(payloadString, options);
+                    var shortcut = System.Text.Json.JsonSerializer.Deserialize<Shortcut>(payloadString, options);
                     await HandleShortcut(shortcut);
                     return new OkResult();
                 case "view_submission":
-                    var viewSubmission = JsonSerializer.Deserialize<ViewSubmission>(payloadString, options);
+                    var viewSubmission = System.Text.Json.JsonSerializer.Deserialize<ViewSubmission>(payloadString, options);
                     return await HandleViewSubmission(viewSubmission, Guid.NewGuid().ToString(), DateTime.UtcNow);
                 default:
                     throw new NotImplementedException($"Unknown payload type {json.GetProperty("type").GetString()}.");
@@ -215,13 +221,13 @@ namespace AzureFunctions
                     await _storage.InsertOrMerge(answerEntity);
 
                     var answeredPayload = PayloadUtility.GetConfirmAnsweredPayload(answer);
-                    return new JsonResult(answeredPayload);
+                    return new JsonResult(answeredPayload, _serializationSettings);
                 case "delete_a_questionnaire":
                     var questionnaireId = viewSubmission.View.State.Values.First().Value.First().Value.SelectedOption.Value;
                     _logger.LogInformation("Deleting questionnaire with ID: {questionnaire}.", questionnaireId);
                     var questionnaireTitle = await _control.DeleteQuestionnaireAndAnswers(questionnaireId).ConfigureAwait(false);
                     var deletedQuestionnairePayload = PayloadUtility.GetDeletedQuestionnairePayload(questionnaireTitle);
-                    return new JsonResult(deletedQuestionnairePayload);
+                    return new JsonResult(deletedQuestionnairePayload, _serializationSettings);
                 default:
                     throw new NotImplementedException($"Unknown view callback id: {viewSubmission.View.CallbackId}.");
             }
