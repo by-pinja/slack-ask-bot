@@ -7,6 +7,7 @@ using CloudLib.Models;
 using Microsoft.Extensions.Logging;
 using SlackLib;
 using SlackLib.Messages;
+using SlackLib.Requests;
 using SlackLib.Responses;
 
 namespace AskBotCore
@@ -33,9 +34,14 @@ namespace AskBotCore
             if (string.IsNullOrWhiteSpace(questionnaire.Channel)) throw new ArgumentException("Channel is empty", nameof(questionnaire.Channel));
             _logger.LogTrace("Creating questionnaire: {questionnaire}. Channel: {channel}", questionnaire.Question, questionnaire.Channel);
 
-            var preMessage = PayloadUtility.PlainMessagePayload(questionnaire.Channel, "This is a message which verifies that the bot is able to message to this channel.");
+            var preMessage = new ChatPostMessageRequest
+            {
+                Channel = questionnaire.Channel,
+                Text = "This is a message which verifies that the bot is able to message to this channel."
+            };
             ChatPostMessageResponse result = await _slackClient.PostMessage(preMessage).ConfigureAwait(false);
 
+            questionnaire.MessageTimestamp = result.Timestamp;
             await _storage.InsertOrMerge(questionnaire).ConfigureAwait(false);
             _logger.LogTrace("Questionnaire stored.");
 
@@ -45,35 +51,24 @@ namespace AskBotCore
             _logger.LogInformation("Questionnaire created channel {channel}, ts: {timestamp}.", result.Channel, result.Timestamp);
         }
 
+        public async Task PostResultsToThread(string questionnaireId)
+        {
+            var questionnaire = await GetQuestionnaireOrThrow(questionnaireId);
+            var answersDictionary = await CreateResultDictionary(questionnaire);
+
+            var preMessage = new ChatPostMessageRequest
+            {
+                Channel = questionnaire.Channel,
+                Text = PayloadUtility.AnswersPostText(answersDictionary),
+                ThreadTimestamp = questionnaire.MessageTimestamp
+            };
+            await _slackClient.PostMessage(preMessage).ConfigureAwait(false);
+        }
+
         public async Task<QuestionnaireResult> GetQuestionnaireResult(string questionnaireId)
         {
-            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("QuestionnaireId is empty", nameof(questionnaireId));
-
-            var questionnaire = await _storage.GetQuestionnaire(questionnaireId);
-            if (questionnaire is null)
-            {
-                _logger.LogError("Could not find questionnaire with id {questionnaireId}.", questionnaireId);
-                throw new ArgumentException("Could not find questionnaire.", nameof(questionnaireId));
-            }
-            _logger.LogTrace("Getting {questionnaireId} answers.", questionnaire.Question);
-
-            var answers = await _storage.GetAnswers(questionnaireId);
-            _logger.LogDebug("Found {count} answer(s)", answers.Count());
-
-            foreach (var answer in answers)
-            {
-                _logger.LogInformation("- {questionnaireId} {answer} {time} {answerer}", answer.QuestionnaireId, answer.Answer, answer.Timestamp, answer.Answerer);
-            }
-
-            var answersDictionary = new Dictionary<string, int>();
-            foreach (var availableAnswer in questionnaire.AnswerOptions)
-            {
-                answersDictionary[availableAnswer] = 0;
-            }
-            foreach (var answer in answers)
-            {
-                answersDictionary[answer.Answer]++;
-            }
+            var questionnaire = await GetQuestionnaireOrThrow(questionnaireId);
+            var answersDictionary = await CreateResultDictionary(questionnaire);
 
             _logger.LogInformation("Answers retrieved.");
             var questionnaireResult = new QuestionnaireResult
@@ -85,28 +80,60 @@ namespace AskBotCore
             return questionnaireResult;
         }
 
-        public async Task DeleteAll()
+        private async Task<Dictionary<string, int>> CreateResultDictionary(QuestionnaireEntity questionnaire)
         {
-            _logger.LogTrace("Deleting all questionnaires and answers.");
-            await _storage.DeleteAll().ConfigureAwait(false);
-            _logger.LogInformation("All items deleted.");
+            _logger.LogTrace("Getting {questionnaireId} answers.", questionnaire.Question);
+            var answers = await _storage.GetAnswers(questionnaire.QuestionnaireId);
+            _logger.LogDebug("Found {count} answer(s)", answers.Count());
+            var answersDictionary = new Dictionary<string, int>();
+            foreach (var availableAnswer in questionnaire.AnswerOptions)
+            {
+                answersDictionary[availableAnswer] = 0;
+            }
+            foreach (var answer in answers)
+            {
+                answersDictionary[answer.Answer]++;
+            }
+
+            return answersDictionary;
         }
 
         public async Task<string> DeleteQuestionnaireAndAnswers(string questionnaireId)
         {
-            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("QuestionnaireId", nameof(questionnaireId));
+            var questionnaire = await GetQuestionnaireOrThrow(questionnaireId);
+
+            // Post final results
+            await PostResultsToThread(questionnaireId);
+
+            _logger.LogTrace("Deleting questionnaire and answers.");
+            await _storage.DeleteQuestionnaireAndAnswers(questionnaireId);
+
+            var questionnaireClosedMessage = new ChatPostMessageRequest
+            {
+                Channel = questionnaire.Channel,
+                Text = "Questionnaire is now closed.",
+                ThreadTimestamp = questionnaire.MessageTimestamp
+            };
+            await _slackClient.PostMessage(questionnaireClosedMessage).ConfigureAwait(false);
+
+            var payload = PayloadUtility.GetQuestionnaireClosedPostUpdatePayload(questionnaire.Channel, questionnaire.MessageTimestamp, questionnaire);
+            await _slackClient.ChatUpdate(payload).ConfigureAwait(false);
+
+            return questionnaire.Question;
+        }
+
+        private async Task<QuestionnaireEntity> GetQuestionnaireOrThrow(string questionnaireId)
+        {
+            if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("questionnaireId is empty", nameof(questionnaireId));
 
             var questionnaire = await _storage.GetQuestionnaire(questionnaireId);
             if (questionnaire is null)
             {
                 _logger.LogError("Could not find questionnaire with id {questionnaireId}.", questionnaireId);
-                throw new Exception("Could not find questionnaire.");
+                throw new ArgumentException("Could not find questionnaire.", nameof(questionnaireId));
             }
 
-            _logger.LogTrace("Deleting questionnaire and answers.");
-            await _storage.DeleteQuestionnaireAndAnswers(questionnaireId);
-
-            return questionnaire.Question;
+            return questionnaire;
         }
     }
 }

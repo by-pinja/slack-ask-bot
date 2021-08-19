@@ -1,15 +1,15 @@
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
-namespace AzureFunctions.Payloads
+namespace SlackLib.Interactions
 {
     public class Shortcut
     {
-        [JsonPropertyName("callback_id")]
+        [JsonProperty("callback_id")]
         public string CallbackId { get; set; }
 
         public User User { get; set; }
 
-        [JsonPropertyName("trigger_id")]
+        [JsonProperty("trigger_id")]
         public string TriggerId { get; set; }
     }
 }

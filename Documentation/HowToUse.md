@@ -53,11 +53,12 @@ The old answer is shown in answer dialog.
 
 ## Checking answers
 
-To show answers, select `Get answers` from the shortcut menu. This will show a
-dialog with all questionnaires and user can choose any questionnaire. After
-questionnaire is selected and `Submit` is pressed, dialog shows results.
+To show answers, click `Results` button from the questionnaire message. This
+will post questionnaire results as an answer to the questionnaire message. This
+creates a thread and further clicks will send new messages with current
+results.
 
-`Results` dialog doesn't show which user has answerred what option.
+The post doesn't show which user has answerred what option.
 
 ## Deleting questionnaires
 
@@ -66,5 +67,10 @@ menu. This will show all questionnaires and user can choose any
 questionnaire. After questionnaire is selected and `Submit` is pressed, the
 questionnaire is deleted!
 
-Shortuct also provide `Deletete questionnaires` option which will remove all
-questionnaires!
+When question is deleted:
+
+* Final results are posted to the thread, same as `Results` would be pressed.
+* Closing message is posted indicating that questionnaire can no longer be
+answered.
+* `Answer` and  `Results` -buttons are removed from the message.
+* Questionnaire and answers are deleted from storage.

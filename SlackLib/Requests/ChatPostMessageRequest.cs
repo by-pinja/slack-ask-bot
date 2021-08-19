@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SlackLib.Requests
 {
@@ -7,10 +7,13 @@ namespace SlackLib.Requests
     /// </summary>
     public class ChatPostMessageRequest
     {
-        [JsonPropertyName("channel")]
+        [JsonProperty("channel")]
         public string Channel { get; set; }
 
-        [JsonPropertyName("text")]
+        [JsonProperty("text")]
         public string Text { get; set; }
+
+        [JsonProperty("thread_ts")]
+        public string ThreadTimestamp { get; set; }
     }
 }

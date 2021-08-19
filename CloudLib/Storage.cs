@@ -41,12 +41,6 @@ namespace CloudLib
             return await _questionnaires.ExecuteQueryAsync(query);
         }
 
-        private async Task<IEnumerable<AnswerEntity>> GetAnswers()
-        {
-            var query = new TableQuery<AnswerEntity>();
-            return await _answers.ExecuteQueryAsync(query);
-        }
-
         public async Task<QuestionnaireEntity> GetQuestionnaire(string questionnaireId)
         {
             if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("Questionnaire id is empty", nameof(questionnaireId));
@@ -112,31 +106,6 @@ namespace CloudLib
             }
         }
 
-        public async Task DeleteAll()
-        {
-            _logger.LogTrace("Clearing table {table}", _answers.Name);
-            var answers = await GetAnswers();
-            _logger.LogDebug("Found {count} items to delete.", answers.Count());
-            var answerBatchGroups = GroupedDeletes(answers);
-
-            _logger.LogDebug("Executing batches");
-            foreach (var batch in answerBatchGroups)
-            {
-                _answers.ExecuteBatch(batch);
-            }
-
-            _logger.LogTrace("Clearing table {table}", _questionnaires.Name);
-            var questionnaires = await GetQuestionnaires();
-            _logger.LogDebug("Found {count} items to delete.", questionnaires.Count());
-            var questionnaireBatchGroups = GroupedDeletes(questionnaires);
-
-            _logger.LogDebug("Executing batch");
-            foreach (var batch in questionnaireBatchGroups)
-            {
-                _questionnaires.ExecuteBatch(batch);
-            }
-        }
-
         public async Task DeleteQuestionnaireAndAnswers(string questionnaireId)
         {
             if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("Questionnaire id is empty", nameof(questionnaireId));
@@ -169,19 +138,6 @@ namespace CloudLib
             }
             await _answers.ExecuteBatchAsync(answerBatch);
             _logger.LogDebug("Deleted answer(s).");
-        }
-
-        private IEnumerable<TableBatchOperation> GroupedDeletes(IEnumerable<TableEntity> entities)
-        {
-            return entities.GroupBy(entity => entity.PartitionKey).Select(group =>
-            {
-                var batch = new TableBatchOperation();
-                foreach (var answer in group)
-                {
-                    batch.Add(TableOperation.Delete(answer));
-                }
-                return batch;
-            });
         }
     }
 }

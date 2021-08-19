@@ -1,4 +1,5 @@
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
+using SlackLib.Objects;
 
 namespace SlackLib.Requests
 {
@@ -7,16 +8,16 @@ namespace SlackLib.Requests
     /// </summary>
     public class ViewsUpdateRequest
     {
-        [JsonPropertyName("view_id")]
+        [JsonProperty("view_id")]
         public string ViewId { get; set; }
 
-        [JsonPropertyName("trigger_id")]
+        [JsonProperty("trigger_id")]
         public string TriggerId { get; set; }
 
-        [JsonPropertyName("hash")]
+        [JsonProperty("hash")]
         public string Hash { get; set; }
 
-        [JsonPropertyName("view")]
-        public object View { get; set; }
+        [JsonProperty("view")]
+        public ViewObject View { get; set; }
     }
 }

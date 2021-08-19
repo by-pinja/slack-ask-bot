@@ -1,6 +1,6 @@
 using System;
-using System.Text.Json;
 using Microsoft.Azure.Cosmos.Table;
+using Newtonsoft.Json;
 
 namespace CloudLib.Models
 {
@@ -35,6 +35,11 @@ namespace CloudLib.Models
         public DateTime Created { get; set; }
         public string Question { get; set; }
 
+        /// <summary>
+        /// Message timestamp is used to send replies to the message thread
+        /// </summary>
+        public string MessageTimestamp { get; set; }
+
         private string _answerOptionsString;
         public string AnswerOptionsString
         {
@@ -42,7 +47,7 @@ namespace CloudLib.Models
             set
             {
                 _answerOptionsString = value;
-                _answerOptions = JsonSerializer.Deserialize<string[]>(value);
+                _answerOptions = JsonConvert.DeserializeObject<string[]>(value);
             }
         }
 
@@ -53,7 +58,7 @@ namespace CloudLib.Models
             set
             {
                 _answerOptions = value;
-                _answerOptionsString = JsonSerializer.Serialize(_answerOptions);
+                _answerOptionsString = JsonConvert.SerializeObject(_answerOptions);
             }
         }
 
