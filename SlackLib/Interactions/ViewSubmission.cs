@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
-namespace AzureFunctions.Payloads
+namespace SlackLib.Interactions
 {
     public class ViewSubmission
     {
@@ -17,10 +17,10 @@ namespace AzureFunctions.Payloads
 
         public WithText Title { get; set; }
 
-        [JsonPropertyName("callback_id")]
+        [JsonProperty("callback_id")]
         public string CallbackId { get; set; }
 
-        [JsonPropertyName("private_metadata")]
+        [JsonProperty("private_metadata")]
         public string PrivateMetadata { get; set; }
     }
 
@@ -33,10 +33,10 @@ namespace AzureFunctions.Payloads
     {
         public string Value { get; set; }
 
-        [JsonPropertyName("selected_option")]
+        [JsonProperty("selected_option")]
         public SelectedOption SelectedOption { get; set; }
 
-        [JsonPropertyName("selected_conversation")]
+        [JsonProperty("selected_conversation")]
         public string SelectedChannel { set { this.Value = value; } }
     }
 

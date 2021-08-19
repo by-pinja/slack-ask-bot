@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Net.Http;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using SlackLib.Requests;
+using SlackLib.Responses;
 
 namespace SlackLib
 {
@@ -12,6 +14,11 @@ namespace SlackLib
     /// </summary>
     public class SlackClient : ISlackClient
     {
+        private readonly JsonSerializerSettings _serializationSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
         private readonly ILogger<SlackClient> _logger;
         private readonly HttpClient _client;
 
@@ -21,28 +28,33 @@ namespace SlackLib
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
-        public async Task PostMessage(dynamic payload)
+        public async Task<ChatPostMessageResponse> PostMessage(ChatPostMessageRequest payload)
         {
-            await ExecuteSlackCall(payload, "chat.postMessage").ConfigureAwait(false);
+            return await ExecuteSlackCall<ChatPostMessageResponse>(payload, "chat.postMessage").ConfigureAwait(false);
         }
 
-        public async Task OpenModelView(dynamic payload)
+        public async Task ChatUpdate(ChatUpdateRequest payload)
         {
-            await ExecuteSlackCall(payload, "views.open").ConfigureAwait(false);
-        }
-        public async Task UpdateModelView(dynamic payload)
-        {
-            await ExecuteSlackCall(payload, "views.update").ConfigureAwait(false);
+            await ExecuteSlackCall<ChatPostMessageResponse>(payload, "chat.update").ConfigureAwait(false);
         }
 
-        private async Task ExecuteSlackCall(dynamic payload, string address)
+        public async Task OpenModelView(ViewsOpenRequest payload)
+        {
+            await ExecuteSlackCall<object>(payload, "views.open").ConfigureAwait(false);
+        }
+        public async Task UpdateModelView(ViewsUpdateRequest payload)
+        {
+            await ExecuteSlackCall<object>(payload, "views.update").ConfigureAwait(false);
+        }
+
+        private async Task<T> ExecuteSlackCall<T>(dynamic payload, string address)
         {
             _logger.LogDebug("Executing slack request at {address}", address);
 
             try
             {
-                string serializedPayload = JsonSerializer.Serialize(payload);
-                _logger.LogDebug("Serialised: {payload}.", serializedPayload);
+                string serializedPayload = JsonConvert.SerializeObject(payload, _serializationSettings);
+                _logger.LogInformation("Serialised: {payload}.", serializedPayload);
                 using (var requestContent = new StringContent(serializedPayload, Encoding.UTF8, "application/json"))
                 {
                     var response = await _client.PostAsync(address, requestContent).ConfigureAwait(false);
@@ -51,12 +63,13 @@ namespace SlackLib
                     var content = await response.Content.ReadAsStringAsync();
 
                     _logger.LogDebug("Request successful, checking content. Content: {content}", content);
-                    var parsed = JsonSerializer.Deserialize<JsonElement>(content);
-                    if (!parsed.GetProperty("ok").GetBoolean())
+                    var parsed = JsonConvert.DeserializeObject<GenericReponse>(content);
+                    if (!parsed.Ok)
                     {
-                        _logger.LogCritical("Request successful but SlackAPI error. Error message: {error_message}", parsed.GetProperty("error").GetString());
-                        throw new SlackLibException($"Error message: {parsed.GetProperty("error").GetString()}");
+                        _logger.LogCritical("Request successful but SlackAPI error. Error message: {error_message}", parsed.Error);
+                        throw new SlackLibException($"Error message: {parsed.Error}");
                     }
+                    return JsonConvert.DeserializeObject<T>(content);
                 }
             }
             catch (JsonException e)

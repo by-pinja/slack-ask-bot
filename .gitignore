@@ -338,3 +338,4 @@ publish.zip
 
 # Test settings for continuous integration
 .runsettings
+coveragereport/

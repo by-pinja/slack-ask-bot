@@ -1,67 +1,62 @@
 using System.Collections.Generic;
 using System.Linq;
 using CloudLib.Models;
+using SlackLib.Interactions;
+using SlackLib.Objects;
+using SlackLib.Requests;
 
 namespace AzureFunctions.Payloads
 {
     public static class ShortcutExtensions
     {
-        public static dynamic GetOpenListOfQuestionnairesPayload(this Shortcut shortcut, IEnumerable<QuestionnaireEntity> questionnaires, string callbackId)
+        public static ViewsOpenRequest GetOpenListOfQuestionnairesPayload(this Shortcut shortcut, IEnumerable<QuestionnaireEntity> questionnaires, string callbackId)
         {
-            return new
+            return new ViewsOpenRequest
             {
-                trigger_id = shortcut.TriggerId,
-                view = new
+                TriggerId = shortcut.TriggerId,
+                View = new ViewObject
                 {
-                    type = "modal",
-                    callback_id = callbackId,
-                    title = new
+                    Type = "modal",
+                    CallbackId = callbackId,
+                    Title = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = callbackId == "get_answers" ? "Get answers" : "Delete a questionnaire",
+                        Text = callbackId == "get_answers" ? "Get answers" : "Delete a questionnaire"
                     },
-                    submit = new
+                    Submit = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Submit",
+                        Text = "Submit"
                     },
-                    close = new
+                    Close = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Cancel",
+                        Text = "Cancel"
                     },
-                    blocks = new[]
+                    Blocks = new BlockObject[]
                     {
-                        new
+                        new InputObject
                         {
-                            type = "input",
-                            block_id = "SelectBlock",
-                            element = new
+                            BlockId = "SelectBlock",
+                            Element = new StaticSelectElement
                             {
-                                type = "static_select",
-                                action_id = "questionnaires",
-                                placeholder = new
+                                ActionId = "questionnaires",
+                                Placeholder = new PlainTextObject
                                 {
-                                    type = "plain_text",
-                                    text = "Select a questionnaire"
+                                    Text = "Select a questionnaire"
                                 },
-                                options = questionnaires.Select(option =>
+                                Options = questionnaires.Select(option =>
                                 {
-                                    return new
+                                    return new OptionObject
                                     {
-                                        text = new
+                                        Text = new PlainTextObject
                                         {
-                                            type = "plain_text",
-                                            text = option.Question
+                                            Text = option.Question
                                         },
-                                        value = option.QuestionnaireId
+                                        Value = option.QuestionnaireId
                                     };
-                                })
+                                }).ToArray()
                             },
-                            label = new
+                            Label = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = "Questionnaire"
+                                Text = "Questionnaire"
                             }
                         }
                     }
@@ -69,35 +64,31 @@ namespace AzureFunctions.Payloads
             };
         }
 
-        public static dynamic GetNoQuestionnairesAvailablePayload(this Shortcut shortcut)
+        public static ViewsOpenRequest GetNoQuestionnairesAvailablePayload(this Shortcut shortcut)
         {
-            return new
+            return new ViewsOpenRequest
             {
-                trigger_id = shortcut.TriggerId,
-                view = new
+                TriggerId = shortcut.TriggerId,
+                View = new ViewObject
                 {
-                    type = "modal",
-                    callback_id = "no_available_questionnaires",
-                    title = new
+                    Type = "modal",
+                    CallbackId = "no_available_questionnaires",
+                    Title = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = $"Unavailable",
+                        Text = "Unavailable"
                     },
-                    close = new
+                    Close = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Close",
+                        Text = "Close"
                     },
-                    blocks = new[]
+                    Blocks = new[]
                     {
-                        new
+                        new SectionObject
                         {
-                            type = "section",
-                            text = new
+                            Text = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = ":desert_island: There are no available questionnaires.",
-                                emoji = true
+                                Text = ":desert_island: There are no available questionnaires.",
+                                Emoji = true
                             }
                         }
                     }
@@ -105,53 +96,12 @@ namespace AzureFunctions.Payloads
             };
         }
 
-        public static dynamic GetConfirmDeleteAllPayload(this Shortcut shortcut)
+        public static ViewsOpenRequest GetOpenCreateQuestionnairesPayload(this Shortcut shortcut, ViewObject mainViewPayload)
         {
-            return new
+            return new ViewsOpenRequest
             {
-                trigger_id = shortcut.TriggerId,
-                view = new
-                {
-                    type = "modal",
-                    callback_id = "delete_questionnaires",
-                    title = new
-                    {
-                        type = "plain_text",
-                        text = $"Delete all data",
-                    },
-                    submit = new
-                    {
-                        type = "plain_text",
-                        text = "Yes",
-                    },
-                    close = new
-                    {
-                        type = "plain_text",
-                        text = "Close",
-                    },
-                    blocks = new[]
-                    {
-                        new
-                        {
-                            type = "section",
-                            text = new
-                            {
-                                type = "plain_text",
-                                text = ":warning: Are you sure you would like to delete all questionnaires and answers?",
-                                emoji = true
-                            }
-                        }
-                    }
-                }
-            };
-        }
-
-        public static dynamic GetOpenCreateQuestionnairesPayload(this Shortcut shortcut, dynamic mainViewPayload)
-        {
-            return new
-            {
-                trigger_id = shortcut.TriggerId,
-                view = mainViewPayload
+                TriggerId = shortcut.TriggerId,
+                View = mainViewPayload
             };
         }
     }

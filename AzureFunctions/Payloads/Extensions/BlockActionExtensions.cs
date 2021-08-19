@@ -1,77 +1,71 @@
 using System.Linq;
 using CloudLib.Models;
+using SlackLib.Interactions;
+using SlackLib.Objects;
+using SlackLib.Requests;
 
 namespace AzureFunctions.Payloads
 {
     public static class BlockActionExtensions
     {
-        public static dynamic GetOpenQuestionnaireViewPayload(this BlockAction action, QuestionnaireEntity questionnaire, string? previousAnswer)
+        public static ViewsOpenRequest GetOpenQuestionnaireViewPayload(this BlockAction action, QuestionnaireEntity questionnaire, string? previousAnswer)
         {
             var previousAnswerExplanation = previousAnswer is null ? string.Empty : $" Previous answer was: {previousAnswer}";
 
-            return new
+            return new ViewsOpenRequest
             {
-                trigger_id = action.TriggerId,
-                view = new
+                TriggerId = action.TriggerId,
+                View = new ViewObject
                 {
-                    type = "modal",
-                    callback_id = "open_questionnaire",
-                    private_metadata = questionnaire.QuestionnaireId,
-                    title = new
+                    Type = "modal",
+                    CallbackId = "open_questionnaire",
+                    PrivateMetadata = questionnaire.QuestionnaireId,
+                    Title = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Submit answer",
+                        Text = "Submit answer"
                     },
-                    submit = new
+                    Submit = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Submit",
+                        Text = "Submit"
                     },
-                    close = new
+                    Close = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Cancel",
+                        Text = "Cancel"
                     },
-                    blocks = new dynamic[]
+                    Blocks = new BlockObject[]
                     {
-                        new
+                        new SectionObject
                         {
-                            type = "section",
-                            text = new {
-                                type = "mrkdwn",
-                                text = $"A new answer will replace your previous one.{previousAnswerExplanation}"
+                            Text = new MarkdownTextObject
+                            {
+                                Text = $"A new answer will replace your previous one.{previousAnswerExplanation}"
                             }
                         },
-                        new
+                        new InputObject
                         {
-                            type = "input",
-                            block_id = "AnswerBlock",
-                            element = new
+                            BlockId = "AnswerBlock",
+                            Element = new StaticSelectElement
                             {
-                                type = "static_select",
-                                action_id = "title",
-                                placeholder = new
+                                ActionId = "title",
+                                Placeholder = new PlainTextObject
                                 {
-                                    type = "plain_text",
-                                    text = "Select an option"
+                                    Text = "Select an option"
                                 },
-                                options = questionnaire.AnswerOptions.Select(option =>
+                                Options = questionnaire.AnswerOptions.Select(option =>
                                 {
-                                    return new
+                                    return new OptionObject
                                     {
-                                        text = new
+                                        Text = new PlainTextObject
                                         {
-                                            type = "plain_text",
-                                            text = option
+                                            Text = option
                                         },
-                                        value = option
+                                        Value = option
                                     };
-                                })
+                                }).ToArray()
                             },
-                            label = new
+                            Label = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = questionnaire.Question
+                                Text = questionnaire.Question
                             }
                         }
                     }
@@ -79,35 +73,31 @@ namespace AzureFunctions.Payloads
             };
         }
 
-        public static dynamic GetRemovedQuestionnaireViewPayload(this BlockAction action)
+        public static ViewsOpenRequest GetRemovedQuestionnaireViewPayload(this BlockAction action)
         {
-            return new
+            return new ViewsOpenRequest
             {
-                trigger_id = action.TriggerId,
-                view = new
+                TriggerId = action.TriggerId,
+                View = new ViewObject
                 {
-                    type = "modal",
-                    callback_id = "questionnaire_not_found",
-                    title = new
+                    Type = "modal",
+                    CallbackId = "questionnaire_not_found",
+                    Title = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Unavailable",
+                        Text = "Unavailable"
                     },
-                    close = new
+                    Close = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Close",
+                        Text = "Close"
                     },
-                    blocks = new[]
+                    Blocks = new BlockObject[]
                     {
-                        new
+                        new SectionObject
                         {
-                            type = "section",
-                            text = new
+                            Text = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = ":disappointed: The questionnaire you are attempting to answer has closed.",
-                                emoji = true
+                                Text = ":disappointed: The questionnaire you are attempting to answer has closed.",
+                                Emoji = true
                             }
                         }
                     }
@@ -115,13 +105,13 @@ namespace AzureFunctions.Payloads
             };
         }
 
-        public static dynamic GetAddOptionToQuestionnairePayload(this BlockAction action, dynamic mainViewPayload)
+        public static ViewsUpdateRequest GetAddOptionToQuestionnairePayload(this BlockAction action, ViewObject mainViewPayload)
         {
-            return new
+            return new ViewsUpdateRequest
             {
-                view_id = action.View.Id,
-                hash = action.View.Hash,
-                view = mainViewPayload
+                ViewId = action.View.Id,
+                Hash = action.View.Hash,
+                View = mainViewPayload
             };
         }
     }

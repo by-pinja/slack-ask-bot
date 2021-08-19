@@ -1,10 +1,13 @@
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
-namespace AzureFunctions.Payloads
+namespace SlackLib.Interactions
 {
+    /// <summary>
+    /// https://api.slack.com/reference/interaction-payloads/block-actions
+    /// </summary>
     public class BlockAction
     {
-        [JsonPropertyName("trigger_id")]
+        [JsonProperty("trigger_id")]
         public string TriggerId { get; set; }
 
         public WithText Message { get; set; }
@@ -14,15 +17,16 @@ namespace AzureFunctions.Payloads
         public User User { get; set; }
 
         public Action[] Actions { get; set; }
+
         public View View { get; set; }
     }
 
     public class Action
     {
-        [JsonPropertyName("action_id")]
+        [JsonProperty("action_id")]
         public string ActionId { get; set; }
 
-        [JsonPropertyName("block_id")]
+        [JsonProperty("block_id")]
         public string BlockId { get; set; }
         public string Value { get; set; }
     }

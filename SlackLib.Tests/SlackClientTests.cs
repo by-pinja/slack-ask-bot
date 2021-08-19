@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
+using SlackLib.Requests;
 
 namespace SlackLib.Tests
 {
@@ -15,9 +16,10 @@ namespace SlackLib.Tests
             var httpClient = GetMockHttpClient(new HttpResponseMessage() { StatusCode = HttpStatusCode.OK, Content = new StringContent("{\"ok\":true}") });
             var slackClient = new SlackClient(logger, httpClient);
 
-            var payload = new
+            var payload = new ChatPostMessageRequest
             {
-                text = "Dummy"
+                Channel = "channel",
+                Text = "Dummy"
             };
 
             AsyncTestDelegate actual = async () => await slackClient.PostMessage(payload);
@@ -32,9 +34,10 @@ namespace SlackLib.Tests
             var httpClient = GetMockHttpClient(new HttpResponseMessage() { StatusCode = HttpStatusCode.OK, Content = new StringContent("{\"ok\":false, \"error\":\"slack error\"}") });
             var slackClient = new SlackClient(logger, httpClient);
 
-            var payload = new
+            var payload = new ChatPostMessageRequest
             {
-                text = "Dummy"
+                Channel = "channel",
+                Text = "Dummy"
             };
 
             AsyncTestDelegate actual = async () => await slackClient.PostMessage(payload);
@@ -49,9 +52,10 @@ namespace SlackLib.Tests
             var httpClient = GetMockHttpClient(new HttpResponseMessage() { StatusCode = HttpStatusCode.BadRequest, Content = new StringContent("{\"ok\":true}") });
             var slackClient = new SlackClient(logger, httpClient);
 
-            var payload = new
+            var payload = new ChatPostMessageRequest
             {
-                text = "Dummy"
+                Channel = "channel",
+                Text = "Dummy"
             };
 
             AsyncTestDelegate actual = async () => await slackClient.PostMessage(payload);

@@ -1,7 +1,7 @@
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
+using Newtonsoft.Json;
 using NUnit.Framework;
 
 namespace AcceptanceTests
@@ -60,7 +60,7 @@ namespace AcceptanceTests
                     }
                 }
             };
-            var contentString = JsonSerializer.Serialize(content);
+            var contentString = JsonConvert.SerializeObject(content);
             var payload = "payload=" + HttpUtility.UrlEncode(contentString);
             var request = new StringContent(payload);
 

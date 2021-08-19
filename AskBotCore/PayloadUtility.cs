@@ -1,43 +1,58 @@
-using System.Linq;
+using System.Collections.Generic;
+using System.Text;
 using CloudLib.Models;
-using SlackLib.Messages;
+using SlackLib.Interactions;
+using SlackLib.Objects;
+using SlackLib.Requests;
 
 namespace AskBotCore
 {
     public static class PayloadUtility
     {
-        public static dynamic GetQuestionnairePostPayload(QuestionnaireEntity questionnaire)
+        /// <summary>
+        /// Payload for message which updates chat message to host questionnaire.
+        /// This is done after posting to assure that questionnaire can be posted before
+        /// actually creating the questionniare.
+        /// 
+        /// Questionnaire posting can fail if bot doesnt have correct permission or
+        /// is not in correct (private) channel.
+        /// </summary>
+        public static ChatUpdateRequest GetQuestionnaireUpdatePostPayload(string channel, string timestamp, QuestionnaireEntity questionnaire)
         {
-            return new
+            return new ChatUpdateRequest
             {
-                channel = questionnaire.Channel,
-                text = "PostQuestionnaire",
-                blocks = new object[]
+                Channel = channel,
+                Timestamp = timestamp,
+                Blocks = new BlockObject[]
                 {
-                    new
+                    new SectionObject
                     {
-                        type = "section",
-                        block_id = questionnaire.QuestionnaireId,
-                        text = new
+                        BlockId = questionnaire.QuestionnaireId,
+                        Text = new MarkdownTextObject
                         {
-                            type = "mrkdwn",
-                            text = questionnaire.Question
+                            Text = questionnaire.Question
                         }
                     },
-                    new
+                    new ActionBlock
                     {
-                        type = "actions",
-                        elements = new[]
+                        Elements = new BlockElement[]
                         {
-                            new
+                            new ButtonElement
                             {
-                                type = "button",
-                                action_id = "open_questionnaire",
-                                value = questionnaire.QuestionnaireId,
-                                text = new
+                                ActionId = "open_questionnaire",
+                                Value = questionnaire.QuestionnaireId,
+                                Text = new PlainTextObject
                                 {
-                                    type = "plain_text",
-                                    text = "Answer"
+                                    Text = "Answer"
+                                }
+                            },
+                            new ButtonElement
+                            {
+                                ActionId = "get_answers",
+                                Value = questionnaire.QuestionnaireId,
+                                Text = new PlainTextObject
+                                {
+                                    Text = "Results"
                                 }
                             }
                         }
@@ -46,85 +61,62 @@ namespace AskBotCore
             };
         }
 
-        public static dynamic GetUpdateModelWithAnswersPayload(QuestionnaireResult questionnaireResult)
+        public static ChatUpdateRequest GetQuestionnaireClosedPostUpdatePayload(string channel, string timestamp, QuestionnaireEntity questionnaire)
         {
-            var blockSection = new object[] {
-                new
-                {
-                    type = "section",
-                    text = new
-                    {
-                        type = "plain_text",
-                        text = $":wave: The votes are in. {questionnaireResult.Question}",
-                        emoji = true
-                    }
-                }
-            };
-
-            var answers = questionnaireResult.Answers.Select(kvp =>
-                {
-                    return (object)new
-                    {
-                        type = "section",
-                        text = new
-                        {
-                            type = "plain_text",
-                            text = $"\"{kvp.Key}\": {kvp.Value} votes.",
-                        }
-                    };
-                });
-
-            return new
+            return new ChatUpdateRequest
             {
-                response_action = "update",
-                view = new
+                Channel = channel,
+                Timestamp = timestamp,
+                Blocks = new[]
                 {
-                    type = "modal",
-                    callback_id = "display_answers",
-                    title = new
+                    new SectionObject
                     {
-                        type = "plain_text",
-                        text = "Results",
-                    },
-                    close = new
-                    {
-                        type = "plain_text",
-                        text = "Close",
-                    },
-                    blocks = blockSection.Concat(answers)
-                }
+                        BlockId = questionnaire.QuestionnaireId,
+                        Text = new MarkdownTextObject
+                        {
+                            Text = $"{questionnaire.Question}\r\n*Questionnaire is now closed.*"
+                        }
+                    }
+                 }
             };
         }
 
-        public static dynamic GetDeletedQuestionnairePayload(string questionnaireTitle)
+        public static string AnswersPostText(Dictionary<string, int> result)
         {
-            return new
+            var builder = new StringBuilder();
+            builder.AppendLine("Current answers:");
+            foreach (var answer in result)
             {
-                response_action = "update",
-                view = new
+                builder.AppendLine($"{answer.Key}: {answer.Value}");
+            }
+            return builder.ToString();
+        }
+
+        public static ViewSubmissionResponse GetDeletedQuestionnairePayload(string questionnaireTitle)
+        {
+            return new ViewSubmissionResponse
+            {
+                ResponseAction = "update",
+                View = new ViewObject
                 {
-                    type = "modal",
-                    callback_id = "deleted_questionnaire",
-                    title = new
+                    Type = "modal",
+                    CallbackId = "deleted_questionnaire",
+                    Title = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Questionnaire deleted",
+                        Text = "Questionnaire deleted"
                     },
-                    close = new
+                    Close = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Close",
+                        Text = "Close"
                     },
-                    blocks = new[]
+                    Blocks = new[]
                     {
-                        new
+                        new SectionObject
                         {
-                            type = "section",
-                            text = new
+                            Text = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = $":+1: The questionnaire \"{questionnaireTitle}\" and the answers have been deleted.",
-                                emoji = true
+                                Text = $":+1: The questionnaire \"{questionnaireTitle}\" and the answers have been deleted.",
+                                Emoji = true
                             }
                         }
                     }
@@ -132,35 +124,31 @@ namespace AskBotCore
             };
         }
 
-        public static dynamic GetDeletedQuestionnairesPayload()
+        public static ViewSubmissionResponse GetConfirmAnsweredPayload(string answer)
         {
-            return new
+            return new ViewSubmissionResponse
             {
-                response_action = "update",
-                view = new
+                ResponseAction = "update",
+                View = new ViewObject
                 {
-                    type = "modal",
-                    callback_id = "delete_questionnaires",
-                    title = new
+                    Type = "modal",
+                    CallbackId = "confirm_answered",
+                    Title = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = $"Deleted all data",
+                        Text = "Answer Submitted"
                     },
-                    close = new
+                    Close = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Close",
+                        Text = "Close"
                     },
-                    blocks = new[]
+                    Blocks = new[]
                     {
-                        new
+                        new SectionObject
                         {
-                            type = "section",
-                            text = new
+                            Text = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = ":+1: All questionnaires and answers have been deleted.",
-                                emoji = true
+                                Text = $":partyparrot: Your answer '{answer}' has been successfully submitted.",
+                                Emoji = true
                             }
                         }
                     }
@@ -168,169 +156,113 @@ namespace AskBotCore
             };
         }
 
-        public static dynamic GetConfirmAnsweredPayload(string answer)
+        public static ViewObject GetCreateQuestionnaireMainPayload(int numberOfOptions = 2)
         {
-            return new
+            var titleAndChannelBlocks = new object[]{ new InputObject
             {
-                response_action = "update",
-                view = new
+                BlockId = "TitleBlock",
+                Element = new PlainTextInputElement
                 {
-                    type = "modal",
-                    callback_id = "confirm_answered",
-                    title = new
+                    ActionId = "title",
+                    Placeholder = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Answer Submitted",
+                        Text = "What is your question?"
                     },
-                    close = new
-                    {
-                        type = "plain_text",
-                        text = "Close",
-                    },
-                    blocks = new[]
-                    {
-                        new
-                        {
-                            type = "section",
-                            text = new
-                            {
-                                type = "plain_text",
-                                text = $":partyparrot: Your answer '{answer}' has been successfully submitted.",
-                                emoji = true
-                            }
-                        }
-                    }
-                }
-            };
-        }
-
-        public static object GetCreateQuestionnaireMainPayload(int numberOfOptions = 2)
-        {
-            var titleAndChannelBlocks = new object[]{ new
-            {
-                type = "input",
-                block_id = "TitleBlock",
-                element = new
-                {
-                    type = "plain_text_input",
-                    action_id = "title",
-                    placeholder = new
-                    {
-                        type = "plain_text",
-                        text = "What is your question?"
-                    },
-                    max_length = 75
+                    MaxLength = 75
                 },
-                label = new
+                Label = new PlainTextObject
                 {
-                    type = "plain_text",
-                    text = "Title"
+                    Text = "Title"
                 }
             },
-            new
+            new InputObject
             {
-                type = "input",
-                block_id = "ChannelBlock",
-                element = new
+                BlockId = "ChannelBlock",
+                Element = new ConversationsListElement
                 {
-                    type = "conversations_select",
-                    action_id = "channel",
-                    placeholder = new
+                    ActionId = "channel",
+                    Placeholder = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = "Where should the poll be sent?"
-                    },
+                        Text = "Where should the poll be sent?"
+                    }
                 },
-                label = new
+                Label = new PlainTextObject
                 {
-                    type = "plain_text",
-                    text = "Channel(s)"
+                    Text = "Channel(s). If channel is private, bot must be invited to the channel before creating the questionnaire."
                 }
             }};
 
             var answerBlocks = new object[numberOfOptions];
             for (var i = 0; i < numberOfOptions; i++)
             {
-                answerBlocks[i] = new
+                answerBlocks[i] = new InputObject
                 {
-                    type = "input",
-                    block_id = $"AnswerBlock{i + 1}",
-                    element = new
+                    BlockId = $"AnswerBlock{i + 1}",
+                    Element = new PlainTextInputElement
                     {
-                        type = "plain_text_input",
-                        action_id = $"option_{i + 1}",
-                        placeholder = new
+                        ActionId = $"option_{i + 1}",
+                        Placeholder = new PlainTextObject
                         {
-                            type = "plain_text",
-                            text = "Available option"
+                            Text = "Available option"
                         },
-                        max_length = 75
+                        MaxLength = 75
                     },
-                    label = new
+                    Label = new PlainTextObject
                     {
-                        type = "plain_text",
-                        text = $"Option {i + 1}"
+                        Text = $"Option {i + 1}"
                     }
                 };
             }
 
-            var buttonBlocks = new object[1] {
-                new
+            var buttonBlocks = new ActionBlock[1] {
+                new ActionBlock
                 {
-                    type = "actions",
-                    elements = new[]
+                    Elements = new BlockElement[]
                     {
-                        new
+                        new ButtonElement
                         {
-                            type = "button",
-                            action_id = "add_option",
-                            text = new
+                            ActionId = "add_option",
+                            Text = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = "Add another option"
+                                Text = "Add another option"
                             },
-                            value = $"{numberOfOptions + 1}"
+                            Value = $"{numberOfOptions + 1}"
                         },
-                        new
+                        new ButtonElement
                         {
-                            type = "button",
-                            action_id = "delete_option",
-                            text = new
+                            ActionId = "delete_option",
+                            Text = new PlainTextObject
                             {
-                                type = "plain_text",
-                                text = "Delete option"
+                                Text = "Delete option"
                             },
-                            value = numberOfOptions <= 2 ? "2" : $"{numberOfOptions - 1}"
+                            Value = numberOfOptions <= 2 ? "2" : $"{numberOfOptions - 1}"
                         }
                     }
                 }
             };
 
-            var blocks = new object[titleAndChannelBlocks.Length + answerBlocks.Length + buttonBlocks.Length];
+            var blocks = new BlockObject[titleAndChannelBlocks.Length + answerBlocks.Length + buttonBlocks.Length];
             titleAndChannelBlocks.CopyTo(blocks, 0);
             answerBlocks.CopyTo(blocks, titleAndChannelBlocks.Length);
             buttonBlocks.CopyTo(blocks, titleAndChannelBlocks.Length + answerBlocks.Length);
 
-            return new
+            return new ViewObject
             {
-                type = "modal",
-                callback_id = "create_questionnaire",
-                title = new
+                Type = "modal",
+                CallbackId = "create_questionnaire",
+                Title = new PlainTextObject
                 {
-                    type = "plain_text",
-                    text = "Create questionnaire",
+                    Text = "Create questionnaire"
                 },
-                submit = new
+                Submit = new PlainTextObject
                 {
-                    type = "plain_text",
-                    text = "Submit",
+                    Text = "Submit"
                 },
-                close = new
+                Close = new PlainTextObject
                 {
-                    type = "plain_text",
-                    text = "Cancel",
+                    Text = "Cancel"
                 },
-                blocks
+                Blocks = blocks
             };
         }
     }

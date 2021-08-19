@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 using AskBotCore;
@@ -12,12 +11,20 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using SlackLib;
+using SlackLib.Interactions;
+using SlackLib.Requests;
 
 namespace AzureFunctions
 {
     public class AskBotHandler
     {
+        private readonly JsonSerializerSettings _serializationSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
         private readonly ILogger<AskBotHandler> _logger;
         private readonly IStorage _storage;
         private readonly ISlackClient _slackClient;
@@ -50,28 +57,23 @@ namespace AzureFunctions
             }
 
             _logger.LogDebug("Deserializing payload: {payload}", payloadString);
-            var json = JsonSerializer.Deserialize<JsonElement>(payloadString);
+            var baseObject = JsonConvert.DeserializeObject<InteractionBase>(payloadString);
 
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-
-            switch (json.GetProperty("type").GetString())
+            switch (baseObject.Type)
             {
                 case "block_actions":
-                    var blockAction = JsonSerializer.Deserialize<BlockAction>(payloadString, options);
+                    var blockAction = JsonConvert.DeserializeObject<BlockAction>(payloadString, _serializationSettings);
                     await HandleBlockAction(blockAction);
                     return new OkResult();
                 case "shortcut":
-                    var shortcut = JsonSerializer.Deserialize<Shortcut>(payloadString, options);
+                    var shortcut = JsonConvert.DeserializeObject<Shortcut>(payloadString, _serializationSettings);
                     await HandleShortcut(shortcut);
                     return new OkResult();
                 case "view_submission":
-                    var viewSubmission = JsonSerializer.Deserialize<ViewSubmission>(payloadString, options);
+                    var viewSubmission = JsonConvert.DeserializeObject<ViewSubmission>(payloadString, _serializationSettings);
                     return await HandleViewSubmission(viewSubmission, Guid.NewGuid().ToString(), DateTime.UtcNow);
                 default:
-                    throw new NotImplementedException($"Unknown payload type {json.GetProperty("type").GetString()}.");
+                    throw new NotImplementedException($"Unknown payload type {baseObject.Type}.");
             }
         }
 
@@ -80,36 +82,41 @@ namespace AzureFunctions
             if (blockAction.Actions.Count() != 1) throw new ArgumentException("The block action list did not have 1 element in", nameof(blockAction));
 
             var actionToHandle = blockAction.Actions.First();
-            dynamic viewPayload;
             switch (actionToHandle.ActionId)
             {
                 case "add_option":
                 case "delete_option":
                     _logger.LogInformation("Adding/deleting option to questionnaire.");
                     var mainPayload = PayloadUtility.GetCreateQuestionnaireMainPayload(int.Parse(actionToHandle.Value));
-                    viewPayload = blockAction.GetAddOptionToQuestionnairePayload(mainPayload);
+                    var viewPayload = blockAction.GetAddOptionToQuestionnairePayload(mainPayload);
 
                     _logger.LogDebug("Updating slack model with new available options.");
                     await _slackClient.UpdateModelView(viewPayload);
                     break;
                 case "open_questionnaire":
                     _logger.LogInformation("Questionnaire open request received from {channel} by {answerer}", blockAction.Channel.Name, blockAction.User.Username);
-                    var questionnaire = await _storage.GetQuestionnaire(actionToHandle.Value);
+                    var questionnaireId = actionToHandle.Value;
+                    var questionnaire = await _storage.GetQuestionnaireOrNull(questionnaireId);
 
+                    ViewsOpenRequest questionnairePayload;
                     if (questionnaire is null)
                     {
-                        _logger.LogDebug("Error retrieving the questionnaire for callback id: {callbackId}.", actionToHandle.Value);
-                        viewPayload = blockAction.GetRemovedQuestionnaireViewPayload();
+                        _logger.LogDebug("Did not found questionnaire: {questionnaireId}.", questionnaireId);
+                        questionnairePayload = blockAction.GetRemovedQuestionnaireViewPayload();
                     }
                     else
                     {
-                        var previousAnswers = await _storage.GetAnswers(actionToHandle.Value, blockAction.User.Username);
+                        var previousAnswers = await _storage.GetAnswers(questionnaireId, blockAction.User.Username);
                         var previousAnswer = previousAnswers.FirstOrDefault();
-                        viewPayload = blockAction.GetOpenQuestionnaireViewPayload(questionnaire, previousAnswer?.Answer);
+                        questionnairePayload = blockAction.GetOpenQuestionnaireViewPayload(questionnaire, previousAnswer?.Answer);
                     }
 
                     _logger.LogInformation("Opening slack model to answer the questionnaire.");
-                    await _slackClient.OpenModelView(viewPayload);
+                    await _slackClient.OpenModelView(questionnairePayload);
+                    break;
+                case "get_answers":
+                    _logger.LogInformation("Sending answers to questionnaire: {questionnaireId}", actionToHandle.Value);
+                    await _control.PostResultsToThread(actionToHandle.Value).ConfigureAwait(false);
                     break;
                 default:
                     throw new NotImplementedException($"Unknown blockAction callback id: {actionToHandle.ActionId}.");
@@ -120,7 +127,7 @@ namespace AzureFunctions
         {
             _logger.LogInformation("Shortcut request received from {user} with callback ID: {callback}", shortcut.User.Username, shortcut.CallbackId);
 
-            dynamic payload;
+            ViewsOpenRequest payload;
             switch (shortcut.CallbackId)
             {
                 case "create_questionnaire":
@@ -128,7 +135,6 @@ namespace AzureFunctions
 
                     _logger.LogInformation("Opening slack model to create questionnaire.");
                     break;
-                case "get_answers":
                 case "delete_a_questionnaire":
                     _logger.LogInformation("Fetching questionnaires.");
                     var questionnaires = await _storage.GetQuestionnaires().ConfigureAwait(false);
@@ -143,10 +149,6 @@ namespace AzureFunctions
                     }
 
                     _logger.LogInformation("Opening slack model to list the questionnaires available.");
-                    break;
-                case "delete_questionnaires":
-                    _logger.LogInformation("Send cornfirmation view.");
-                    payload = shortcut.GetConfirmDeleteAllPayload();
                     break;
                 default:
                     throw new NotImplementedException($"Unknown shortcut callback id: {shortcut.CallbackId}.");
@@ -210,24 +212,13 @@ namespace AzureFunctions
                     await _storage.InsertOrMerge(answerEntity);
 
                     var answeredPayload = PayloadUtility.GetConfirmAnsweredPayload(answer);
-                    return new JsonResult(answeredPayload);
-                case "get_answers":
-                    var selectedQuestionnaireId = viewSubmission.View.State.Values.First().Value.First().Value.SelectedOption.Value;
-                    _logger.LogInformation("Getting answers for questionnaire with ID: {questionnaire}.", selectedQuestionnaireId);
-                    var questionnaireResult = await _control.GetQuestionnaireResult(selectedQuestionnaireId).ConfigureAwait(false);
-                    var withAnswersPayload = PayloadUtility.GetUpdateModelWithAnswersPayload(questionnaireResult);
-                    return new JsonResult(withAnswersPayload);
+                    return new JsonResult(answeredPayload, _serializationSettings);
                 case "delete_a_questionnaire":
                     var questionnaireId = viewSubmission.View.State.Values.First().Value.First().Value.SelectedOption.Value;
                     _logger.LogInformation("Deleting questionnaire with ID: {questionnaire}.", questionnaireId);
                     var questionnaireTitle = await _control.DeleteQuestionnaireAndAnswers(questionnaireId).ConfigureAwait(false);
                     var deletedQuestionnairePayload = PayloadUtility.GetDeletedQuestionnairePayload(questionnaireTitle);
-                    return new JsonResult(deletedQuestionnairePayload);
-                case "delete_questionnaires":
-                    _logger.LogInformation("Deleting all questionnaires and answers.");
-                    await _control.DeleteAll();
-                    var deletedQuestionnairesPayload = PayloadUtility.GetDeletedQuestionnairesPayload();
-                    return new JsonResult(deletedQuestionnairesPayload);
+                    return new JsonResult(deletedQuestionnairePayload, _serializationSettings);
                 default:
                     throw new NotImplementedException($"Unknown view callback id: {viewSubmission.View.CallbackId}.");
             }

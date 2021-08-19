@@ -43,7 +43,7 @@
     },
     "resources": [
         {
-            "comments": "Table storage for metadata",
+            "comments": "Table storage for function app",
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('storageAccountName')]",
             "apiVersion": "2018-07-01",
@@ -75,21 +75,41 @@
                 }
             },
             "tags": {
-                "displayName": "Metadata storage"
+                "displayName": "Function app storage"
             }
         },
         {
-            "comments": "Storage for function app",
+            "comments": "Storage for metadata",
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('tableStorageName')]",
             "apiVersion": "2018-07-01",
             "location": "[parameters('location')]",
-            "kind": "Storage",
+            "kind": "StorageV2",
             "sku": {
                 "name": "Standard_LRS"
             },
+            "properties": {
+                "supportsHttpsTrafficOnly": true,
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "enabled": true
+                        },
+                        "blob": {
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                }
+            },
             "tags": {
-                "displayName": "Storage for function app",
+                "displayName": "Storage for metadata",
                 "environment": "[parameters('environment')]"
             }
         },

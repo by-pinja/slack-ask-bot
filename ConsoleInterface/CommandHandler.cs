@@ -1,7 +1,6 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Text.Json;
 using System.Threading.Tasks;
 using AskBotCore;
 using CloudLib;
@@ -9,6 +8,7 @@ using CloudLib.Models;
 using ConsoleInterface.Options;
 using CsvHelper;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace ConsoleInterface
 {
@@ -42,7 +42,7 @@ namespace ConsoleInterface
                 _logger.LogTrace("Creating questionnaire from file {file}", option.QuestionnaireFile);
 
                 var json = await File.ReadAllTextAsync(option.QuestionnaireFile);
-                var questionnaire = JsonSerializer.Deserialize<QuestionnaireEntity>(json);
+                var questionnaire = JsonConvert.DeserializeObject<QuestionnaireEntity>(json);
                 _logger.LogDebug("Questionnaire deserialized, question {0}", questionnaire.Question);
                 questionnaire.Created = dateTime;
 
@@ -78,13 +78,6 @@ namespace ConsoleInterface
             }
         }
 
-        public async Task HandleDelete(DeleteOption option)
-        {
-            _logger.LogTrace("Delete all questionnaires and answers activated from console interface.");
-
-            await _control.DeleteAll().ConfigureAwait(false);
-        }
-
         public async Task HandleGenerateTemplate(GenerateQuestionnaireTemplateOption option, string guid)
         {
             _logger.LogTrace("Generating a questionnaire template.");
@@ -100,10 +93,7 @@ namespace ConsoleInterface
                     "Option 4"
                 }
             };
-            var json = JsonSerializer.Serialize(example, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-            });
+            var json = JsonConvert.SerializeObject(example, Formatting.Indented);
             await File.WriteAllTextAsync(option.FileName, json);
             _logger.LogInformation("Questionnaire template file '{file}' created.", option.FileName);
         }

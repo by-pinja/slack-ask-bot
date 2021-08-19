@@ -1,4 +1,4 @@
-namespace AzureFunctions.Payloads
+namespace SlackLib.Interactions
 {
     public class Channel
     {
