@@ -85,13 +85,19 @@ namespace CloudLib.Tests
         [TearDown]
         public async Task Teardown()
         {
-            await _util.DeleteAll();
+            if (_util != null)
+            {
+                await _util.DeleteAll();
+            }
         }
 
         [OneTimeTearDown]
         public async Task TeardownOnce()
         {
-            await _util.DeleteTestTables();
+            if (_util != null)
+            {
+                await _util.DeleteTestTables();
+            }
         }
     }
 }
