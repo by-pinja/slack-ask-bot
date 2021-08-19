@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AskBotCore.Tests", "AskBotC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudLib.Tests", "CloudLib.Tests\CloudLib.Tests.csproj", "{82F81F6E-E0B0-4DE7-8508-E83FC105F6D8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleInterface.Tests", "ConsoleInterface.Tests\ConsoleInterface.Tests.csproj", "{541C9805-4E71-48C7-801D-0561E13D9398}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -142,5 +144,17 @@ Global
 		{82F81F6E-E0B0-4DE7-8508-E83FC105F6D8}.Release|x64.Build.0 = Release|Any CPU
 		{82F81F6E-E0B0-4DE7-8508-E83FC105F6D8}.Release|x86.ActiveCfg = Release|Any CPU
 		{82F81F6E-E0B0-4DE7-8508-E83FC105F6D8}.Release|x86.Build.0 = Release|Any CPU
+		{541C9805-4E71-48C7-801D-0561E13D9398}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{541C9805-4E71-48C7-801D-0561E13D9398}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{541C9805-4E71-48C7-801D-0561E13D9398}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{541C9805-4E71-48C7-801D-0561E13D9398}.Debug|x64.Build.0 = Debug|Any CPU
+		{541C9805-4E71-48C7-801D-0561E13D9398}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{541C9805-4E71-48C7-801D-0561E13D9398}.Debug|x86.Build.0 = Debug|Any CPU
+		{541C9805-4E71-48C7-801D-0561E13D9398}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{541C9805-4E71-48C7-801D-0561E13D9398}.Release|Any CPU.Build.0 = Release|Any CPU
+		{541C9805-4E71-48C7-801D-0561E13D9398}.Release|x64.ActiveCfg = Release|Any CPU
+		{541C9805-4E71-48C7-801D-0561E13D9398}.Release|x64.Build.0 = Release|Any CPU
+		{541C9805-4E71-48C7-801D-0561E13D9398}.Release|x86.ActiveCfg = Release|Any CPU
+		{541C9805-4E71-48C7-801D-0561E13D9398}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -34,27 +34,6 @@ For up to date help
 dotnet run -- help 
 ```
 
-### Creating new questionnaires
-
-Questionnaires are created by reading JSON file.
-
-1. Generate questionnaire template `dotnet run -- generateTemplate -o 'example-questionnaire.json'`
-1. Change question, add/change/remove answers
-1. Add questionnaire `dotnet run -- create -f 'example-questionnaire.json' -c test-channel`
-
-Example questionnaire JSON
-
-```json
-{
-  "Question": "How are our code monkeys doing today?",
-  "AnswerOptions": [
-    "Yes",
-    "Very much no.",
-    ":feelsbadman:"
-  ]
-}
-```
-
 ### Fetching answers
 
 Fetching questionnaire ID:s
