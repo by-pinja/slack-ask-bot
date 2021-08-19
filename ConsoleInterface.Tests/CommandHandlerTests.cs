@@ -5,6 +5,7 @@ using ConsoleInterface.Options;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
+using SlackLib.Messages;
 
 namespace ConsoleInterface
 {
@@ -33,6 +34,22 @@ namespace ConsoleInterface
             await _handler.HandleGetQuestionnaires(option);
 
             await _mockStorage.Received().GetQuestionnaires();
+        }
+
+        [Test]
+        public async Task HandleGetAnswers_ReturnsAnswersFromAskBotControl()
+        {
+            var expectedResult = new QuestionnaireResult();
+            var option = new AnswersOption()
+            {
+                QuestionnaireId = "id",
+                OutputCsvFile = null
+            };
+            _mockAskBotControl.GetQuestionnaireResult(option.QuestionnaireId).Returns(Task.FromResult(expectedResult));
+
+            await _handler.HandleGetAnswers(option);
+
+            await _mockAskBotControl.Received().GetQuestionnaireResult(option.QuestionnaireId);
         }
     }
 }
