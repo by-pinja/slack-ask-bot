@@ -1,6 +1,7 @@
 # Contributing to the Slack Ask Bot
 
 ## Basics
+
 1. Try to follow the general coding style of this repository
 1. Please discuss your contributing ideas in issues (or directly with codeowners) before making changes.
 1. Update documentation when needed

@@ -96,7 +96,7 @@ namespace AzureFunctions
                 case "open_questionnaire":
                     _logger.LogInformation("Questionnaire open request received from {channel} by {answerer}", blockAction.Channel.Name, blockAction.User.Username);
                     var questionnaireId = actionToHandle.Value;
-                    var questionnaire = await _storage.GetQuestionnaire(questionnaireId);
+                    var questionnaire = await _storage.GetQuestionnaireOrNull(questionnaireId);
 
                     ViewsOpenRequest questionnairePayload;
                     if (questionnaire is null)

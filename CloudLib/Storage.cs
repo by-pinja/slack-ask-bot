@@ -41,7 +41,7 @@ namespace CloudLib
             return await _questionnaires.ExecuteQueryAsync(query);
         }
 
-        public async Task<QuestionnaireEntity> GetQuestionnaire(string questionnaireId)
+        public async Task<QuestionnaireEntity> GetQuestionnaireOrNull(string questionnaireId)
         {
             if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("Questionnaire id is empty", nameof(questionnaireId));
 
@@ -110,15 +110,18 @@ namespace CloudLib
         {
             if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("Questionnaire id is empty", nameof(questionnaireId));
 
-            var questionnaire = await GetQuestionnaire(questionnaireId);
-            _logger.LogDebug("Found questionnaire to delete.");
-
-            var questionnaireBatch = new TableBatchOperation
+            var questionnaire = await GetQuestionnaireOrNull(questionnaireId);
+            if (questionnaire != null)
             {
-                TableOperation.Delete(questionnaire)
-            };
-            await _questionnaires.ExecuteBatchAsync(questionnaireBatch);
-            _logger.LogDebug("Deleted questionnaire.");
+                _logger.LogDebug("Found questionnaire to delete.");
+
+                var questionnaireBatch = new TableBatchOperation
+                {
+                    TableOperation.Delete(questionnaire)
+                };
+                _logger.LogDebug("Deleted questionnaire.");
+                await _questionnaires.ExecuteBatchAsync(questionnaireBatch);
+            }
 
             await DeleteAnswers(questionnaireId);
         }

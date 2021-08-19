@@ -15,8 +15,8 @@ namespace CloudLib.Models
 
         public AnswerEntity(string questionnaireId, string username)
         {
-            RowKey = questionnaireId;
-            PartitionKey = username;
+            RowKey = username;
+            PartitionKey = questionnaireId;
         }
     }
 }

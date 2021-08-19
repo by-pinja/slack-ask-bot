@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
 using SlackLib;
-using SlackLib.Messages;
 using SlackLib.Requests;
 using SlackLib.Responses;
 
@@ -70,7 +69,7 @@ namespace AskBotCore.Tests
                 AnswerOptions = new[] { "a", "b" },
                 MessageTimestamp = "messageid"
             };
-            _mockStorage.GetQuestionnaire(entity.QuestionnaireId).Returns(Task.FromResult(entity));
+            _mockStorage.GetQuestionnaireOrNull(entity.QuestionnaireId).Returns(Task.FromResult(entity));
 
             await _control.DeleteQuestionnaireAndAnswers(entity.QuestionnaireId);
 
@@ -88,7 +87,7 @@ namespace AskBotCore.Tests
                 Question = "How it's going?",
                 AnswerOptions = new[] { "a", "b" }
             };
-            _mockStorage.GetQuestionnaire(questionnaireId).Returns(Task.FromResult(questionnaire));
+            _mockStorage.GetQuestionnaireOrNull(questionnaireId).Returns(Task.FromResult(questionnaire));
 
             var result = await _control.GetQuestionnaireResult(questionnaireId);
 
@@ -123,7 +122,7 @@ namespace AskBotCore.Tests
                 AnswerOptions = new[] { "a", "b" },
                 MessageTimestamp = "messagethread.timestamp"
             };
-            _mockStorage.GetQuestionnaire(questionnaireId).Returns(Task.FromResult(questionnaire));
+            _mockStorage.GetQuestionnaireOrNull(questionnaireId).Returns(Task.FromResult(questionnaire));
 
             await _control.PostResultsToThread(questionnaireId);
 
