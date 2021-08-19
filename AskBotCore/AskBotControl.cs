@@ -126,7 +126,7 @@ namespace AskBotCore
         {
             if (string.IsNullOrWhiteSpace(questionnaireId)) throw new ArgumentException("questionnaireId is empty", nameof(questionnaireId));
 
-            var questionnaire = await _storage.GetQuestionnaire(questionnaireId);
+            var questionnaire = await _storage.GetQuestionnaireOrNull(questionnaireId);
             if (questionnaire is null)
             {
                 _logger.LogError("Could not find questionnaire with id {questionnaireId}.", questionnaireId);

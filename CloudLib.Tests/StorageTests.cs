@@ -18,6 +18,9 @@ namespace CloudLib.Tests
         private Storage _storage;
         private StorageUtil _util;
 
+        private readonly string _answersTable = $"mockAnswers{Guid.NewGuid()}".Replace("-", string.Empty);
+        private readonly string _questionsTable = $"mockQuestions{Guid.NewGuid()}".Replace("-", string.Empty);
+
         [SetUp]
         public void Setup()
         {
@@ -27,11 +30,10 @@ namespace CloudLib.Tests
                 Assert.Ignore("StorageConnectionString undefined. Skipping storage tests.");
             }
 
-            var timestamp = DateTime.UtcNow.Millisecond.ToString();
             var settings = new TableStorageSettings
             {
-                AnswerTable = $"mockAnswers{timestamp}",
-                QuestionTable = $"mockQuestions{timestamp}",
+                AnswerTable = _answersTable,
+                QuestionTable = _questionsTable,
                 ConnectionString = storageConnectionSTring
             };
 
@@ -49,8 +51,8 @@ namespace CloudLib.Tests
                 Question = $"Who is it? {i}",
                 AnswerOptions = new[]
                 {
-                    "a", "b", "c"
-                },
+                            "a", "b", "c"
+                        },
                 Created = DateTime.UtcNow,
                 MessageTimestamp = $"timestamp new {i}"
             });
@@ -67,20 +69,71 @@ namespace CloudLib.Tests
                 savedQuestionniare.Should().NotBeNull();
 
                 // Test single select also
-                var actualQuestionnaire = await _storage.GetQuestionnaire(expectedQuestionniare.QuestionnaireId);
+                var actualQuestionnaire = await _storage.GetQuestionnaireOrNull(expectedQuestionniare.QuestionnaireId);
                 actualQuestionnaire.MessageTimestamp.Should().Be(expectedQuestionniare.MessageTimestamp);
                 actualQuestionnaire.Question.Should().Be(expectedQuestionniare.Question);
             }
         }
 
         [Test]
+        public async Task AnsweringFlow()
+        {
+            var questionnaire = new QuestionnaireEntity(Guid.NewGuid().ToString(), "mockchannel")
+            {
+                Question = $"Who is it?",
+                AnswerOptions = new[]
+                {
+                    "a", "b", "c"
+                },
+                Created = DateTime.UtcNow,
+                MessageTimestamp = $"timestamp new"
+            };
+            await _storage.InsertOrMerge(questionnaire);
+
+            var answers = Enumerable.Range(0, 10).Select(i => new AnswerEntity(questionnaire.QuestionnaireId, $"user {i}")
+            {
+                Question = $"Who is it?",
+                Answer = questionnaire.AnswerOptions[i % questionnaire.AnswerOptions.Length],
+                QuestionnaireId = questionnaire.QuestionnaireId,
+                Answerer = $"user {i}",
+            });
+
+            foreach (var answer in answers)
+            {
+                await _storage.InsertOrMerge(answer);
+            }
+
+            var actualAnswers = await _storage.GetAnswers(questionnaire.QuestionnaireId);
+            actualAnswers.Count().Should().Be(answers.Count());
+
+            foreach (var answer in answers)
+            {
+                var actualAnswersForAnswerer = await _storage.GetAnswers(questionnaire.QuestionnaireId, answer.Answerer);
+                actualAnswersForAnswerer.Count().Should().Be(1, "There should only be one answer for each answerer");
+            }
+
+            await _storage.DeleteQuestionnaireAndAnswers(questionnaire.QuestionnaireId);
+
+            var noAnswers = await _storage.GetAnswers(questionnaire.QuestionnaireId);
+            noAnswers.Should().BeEmpty();
+
+            var removedQuestionnaire = await _storage.GetQuestionnaireOrNull(questionnaire.QuestionnaireId);
+            removedQuestionnaire.Should().BeNull();
+        }
+
+        [Test]
         public async Task GetQuestionnaire_Missing()
         {
-            var result = await _storage.GetQuestionnaire("missing");
+            var result = await _storage.GetQuestionnaireOrNull("missing");
 
             result.Should().BeNull();
         }
 
+        [Test]
+        public async Task DeleteQuestionnaireAndAnswers_Missing()
+        {
+            await _storage.DeleteQuestionnaireAndAnswers("missing");
+        }
 
         [TearDown]
         public async Task Teardown()
