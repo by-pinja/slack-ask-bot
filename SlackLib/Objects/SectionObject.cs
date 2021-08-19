@@ -12,7 +12,6 @@ namespace SlackLib.Objects
 
         public SectionObject() : base("section")
         {
-
         }
     }
 }

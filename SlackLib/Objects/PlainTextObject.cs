@@ -10,13 +10,11 @@ namespace SlackLib.Objects
     /// </summary>
     public class PlainTextObject : TextObject
     {
-        [JsonProperty("type")]
-        public override string Type { get; } = "plain_text";
-
-        [JsonProperty("text")]
-        public override string Text { get; set; }
-
         [JsonProperty("emoji")]
         public bool Emoji { get; set; }
+
+        public PlainTextObject() : base("plain_text")
+        {
+        }
     }
 }

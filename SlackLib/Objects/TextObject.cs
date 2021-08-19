@@ -8,9 +8,14 @@ namespace SlackLib.Objects
     public abstract class TextObject
     {
         [JsonProperty("type")]
-        public abstract string Type { get; }
+        public string Type { get; }
 
         [JsonProperty("text")]
-        public abstract string Text { get; set; }
+        public string Text { get; set; }
+
+        public TextObject(string type)
+        {
+            Type = type;
+        }
     }
 }

@@ -15,7 +15,6 @@ namespace SlackLib.Objects
 
         public InputObject() : base("input")
         {
-
         }
     }
 }

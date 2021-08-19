@@ -10,10 +10,8 @@ namespace SlackLib.Objects
     /// </summary>
     public class MarkdownTextObject : TextObject
     {
-        [JsonProperty("type")]
-        public override string Type { get; } = "mrkdwn";
-
-        [JsonProperty("text")]
-        public override string Text { get; set; }
+        public MarkdownTextObject() : base("mrkdwn")
+        {
+        }
     }
 }
