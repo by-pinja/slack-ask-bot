@@ -18,6 +18,12 @@ namespace CloudLib.Tests
         private Storage _storage;
         private StorageUtil _util;
 
+        /*
+        WHY: Deleting tables can be surprisingly slow (over 10 seconds even for almost empty table)
+        and delete table with API returns before the table is properly deleted. This can lead to
+        Conflict 409 if we execute `CreateIfNotExists` while the table is still being deleted behind
+        the scenes and we use same name.
+        */
         private readonly string _answersTable = $"mockAnswers{Guid.NewGuid()}".Replace("-", string.Empty);
         private readonly string _questionsTable = $"mockQuestions{Guid.NewGuid()}".Replace("-", string.Empty);
 
