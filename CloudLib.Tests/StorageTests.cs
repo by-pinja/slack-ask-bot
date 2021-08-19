@@ -42,26 +42,45 @@ namespace CloudLib.Tests
         }
 
         [Test]
-        public async Task BasicCreate()
+        public async Task CreateMultipleQuestionniaore()
         {
-            var id = Guid.NewGuid().ToString();
-            var questionnaire = new QuestionnaireEntity(id, "mockchannel")
+            var questionnaires = Enumerable.Range(0, 10).Select(i => new QuestionnaireEntity(i.ToString(), "mockchannel")
             {
-                Question = "Who is it?",
+                Question = $"Who is it? {i}",
                 AnswerOptions = new[]
                 {
                     "a", "b", "c"
                 },
                 Created = DateTime.UtcNow,
-                MessageTimestamp = "timestamp new"
-            };
+                MessageTimestamp = $"timestamp new {i}"
+            });
 
-            await _storage.InsertOrMerge(questionnaire);
+            foreach (var questionnaire in questionnaires)
+            {
+                await _storage.InsertOrMerge(questionnaire);
+            }
 
             var all = await _storage.GetQuestionnaires();
-            var savedQuestionniare = all.FirstOrDefault(q => q.QuestionnaireId == id);
-            savedQuestionniare.Should().NotBeNull();
+            foreach (var expectedQuestionniare in questionnaires)
+            {
+                var savedQuestionniare = all.FirstOrDefault(q => q.QuestionnaireId == expectedQuestionniare.QuestionnaireId);
+                savedQuestionniare.Should().NotBeNull();
+
+                // Test single select also
+                var actualQuestionnaire = await _storage.GetQuestionnaire(expectedQuestionniare.QuestionnaireId);
+                actualQuestionnaire.MessageTimestamp.Should().Be(expectedQuestionniare.MessageTimestamp);
+                actualQuestionnaire.Question.Should().Be(expectedQuestionniare.Question);
+            }
         }
+
+        [Test]
+        public async Task GetQuestionnaire_Missing()
+        {
+            var result = await _storage.GetQuestionnaire("missing");
+
+            result.Should().BeNull();
+        }
+
 
         [TearDown]
         public async Task Teardown()
