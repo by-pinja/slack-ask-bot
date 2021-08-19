@@ -66,13 +66,12 @@ podTemplate(label: pod.label,
                             }
                             stage('Create .runsettings-file acceptance tests') {
                                 sh """
-                                    pwsh -command "&./AcceptanceTests/Create-RunSettingsFile.ps1 -ResourceGroup $ciRg -WebAppName $ciAppName"
+                                    pwsh -command "&./Create-RunSettingsFile.ps1 -ResourceGroup $ciRg -WebAppName $ciAppName"
                                 """
                             }
                             container('dotnet') {
-                                stage('Acceptance tests') {
+                                stage('Acceptance tests & integration tests') {
                                     sh """
-                                        cd AcceptanceTests
                                         dotnet test --settings '.runsettings'
                                     """
                                 }

@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
 using SlackLib;
-using SlackLib.Messages;
 using SlackLib.Requests;
 using SlackLib.Responses;
 

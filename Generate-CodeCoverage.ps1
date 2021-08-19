@@ -25,7 +25,7 @@ if ($DeleteOldTestResults) {
     Get-ChildItem *\*\ -Filter TestResults | Remove-Item -Recurse
 }
 
-dotnet test --collect:"XPlat Code Coverage"
+dotnet test --collect:"XPlat Code Coverage" --settings .\.runsettings
 
 reportgenerator `
     "-reports:**/TestResults/*/coverage.cobertura.xml" `
