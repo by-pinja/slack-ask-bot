@@ -1,4 +1,4 @@
-library 'jenkins-ptcs-library@3.2.0'
+library 'jenkins-ptcs-library@4.1.3'
 
 def isDependabot(branchName) { return branchName.toString().startsWith("dependabot/nuget") }
 def isTest(branchName) { return branchName == "test" }
